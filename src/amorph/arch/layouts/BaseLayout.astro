@@ -1,0 +1,126 @@
+---
+/**
+ * 🔮 AMORPH BASE LAYOUT
+ * =====================
+ * 
+ * Main layout with MorphHeader and AMORPH System
+ * 
+ * Usage:
+ * <BaseLayout title="Page Title">
+ *   <slot />
+ * </BaseLayout>
+ */
+
+interface Props {
+  title?: string;
+  description?: string;
+  enableGlow?: boolean;
+  enableSearch?: boolean;
+  enableAnimation?: boolean;
+}
+
+const { 
+  title = 'Funginomi AMORPH',
+  description = 'Morphologische Pilz-Datenbank',
+  enableGlow = true,
+  enableSearch = true,
+  enableAnimation = true,
+} = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content={description}>
+  <title>{title}</title>
+  
+  <!-- AMORPH System -->
+  <script type="module" define:vars={{ enableGlow, enableSearch, enableAnimation }}>
+    import { amorph } from '/src/amorph/init.js';
+    
+    // Wait for DOM ready
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log('🔮 AMORPH System initializing...');
+      
+      // Enable reactors based on props
+      const reactorsToEnable = [];
+      
+      if (enableGlow) reactorsToEnable.push({ name: 'glow', config: { intensity: 1.5, hoverBoost: 2.0 } });
+      if (enableSearch) reactorsToEnable.push({ name: 'search', config: { highlightColor: '#667eea' } });
+      if (enableAnimation) reactorsToEnable.push({ name: 'animation', config: { type: 'fade-in', duration: 600, stagger: 100 } });
+      
+      // Wait a bit for morphs to register
+      setTimeout(async () => {
+        for (const reactor of reactorsToEnable) {
+          try {
+            await amorph.enableReactor(reactor.name, reactor.config);
+            console.log(`✅ ${reactor.name} reactor enabled`);
+          } catch (error) {
+            console.warn(`⚠️ Failed to enable ${reactor.name}:`, error);
+          }
+        }
+        
+        console.log('🔮 AMORPH System ready!', amorph.getSystemInfo());
+      }, 500);
+    });
+  </script>
+  
+  <style is:global>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      color: #1a1a2e;
+    }
+    
+    /* Content wrapper */
+    .amorph-content {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .amorph-content {
+        padding: 1rem;
+      }
+    }
+    
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: rgba(255, 255, 255, 0.9);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- MorphHeader Global Component -->
+  <morph-header></morph-header>
+  
+  <!-- Main Content -->
+  <main class="amorph-content">
+    <slot />
+  </main>
+  
+  <!-- Footer (optional) -->
+  <footer style="padding: 2rem; text-align: center; color: rgba(255, 255, 255, 0.7);">
+    <p>🔮 Powered by AMORPH System v1.0.0</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,309 @@
+---
+/**
+ * 🍄 FUNGUS DETAIL PAGE
+ * =====================
+ * 
+ * Shows complete fungus data with all 12 perspectives
+ * Dynamic route: /fungi/[slug]
+ */
+
+import BaseLayout from '@/amorph/arch/layouts/BaseLayout.astro';
+import { fetchFungus } from '@/amorph/arch/convex';
+
+// Get slug from URL params
+const { slug } = Astro.params;
+
+// Fetch fungus data
+const fungusData = await fetchFungus(slug);
+
+if (!fungusData) {
+  return Astro.redirect('/fungi');
+}
+
+// Helper to get perspective color
+const perspectiveColors = {
+  culinary: '#22c55e',
+  medicinal: '#ef4444',
+  cultivation: '#f59e0b',
+  safety: '#dc2626',
+  ecology: '#10b981',
+  morphology: '#8b5cf6',
+  biochemistry: '#06b6d4',
+  cultural: '#ec4899',
+  commercial: '#f97316',
+  legal: '#64748b',
+  research: '#0ea5e9',
+  sustainability: '#84cc16'
+};
+---
+
+<BaseLayout 
+  title={`${fungusData.commonName} - Funginomi`}
+  description={fungusData.description}
+  enableGlow={true}
+  enableSearch={true}
+  enableAnimation={true}
+>
+  <div class="detail-container">
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <name-morph 
+          perspective="common"
+          value={fungusData.commonName}
+          size="large"
+        ></name-morph>
+        
+        <name-morph 
+          perspective="scientific"
+          value={fungusData.latinName}
+          lang="la"
+        ></name-morph>
+        
+        {fungusData.description && (
+          <text-morph 
+            perspective="general"
+            value={fungusData.description}
+          ></text-morph>
+        )}
+      </div>
+      
+      <div class="hero-image">
+        {fungusData.images?.[0] && (
+          <image-morph
+            src={fungusData.images[0].url}
+            alt={fungusData.commonName}
+            aspect-ratio="1/1"
+          ></image-morph>
+        )}
+      </div>
+    </section>
+
+    <!-- All Images Gallery -->
+    {fungusData.images && fungusData.images.length > 1 && (
+      <section class="gallery">
+        <h2>📸 Gallery</h2>
+        <div class="gallery-grid">
+          {fungusData.images.slice(1).map((image: any) => (
+            <image-morph
+              src={image.url}
+              alt={image.alt}
+              caption={image.caption}
+            ></image-morph>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- Quick Facts -->
+    <section class="quick-facts">
+      <h2>⚡ Quick Facts</h2>
+      <div class="facts-grid">
+        {fungusData.safetyAndIdentification?.edibility && (
+          <boolean-morph
+            value={fungusData.safetyAndIdentification.edibility === 'edible'}
+            label="Edible"
+            perspectives={JSON.stringify(['safety', 'culinary'])}
+          ></boolean-morph>
+        )}
+        
+        {fungusData.cultivationAndProcessing?.cultivable !== undefined && (
+          <boolean-morph
+            value={fungusData.cultivationAndProcessing.cultivable}
+            label="Cultivable"
+            perspectives={JSON.stringify(['cultivation'])}
+          ></boolean-morph>
+        )}
+        
+        {fungusData.medicinalAndHealth?.medicinalUse !== undefined && (
+          <boolean-morph
+            value={fungusData.medicinalAndHealth.medicinalUse}
+            label="Medicinal"
+            perspectives={JSON.stringify(['medicinal'])}
+          ></boolean-morph>
+        )}
+      </div>
+    </section>
+
+    <!-- Ecology & Habitat -->
+    {fungusData.ecologyAndHabitat && (
+      <section class="perspective-section">
+        <h2 style="color: {perspectiveColors.ecology}">🌿 Ecology & Habitat</h2>
+        
+        {fungusData.ecologyAndHabitat.habitat && (
+          <list-morph
+            items={JSON.stringify(fungusData.ecologyAndHabitat.habitat)}
+            label="Habitat"
+            color={perspectiveColors.ecology}
+            perspectives={JSON.stringify(['ecology'])}
+          ></list-morph>
+        )}
+        
+        {fungusData.ecologyAndHabitat.substrate && (
+          <list-morph
+            items={JSON.stringify(fungusData.ecologyAndHabitat.substrate)}
+            label="Substrate"
+            color={perspectiveColors.ecology}
+            perspectives={JSON.stringify(['ecology'])}
+          ></list-morph>
+        )}
+      </section>
+    )}
+
+    <!-- Cultivation -->
+    {fungusData.cultivationAndProcessing && (
+      <section class="perspective-section">
+        <h2 style="color: {perspectiveColors.cultivation}">🌱 Cultivation</h2>
+        
+        {fungusData.cultivationAndProcessing.cultivationDifficulty && (
+          <text-morph
+            label="Difficulty"
+            value={fungusData.cultivationAndProcessing.cultivationDifficulty}
+            perspectives={JSON.stringify(['cultivation'])}
+          ></text-morph>
+        )}
+        
+        {fungusData.cultivationAndProcessing.temperatureRequirements?.optimal && (
+          <number-morph
+            value={fungusData.cultivationAndProcessing.temperatureRequirements.optimal.optimal}
+            unit="°C"
+            label="Optimal Temperature"
+            min={fungusData.cultivationAndProcessing.temperatureRequirements.optimal.min}
+            max={fungusData.cultivationAndProcessing.temperatureRequirements.optimal.max}
+            show-range
+            color={perspectiveColors.cultivation}
+            perspectives={JSON.stringify(['cultivation'])}
+          ></number-morph>
+        )}
+      </section>
+    )}
+
+    <!-- Safety & Identification -->
+    {fungusData.safetyAndIdentification && (
+      <section class="perspective-section">
+        <h2 style="color: {perspectiveColors.safety}">⚠️ Safety & Identification</h2>
+        
+        {fungusData.safetyAndIdentification.toxicityLevel && (
+          <text-morph
+            label="Toxicity Level"
+            value={fungusData.safetyAndIdentification.toxicityLevel}
+            perspectives={JSON.stringify(['safety'])}
+          ></text-morph>
+        )}
+        
+        {fungusData.safetyAndIdentification.keyIdentificationFeatures && (
+          <list-morph
+            items={JSON.stringify(fungusData.safetyAndIdentification.keyIdentificationFeatures)}
+            label="Key Features"
+            color={perspectiveColors.safety}
+            perspectives={JSON.stringify(['safety'])}
+          ></list-morph>
+        )}
+      </section>
+    )}
+
+    <!-- Back to List -->
+    <div class="back-link">
+      <a href="/fungi">← Back to Fungi List</a>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .hero-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  section {
+    margin-bottom: 3rem;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: white;
+  }
+
+  .quick-facts {
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .facts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .perspective-section {
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .back-link {
+    margin-top: 3rem;
+    text-align: center;
+  }
+
+  .back-link a {
+    display: inline-block;
+    padding: 0.75rem 2rem;
+    background: rgba(102, 126, 234, 0.1);
+    border: 1.5px solid rgba(102, 126, 234, 0.3);
+    color: #8b9dff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .back-link a:hover {
+    background: rgba(102, 126, 234, 0.2);
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

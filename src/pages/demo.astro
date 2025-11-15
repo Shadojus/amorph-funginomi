@@ -1,0 +1,420 @@
+---
+import BaseLayout from '@/amorph/arch/layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="AMORPH Demo - Full System Test">
+  <div class="demo-container">
+    <!-- Header -->
+    <morph-header></morph-header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1>🔮 AMORPH System Demo</h1>
+      <p>Interactive demonstration of all features</p>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-value" id="morph-count">0</span>
+          <span class="stat-label">Morphs</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="reactor-count">9</span>
+          <span class="stat-label">Reactors</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="perspective-count">12</span>
+          <span class="stat-label">Perspectives</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Test Sections -->
+    <section class="section">
+      <h2>📦 Atomic Morphs</h2>
+      <div class="morph-grid">
+        <name-morph 
+          primary="Amanita muscaria" 
+          secondary="Fly Agaric"
+          perspectives='["taxonomy"]'
+        ></name-morph>
+
+        <image-morph 
+          src="/images/fungi/beauveria-bassiana.jpg"
+          alt="Beauveria bassiana"
+          perspectives='["taxonomy"]'
+        ></image-morph>
+
+        <tag-morph tag="edible" perspectives='["culinary"]'></tag-morph>
+        <tag-morph tag="medicinal" perspectives='["medicinal"]'></tag-morph>
+        <tag-morph tag="toxic" perspectives='["safety"]'></tag-morph>
+
+        <text-morph 
+          content="A fascinating fungus with red cap and white spots"
+          perspectives='["taxonomy"]'
+        ></text-morph>
+
+        <boolean-morph 
+          value="true" 
+          label="Edible"
+          perspectives='["culinary"]'
+        ></boolean-morph>
+
+        <number-morph 
+          value="25" 
+          unit="°C"
+          label="Optimal Temperature"
+          min="15"
+          max="30"
+          show-range="true"
+          perspectives='["cultivation"]'
+        ></number-morph>
+
+        <list-morph 
+          items='["Forest", "Grassland", "Mountains"]'
+          label="Habitats"
+          max-items="5"
+          perspectives='["ecology"]'
+        ></list-morph>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>📊 Advanced Morphs</h2>
+      <div class="morph-grid">
+        <chart-morph
+          type="bar"
+          data='{"labels":["Spring","Summer","Fall","Winter"],"values":[10,25,15,5]}'
+          label="Seasonal Growth"
+          perspectives='["ecology"]'
+        ></chart-morph>
+
+        <map-morph
+          locations='[{"lat":51.5,"lng":-0.1,"name":"London"},{"lat":48.8,"lng":2.3,"name":"Paris"}]'
+          label="Distribution Map"
+          zoom="5"
+          perspectives='["ecology"]'
+        ></map-morph>
+
+        <timeline-morph
+          events='[{"date":"2024-03-01","label":"Inoculation"},{"date":"2024-05-15","label":"Pinning"},{"date":"2024-06-30","label":"Harvest"}]'
+          label="Growth Cycle"
+          perspectives='["cultivation"]'
+        ></timeline-morph>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>⚡ Reactor Controls</h2>
+      <div class="reactor-controls">
+        <button class="reactor-btn" data-reactor="glow">✨ Glow</button>
+        <button class="reactor-btn" data-reactor="pulse">💓 Pulse</button>
+        <button class="reactor-btn" data-reactor="hover">🎯 Hover</button>
+        <button class="reactor-btn" data-reactor="animation">🌈 Animation</button>
+        <button class="reactor-btn" data-reactor="colorShift">🎨 Color Shift</button>
+        <button class="reactor-btn" data-reactor="sort">🔢 Sort</button>
+        <button class="reactor-btn" data-reactor="filter">🔍 Filter</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>🫧 BubbleView</h2>
+      <div class="bubbleview-container">
+        <bubble-view></bubble-view>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>✨ Pixie Effects</h2>
+      <div class="pixie-container">
+        <canvas id="pixie-canvas"></canvas>
+        <div class="pixie-controls">
+          <button class="pixie-btn" data-effect="sparkle">✨ Sparkle</button>
+          <button class="pixie-btn" data-effect="bloom">💥 Bloom</button>
+          <button class="pixie-btn" data-effect="fade">🌫️ Fade</button>
+          <button class="pixie-btn" data-effect="trail">🌊 Trail</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>📊 System Stats</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Performance</h3>
+          <div id="performance-stats">Loading...</div>
+        </div>
+        <div class="stat-card">
+          <h3>State</h3>
+          <div id="state-stats">Loading...</div>
+        </div>
+        <div class="stat-card">
+          <h3>Reactors</h3>
+          <div id="reactor-stats">Loading...</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module">
+    import '/src/amorph/init.js';
+    import { PixieEffects } from '/src/amorph/effects/PixieEffects.js';
+    import { RedisEventBus } from '/src/amorph/sync/RedisEventBus.js';
+
+    // Wait for AMORPH to load
+    window.addEventListener('load', async () => {
+      const amorph = window.amorph;
+      if (!amorph) {
+        console.error('AMORPH not loaded!');
+        return;
+      }
+
+      console.log('🔮 AMORPH Demo loaded!');
+
+      // Update morph count
+      setTimeout(() => {
+        const count = amorph.state.morphs.size;
+        document.getElementById('morph-count').textContent = count;
+      }, 1000);
+
+      // Reactor controls
+      document.querySelectorAll('.reactor-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const reactor = btn.dataset.reactor;
+          const isActive = btn.classList.contains('active');
+          
+          if (isActive) {
+            amorph.disableReactor(reactor);
+            btn.classList.remove('active');
+          } else {
+            const config = reactor === 'pulse' ? { mode: 'hover' } : 
+                          reactor === 'colorShift' ? { mode: 'border' } :
+                          reactor === 'sort' ? { mode: 'alphabetical' } : {};
+            
+            amorph.enableReactor(reactor, config);
+            btn.classList.add('active');
+          }
+        });
+      });
+
+      // Initialize BubbleView with morphs
+      const bubbleView = document.querySelector('bubble-view');
+      if (bubbleView) {
+        setTimeout(() => {
+          const morphs = Array.from(amorph.state.morphs);
+          bubbleView.setMorphs(morphs.slice(0, 20));
+        }, 1000);
+      }
+
+      // Initialize Pixie Effects
+      const pixieCanvas = document.getElementById('pixie-canvas');
+      if (pixieCanvas) {
+        const container = pixieCanvas.parentElement;
+        pixieCanvas.width = container.offsetWidth;
+        pixieCanvas.height = 400;
+
+        const pixieEffects = new PixieEffects(pixieCanvas);
+        pixieEffects.start();
+
+        // Pixie controls
+        document.querySelectorAll('.pixie-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const effect = btn.dataset.effect;
+            const x = pixieCanvas.width / 2;
+            const y = pixieCanvas.height / 2;
+
+            switch(effect) {
+              case 'sparkle':
+                pixieEffects.sparkle(x, y, '#667eea', 20);
+                break;
+              case 'bloom':
+                pixieEffects.bloom(x, y, '#667eea', 50);
+                break;
+              case 'fade':
+                pixieEffects.fade(x - 50, y - 50, 100, 100, '#667eea');
+                break;
+              case 'trail':
+                const morphs = Array.from(amorph.state.morphs);
+                if (morphs.length > 0) {
+                  pixieEffects.addTrail(morphs[0], '#667eea');
+                }
+                break;
+            }
+          });
+        });
+      }
+
+      // Initialize Redis Event Bus (simulated)
+      const eventBus = new RedisEventBus(amorph);
+      await eventBus.connect();
+
+      // Update stats every 2 seconds
+      setInterval(() => {
+        const info = amorph.getSystemInfo();
+        const perfStats = amorph.performanceObserver?.getSummary();
+
+        document.getElementById('performance-stats').innerHTML = perfStats ? `
+          <div>FPS: ${perfStats.avgFPS.toFixed(1)}</div>
+          <div>Memory: ${(perfStats.avgMemory / 1024 / 1024).toFixed(1)} MB</div>
+        ` : 'No data';
+
+        document.getElementById('state-stats').innerHTML = `
+          <div>Morphs: ${info.morphs}</div>
+          <div>Perspectives: ${info.activePerspectives}</div>
+        `;
+
+        document.getElementById('reactor-stats').innerHTML = `
+          <div>Active: ${info.activeReactors}</div>
+          <div>Available: ${info.registeredReactors}</div>
+        `;
+      }, 2000);
+
+      console.log('✅ Demo fully initialized!');
+    });
+  </script>
+
+  <style>
+    .demo-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 60px 20px;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+      border-radius: 16px;
+      margin-bottom: 40px;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 40px;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-top: 8px;
+    }
+
+    .section {
+      margin-bottom: 60px;
+    }
+
+    .section h2 {
+      font-size: 32px;
+      margin-bottom: 24px;
+      color: white;
+    }
+
+    .morph-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .reactor-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .reactor-btn, .pixie-btn {
+      padding: 12px 24px;
+      background: rgba(102, 126, 234, 0.1);
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .reactor-btn:hover, .pixie-btn:hover {
+      background: rgba(102, 126, 234, 0.2);
+      border-color: #667eea;
+      transform: translateY(-2px);
+    }
+
+    .reactor-btn.active {
+      background: rgba(102, 126, 234, 0.3);
+      border-color: #667eea;
+    }
+
+    .bubbleview-container {
+      height: 600px;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .pixie-container {
+      position: relative;
+      height: 400px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #pixie-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .pixie-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-card h3 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #667eea;
+    }
+
+    .stat-card > div {
+      font-size: 14px;
+      color: #cbd5e1;
+      line-height: 1.8;
+    }
+  </style>
+</BaseLayout>

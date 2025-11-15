@@ -1,0 +1,29 @@
+{
+  "name": "amorph-funginomi",
+  "version": "1.0.0",
+  "description": "AMORPH System - Atomic Morphable UI Framework for Funginomi",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "convex": "npx convex dev",
+    "convex:local": "npx convex dev --local",
+    "seed": "npm run seed:beauveria && npm run seed:hypsizygus && npm run seed:pholiota",
+    "seed:beauveria": "npx convex run seed_beauveria_bassiana:default",
+    "seed:hypsizygus": "npx convex run seed_hypsizygus_tessellatus:default",
+    "seed:pholiota": "npx convex run seed_pholiota_adiposa:default"
+  },
+  "dependencies": {
+    "astro": "^5.15.8",
+    "convex": "^1.16.0",
+    "lit": "^3.1.0",
+    "pixi.js": "^8.0.0",
+    "redis": "^4.6.0",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/redis": "^4.0.11",
+    "typescript": "^5.3.0"
+  }
+}

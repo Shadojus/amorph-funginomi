@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔮 AMORPH System - Phase 6 Test</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* Content Area */
+    .content {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Error Display */
+    #error-display {
+      background: rgba(255, 59, 48, 0.9);
+      color: white;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: none;
+      white-space: pre-wrap;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+    }
+
+    #error-display.show {
+      display: block;
+    }
+
+    /* Loading State */
+    .loading {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: white;
+      font-size: 1.5rem;
+    }
+
+    /* Fungi Grid */
+    .fungi-grid {
+      display: grid;
+      gap: 2rem;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .fungi-grid.ready {
+      opacity: 1;
+    }
+
+    /* Grid View */
+    .fungi-grid.view-grid {
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+
+    /* List View */
+    .fungi-grid.view-list {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .fungi-grid.view-list .fungus-card {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    .fungi-grid.view-list .fungus-card .morphs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      flex: 1;
+    }
+
+    /* Compact View */
+    .fungi-grid.view-compact {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .fungi-grid.view-compact .fungus-card {
+      padding: 1rem;
+    }
+
+    .fungi-grid.view-compact name-morph,
+    .fungi-grid.view-compact text-morph {
+      font-size: 0.875rem;
+    }
+
+    /* Fungus Card */
+    .fungus-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .fungus-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Morphs */
+    .morphs {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    name-morph {
+      display: block;
+    }
+
+    image-morph {
+      display: block;
+      margin: 0.75rem 0;
+    }
+
+    tag-morph {
+      display: inline-block;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    text-morph {
+      display: block;
+      margin-top: 0.5rem;
+    }
+
+    /* Info Panel */
+    .info-panel {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-panel h2 {
+      margin-bottom: 1rem;
+      color: #667eea;
+    }
+
+    .info-panel p {
+      margin-bottom: 0.5rem;
+      color: #555;
+    }
+
+    /* Dark Mode */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      }
+
+      .fungus-card,
+      .info-panel {
+        background: rgba(30, 30, 30, 0.9);
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .info-panel h2 {
+        color: #667eea;
+      }
+
+      .info-panel p {
+        color: rgba(255, 255, 255, 0.7);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Error Display -->
+  <div id="error-display"></div>
+
+  <!-- MorphHeader Component -->
+  <morph-header id="morphHeader"></morph-header>
+
+  <!-- Loading State -->
+  <div id="loading" class="loading">
+    🔮 Loading AMORPH System...
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <!-- Info Panel -->
+    <div class="info-panel" style="display: none;" id="info-panel">
+      <h2>🎉 Phase 6: MorphHeader Global Component</h2>
+      <p><strong>Features:</strong></p>
+      <ul>
+        <li>✨ Perspective Selector (max 4 gleichzeitig, color-coded)</li>
+        <li>⚡ Reactor Toggles (Glow, Search, Animation)</li>
+        <li>🔍 Global Search Bar (connected to SearchReactor)</li>
+        <li>📐 View Mode Switcher (Grid, List, Compact)</li>
+        <li>💎 Glassmorphism Design (sticky header)</li>
+        <li>📱 Mobile Responsive</li>
+        <li>🌙 Dark Mode Support</li>
+      </ul>
+      <p style="margin-top: 1rem; color: #667eea; font-weight: 600;">
+        Teste: Perspectives hinzufügen/entfernen • Reactors togglen • Search eingeben • View Mode wechseln
+      </p>
+    </div>
+
+    <!-- Fungi Grid -->
+    <div id="fungi-grid" class="fungi-grid view-grid">
+      <!-- Steinpilz -->
+      <div class="fungus-card">
+        <div class="morphs">
+          <name-morph 
+            perspective="culinary" 
+            value="Steinpilz"
+            lang="de"
+          ></name-morph>
+          
+          <name-morph 
+            perspective="scientific" 
+            value="Boletus edulis"
+            lang="la"
+          ></name-morph>
+          
+          <image-morph
+            src="https://images.unsplash.com/photo-1564501808381-a71eb90c3682?w=400&h=300&fit=crop"
+            alt="Steinpilz"
+            caption="Boletus edulis"
+          ></image-morph>
+          
+          <tag-morph tag="edible" color="auto"></tag-morph>
+          <tag-morph tag="autumn" color="auto"></tag-morph>
+          <tag-morph tag="forest" color="auto"></tag-morph>
+          <tag-morph tag="delicious" color="auto"></tag-morph>
+          
+          <text-morph 
+            perspective="culinary"
+            value="Einer der beliebtesten Speisepilze mit nussigem Geschmack."
+          ></text-morph>
+        </div>
+      </div>
+
+      <!-- Fliegenpilz -->
+      <div class="fungus-card">
+        <div class="morphs">
+          <name-morph 
+            perspective="culinary" 
+            value="Fliegenpilz"
+            lang="de"
+          ></name-morph>
+          
+          <name-morph 
+            perspective="scientific" 
+            value="Amanita muscaria"
+            lang="la"
+          ></name-morph>
+          
+          <image-morph
+            src="https://images.unsplash.com/photo-1612690423702-0916d8655295?w=400&h=300&fit=crop"
+            alt="Fliegenpilz"
+            caption="Amanita muscaria"
+          ></image-morph>
+          
+          <tag-morph tag="toxic" color="auto"></tag-morph>
+          <tag-morph tag="iconic" color="auto"></tag-morph>
+          <tag-morph tag="forest" color="auto"></tag-morph>
+          <tag-morph tag="red" color="auto"></tag-morph>
+          
+          <text-morph 
+            perspective="cultural"
+            value="Ikonischer Giftpilz mit rotem Hut und weißen Punkten."
+          ></text-morph>
+        </div>
+      </div>
+
+      <!-- Pfifferling -->
+      <div class="fungus-card">
+        <div class="morphs">
+          <name-morph 
+            perspective="culinary" 
+            value="Pfifferling"
+            lang="de"
+          ></name-morph>
+          
+          <name-morph 
+            perspective="scientific" 
+            value="Cantharellus cibarius"
+            lang="la"
+          ></name-morph>
+          
+          <image-morph
+            src="https://images.unsplash.com/photo-1595451510232-09e49bd4fe94?w=400&h=300&fit=crop"
+            alt="Pfifferling"
+            caption="Cantharellus cibarius"
+          ></image-morph>
+          
+          <tag-morph tag="edible" color="auto"></tag-morph>
+          <tag-morph tag="summer" color="auto"></tag-morph>
+          <tag-morph tag="forest" color="auto"></tag-morph>
+          <tag-morph tag="yellow" color="auto"></tag-morph>
+          
+          <text-morph 
+            perspective="culinary"
+            value="Goldgelber Speisepilz mit fruchtigem Aroma."
+          ></text-morph>
+        </div>
+      </div>
+
+      <!-- Knollenblätterpilz -->
+      <div class="fungus-card">
+        <div class="morphs">
+          <name-morph 
+            perspective="culinary" 
+            value="Grüner Knollenblätterpilz"
+            lang="de"
+          ></name-morph>
+          
+          <name-morph 
+            perspective="scientific" 
+            value="Amanita phalloides"
+            lang="la"
+          ></name-morph>
+          
+          <image-morph
+            src="https://images.unsplash.com/photo-1605978245998-2e789ac7a4b6?w=400&h=300&fit=crop"
+            alt="Knollenblätterpilz"
+            caption="Amanita phalloides"
+          ></image-morph>
+          
+          <tag-morph tag="deadly" color="auto"></tag-morph>
+          <tag-morph tag="toxic" color="auto"></tag-morph>
+          <tag-morph tag="dangerous" color="auto"></tag-morph>
+          <tag-morph tag="forest" color="auto"></tag-morph>
+          
+          <text-morph 
+            perspective="medical"
+            value="Einer der giftigsten Pilze weltweit - tödlich!"
+          ></text-morph>
+        </div>
+      </div>
+
+      <!-- Champignon -->
+      <div class="fungus-card">
+        <div class="morphs">
+          <name-morph 
+            perspective="culinary" 
+            value="Wiesen-Champignon"
+            lang="de"
+          ></name-morph>
+          
+          <name-morph 
+            perspective="scientific" 
+            value="Agaricus campestris"
+            lang="la"
+          ></name-morph>
+          
+          <image-morph
+            src="https://images.unsplash.com/photo-1565035898165-f8fa44d5a86a?w=400&h=300&fit=crop"
+            alt="Champignon"
+            caption="Agaricus campestris"
+          ></image-morph>
+          
+          <tag-morph tag="edible" color="auto"></tag-morph>
+          <tag-morph tag="meadow" color="auto"></tag-morph>
+          <tag-morph tag="common" color="auto"></tag-morph>
+          <tag-morph tag="cultivated" color="auto"></tag-morph>
+          
+          <text-morph 
+            perspective="culinary"
+            value="Weltweit beliebtester Kulturpilz mit mildem Geschmack."
+          ></text-morph>
+        </div>
+      </div>
+
+      <!-- Morchel -->
+      <div class="fungus-card">
+        <div class="morphs">
+          <name-morph 
+            perspective="culinary" 
+            value="Speise-Morchel"
+            lang="de"
+          ></name-morph>
+          
+          <name-morph 
+            perspective="scientific" 
+            value="Morchella esculenta"
+            lang="la"
+          ></name-morph>
+          
+          <image-morph
+            src="https://images.unsplash.com/photo-1613835557102-a1bff3c19084?w=400&h=300&fit=crop"
+            alt="Morchel"
+            caption="Morchella esculenta"
+          ></image-morph>
+          
+          <tag-morph tag="edible" color="auto"></tag-morph>
+          <tag-morph tag="spring" color="auto"></tag-morph>
+          <tag-morph tag="gourmet" color="auto"></tag-morph>
+          <tag-morph tag="rare" color="auto"></tag-morph>
+          
+          <text-morph 
+            perspective="culinary"
+            value="Delikater Frühjahrspilz mit wabenförmigem Hut."
+          ></text-morph>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    // ============================================
+    // ERROR HANDLING
+    // ============================================
+    const errorDisplay = document.getElementById('error-display');
+    
+    window.addEventListener('error', (e) => {
+      errorDisplay.textContent = `❌ Error: ${e.message}\n   at ${e.filename}:${e.lineno}:${e.colno}`;
+      errorDisplay.classList.add('show');
+      console.error(e);
+    });
+
+    window.addEventListener('unhandledrejection', (e) => {
+      errorDisplay.textContent = `❌ Unhandled Promise Rejection:\n${e.reason}`;
+      errorDisplay.classList.add('show');
+      console.error(e);
+    });
+
+    // ============================================
+    // IMPORT AMORPH SYSTEM
+    // ============================================
+    try {
+      const { amorph } = await import('/src/amorph/init.js');
+      console.log('✅ AMORPH imported:', amorph);
+
+      // Hide loading
+      document.getElementById('loading').style.display = 'none';
+      
+      // Show info panel
+      document.getElementById('info-panel').style.display = 'block';
+      
+      // Show grid
+      const grid = document.getElementById('fungi-grid');
+      setTimeout(() => grid.classList.add('ready'), 100);
+
+      // ============================================
+      // ENABLE REACTORS
+      // ============================================
+      setTimeout(async () => {
+        console.log('🔧 Enabling reactors...');
+        
+        // Enable all reactors
+        await amorph.enableReactor('glow', {
+          intensity: 1.5,
+          hoverBoost: 2.0,
+        });
+        
+        await amorph.enableReactor('search', {
+          highlightColor: '#667eea',
+        });
+        
+        await amorph.enableReactor('animation', {
+          type: 'fade-in',
+          duration: 600,
+          stagger: 100,
+        });
+        
+        console.log('✅ System ready!');
+      }, 1000);
+
+      // ============================================
+      // VIEW MODE LISTENER
+      // ============================================
+      const morphHeader = document.getElementById('morphHeader');
+      morphHeader.addEventListener('view-mode-changed', (e) => {
+        const grid = document.getElementById('fungi-grid');
+        grid.className = `fungi-grid ready view-${e.detail.mode}`;
+        console.log('📐 View mode changed:', e.detail.mode);
+      });
+
+      // ============================================
+      // PERSPECTIVE LISTENERS
+      // ============================================
+      morphHeader.addEventListener('perspective-added', (e) => {
+        console.log('🎨 Perspective added:', e.detail);
+      });
+
+      morphHeader.addEventListener('perspective-removed', (e) => {
+        console.log('🎨 Perspective removed:', e.detail);
+      });
+
+      // ============================================
+      // SYSTEM EVENT LISTENERS
+      // ============================================
+      amorph.on('amorph:search:completed', (data) => {
+        console.log('🔍 Search completed:', data);
+      });
+
+    } catch (error) {
+      errorDisplay.textContent = `❌ Failed to import AMORPH:\n${error.message}\n${error.stack}`;
+      errorDisplay.classList.add('show');
+      console.error('Failed to import AMORPH:', error);
+    }
+  </script>
+</body>
+</html>

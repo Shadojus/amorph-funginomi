@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AMORPH Debug Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: #1e293b;
+      color: white;
+      font-family: system-ui, sans-serif;
+    }
+    
+    h1 { color: #3b82f6; }
+    
+    .test-box {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    
+    name-morph, tag-morph, text-morph {
+      display: block;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 AMORPH Debug Test</h1>
+  
+  <div class="test-box">
+    <h2>Test 1: Simple Name Morph</h2>
+    <name-morph value="Test Pilz" variant="common" size="large"></name-morph>
+  </div>
+  
+  <div class="test-box">
+    <h2>Test 2: Tag Morph</h2>
+    <tag-morph value="edible" variant="pill"></tag-morph>
+  </div>
+  
+  <div class="test-box">
+    <h2>Test 3: Text Morph</h2>
+    <text-morph value="Dies ist ein Test Text der ziemlich lang sein könnte." maxlines="2" size="medium"></text-morph>
+  </div>
+  
+  <div class="test-box">
+    <h2>Console Output:</h2>
+    <pre id="output"></pre>
+  </div>
+  
+  <script type="module">
+    const output = document.getElementById('output');
+    const log = (msg) => {
+      console.log(msg);
+      output.textContent += msg + '\n';
+    };
+    
+    try {
+      log('1. Importing AMORPH...');
+      const { amorph } = await import('/src/amorph/init.js');
+      
+      log('2. AMORPH loaded: ' + (amorph ? 'YES' : 'NO'));
+      log('3. window.amorph: ' + (window.amorph ? 'YES' : 'NO'));
+      
+      setTimeout(() => {
+        log('4. System Info:');
+        log(JSON.stringify(amorph.getSystemInfo(), null, 2));
+        
+        log('5. Registered Morphs: ' + amorph.state.morphs.size);
+        log('6. Registered Reactors: ' + amorph.reactors.size);
+      }, 1000);
+      
+    } catch (e) {
+      log('❌ ERROR: ' + e.message);
+      log(e.stack);
+    }
+  </script>
+</body>
+</html>

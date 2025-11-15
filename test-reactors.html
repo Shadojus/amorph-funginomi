@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AMORPH Phase 5 - Reactor Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: white;
+      font-family: system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      font-size: 48px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .subtitle {
+      font-size: 18px;
+      color: #94a3b8;
+      margin-bottom: 40px;
+    }
+    
+    .controls {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 40px;
+    }
+    
+    .controls h2 {
+      margin-top: 0;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+    
+    .control-group {
+      margin-bottom: 20px;
+    }
+    
+    .control-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+    
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      color: white;
+      font-size: 15px;
+    }
+    
+    input[type="text"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #3b82f6;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    
+    button {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      margin-right: 12px;
+      margin-bottom: 12px;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button.secondary {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    button.danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    
+    .morphs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 24px;
+      margin-top: 40px;
+    }
+    
+    .morph-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    
+    .morph-card name-morph {
+      margin-bottom: 12px;
+    }
+    
+    .morph-card image-morph {
+      margin-bottom: 16px;
+    }
+    
+    .morph-card .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .morph-card text-morph {
+      margin-top: 12px;
+    }
+    
+    .stats {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 40px;
+    }
+    
+    .stats pre {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌀 AMORPH Phase 5</h1>
+    <p class="subtitle">Basis Reactors - Glow, Search, Animation</p>
+    
+    <!-- Controls -->
+    <div class="controls">
+      <h2>🎛️ Reactor Controls</h2>
+      
+      <div class="control-group">
+        <label>🔍 Search</label>
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="Try: edible, toxic, mushroom, forest..."
+        >
+      </div>
+      
+      <div class="control-group">
+        <label>🎬 Animation Type</label>
+        <select id="animationType">
+          <option value="fade-scale">Fade Scale</option>
+          <option value="fade-in">Fade In</option>
+          <option value="slide-up">Slide Up</option>
+          <option value="bounce">Bounce</option>
+          <option value="slide-right">Slide Right</option>
+          <option value="rotate-in">Rotate In</option>
+        </select>
+      </div>
+      
+      <div>
+        <button id="toggleGlow">✨ Toggle Glow</button>
+        <button id="toggleSearch">🔍 Toggle Search</button>
+        <button id="toggleAnimation">🎬 Toggle Animation</button>
+        <button id="replayAnimation" class="secondary">🔁 Replay Animations</button>
+        <button id="clearSearch" class="secondary">🧹 Clear Search</button>
+      </div>
+    </div>
+    
+    <!-- Morph Grid -->
+    <div class="morphs-grid" id="morphsGrid">
+      <!-- Morph Cards werden hier generiert -->
+    </div>
+    
+    <!-- System Stats -->
+    <div class="stats">
+      <h2>📊 System Stats</h2>
+      <pre id="stats"></pre>
+    </div>
+  </div>
+  
+  <script type="module">
+    import { amorph } from '/src/amorph/init.js';
+    
+    // Demo Data
+    const demoFungi = [
+      {
+        commonName: 'Steinpilz',
+        latinName: 'Boletus edulis',
+        image: 'https://images.unsplash.com/photo-1568471173008-ca818c89a5d9?w=400',
+        tags: ['edible', 'delicious', 'forest', 'autumn'],
+        description: 'Beliebter Speisepilz mit nussigem Geschmack. Wächst in Laub- und Nadelwäldern.'
+      },
+      {
+        commonName: 'Fliegenpilz',
+        latinName: 'Amanita muscaria',
+        image: 'https://images.unsplash.com/photo-1565011523534-747a8601f10a?w=400',
+        tags: ['toxic', 'psychoactive', 'forest', 'iconic'],
+        description: 'Giftiger Pilz mit charakteristischer roter Kappe und weißen Punkten. Kulturell bedeutsam.'
+      },
+      {
+        commonName: 'Pfifferling',
+        latinName: 'Cantharellus cibarius',
+        image: 'https://images.unsplash.com/photo-1570913048614-7686f13b9236?w=400',
+        tags: ['edible', 'gourmet', 'forest', 'summer'],
+        description: 'Beliebter Speisepilz mit würzigem Geschmack. Goldgelbe Farbe, trichterförmig.'
+      },
+      {
+        commonName: 'Knollenblätterpilz',
+        latinName: 'Amanita phalloides',
+        image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400',
+        tags: ['deadly', 'toxic', 'forest', 'dangerous'],
+        description: 'Tödlich giftig! Einer der gefährlichsten Pilze. Häufig verwechselt mit Champignons.'
+      },
+      {
+        commonName: 'Austernpilz',
+        latinName: 'Pleurotus ostreatus',
+        image: 'https://images.unsplash.com/photo-1478145787956-f6f12c59624d?w=400',
+        tags: ['edible', 'cultivated', 'medicinal', 'winter'],
+        description: 'Beliebter Zuchtpilz mit mildem Geschmack. Wächst auf Totholz, auch im Winter.'
+      },
+      {
+        commonName: 'Shiitake',
+        latinName: 'Lentinula edodes',
+        image: 'https://images.unsplash.com/photo-1585313647787-9ebc78e7c20e?w=400',
+        tags: ['edible', 'cultivated', 'medicinal', 'asian'],
+        description: 'Asiatischer Heilpilz mit kräftigem Geschmack. Reich an Vitaminen und Mineralstoffen.'
+      },
+      {
+        commonName: 'Parasol',
+        latinName: 'Macrolepiota procera',
+        image: 'https://images.unsplash.com/photo-1569931944221-4f8e22ac68e7?w=400',
+        tags: ['edible', 'large', 'forest', 'autumn'],
+        description: 'Großer Speisepilz mit schuppiger Kappe. Kann bis zu 30cm Durchmesser erreichen.'
+      },
+      {
+        commonName: 'Champignon',
+        latinName: 'Agaricus bisporus',
+        image: 'https://images.unsplash.com/photo-1607509876509-b8b1c81cc8e6?w=400',
+        tags: ['edible', 'cultivated', 'common', 'year-round'],
+        description: 'Weltweit häufigster Zuchtpilz. Mild im Geschmack, vielseitig verwendbar.'
+      }
+    ];
+    
+    // Generate Morph Cards
+    const grid = document.getElementById('morphsGrid');
+    
+    demoFungi.forEach((fungus, index) => {
+      const card = document.createElement('div');
+      card.className = 'morph-card';
+      card.innerHTML = `
+        <name-morph 
+          value="${fungus.commonName}" 
+          variant="common"
+          size="large"
+        ></name-morph>
+        
+        <name-morph 
+          value="${fungus.latinName}" 
+          variant="latin"
+          size="small"
+        ></name-morph>
+        
+        <image-morph 
+          src="${fungus.image}" 
+          alt="${fungus.commonName}"
+          aspectratio="4/3"
+          lazy
+        ></image-morph>
+        
+        <div class="tags">
+          ${fungus.tags.map(tag => `
+            <tag-morph 
+              value="${tag}"
+              variant="pill"
+            ></tag-morph>
+          `).join('')}
+        </div>
+        
+        <text-morph 
+          value="${fungus.description}"
+          maxlines="3"
+          size="small"
+        ></text-morph>
+      `;
+      grid.appendChild(card);
+    });
+    
+    // Wait for morphs to register
+    setTimeout(() => {
+      // Enable default reactors
+      amorph.enableReactor('glow');
+      amorph.enableReactor('search');
+      amorph.enableReactor('animation');
+      
+      updateStats();
+    }, 100);
+    
+    // Controls
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      amorph.setSearchQuery(e.target.value);
+      amorph.emit('search:input', { query: e.target.value });
+    });
+    
+    document.getElementById('animationType').addEventListener('change', (e) => {
+      const reactor = amorph.getReactor('animation');
+      if (reactor) {
+        reactor.changeType(e.target.value);
+      }
+    });
+    
+    document.getElementById('toggleGlow').addEventListener('click', () => {
+      if (amorph.state.enabledReactors.has('glow')) {
+        amorph.disableReactor('glow');
+      } else {
+        amorph.enableReactor('glow');
+      }
+      updateStats();
+    });
+    
+    document.getElementById('toggleSearch').addEventListener('click', () => {
+      if (amorph.state.enabledReactors.has('search')) {
+        amorph.disableReactor('search');
+      } else {
+        amorph.enableReactor('search');
+      }
+      updateStats();
+    });
+    
+    document.getElementById('toggleAnimation').addEventListener('click', () => {
+      if (amorph.state.enabledReactors.has('animation')) {
+        amorph.disableReactor('animation');
+      } else {
+        amorph.enableReactor('animation');
+      }
+      updateStats();
+    });
+    
+    document.getElementById('replayAnimation').addEventListener('click', () => {
+      const reactor = amorph.getReactor('animation');
+      if (reactor) {
+        reactor.replay();
+      }
+    });
+    
+    document.getElementById('clearSearch').addEventListener('click', () => {
+      document.getElementById('searchInput').value = '';
+      amorph.setSearchQuery('');
+      amorph.emit('search:input', { query: '' });
+    });
+    
+    // Update Stats
+    function updateStats() {
+      const info = amorph.getSystemInfo();
+      document.getElementById('stats').textContent = JSON.stringify(info, null, 2);
+    }
+    
+    // Listen to events
+    amorph.on('search:completed', (data) => {
+      console.log('🔍 Search completed:', data);
+      updateStats();
+    });
+    
+    amorph.on('tag:clicked', (data) => {
+      console.log('🏷️ Tag clicked:', data);
+      document.getElementById('searchInput').value = data.tag;
+      amorph.setSearchQuery(data.tag);
+      amorph.emit('search:input', { query: data.tag });
+    });
+  </script>
+</body>
+</html>

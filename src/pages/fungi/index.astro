@@ -1,0 +1,313 @@
+---
+/**
+ * 🍄 FUNGI INDEX PAGE
+ * ===================
+ * 
+ * Main page showing all fungi with AMORPH morphs
+ * Loads real data from Convex
+ */
+
+import BaseLayout from '@/amorph/arch/layouts/BaseLayout.astro';
+import { fetchFungi } from '@/amorph/arch/convex';
+
+// Fetch fungi data from Convex
+const fungi = await fetchFungi();
+
+console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
+---
+
+<BaseLayout 
+  title="Pilze - Funginomi AMORPH"
+  description="Morphologische Pilz-Datenbank mit perspektivischen Ansichten"
+  enableGlow={true}
+  enableSearch={true}
+  enableAnimation={true}
+>
+  <!-- Page Header -->
+  <header style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem;">
+        🍄 Pilze Datenbank
+      </h1>
+      <p style="font-size: 1.125rem; color: rgba(255, 255, 255, 0.8);">
+        {fungi?.length || 0} Pilze · Morphologische Ansichten · Perspektivisches Wissen
+      </p>
+    </div>
+    
+    <!-- View Toggle -->
+    <div class="view-toggle">
+      <button class="view-btn active" data-view="grid">
+        📊 Grid View
+      </button>
+      <button class="view-btn" data-view="bubble">
+        🫧 Bubble View
+      </button>
+    </div>
+  </header>
+
+  <!-- Bubble Host -->
+  <bubble-host id="bubble-view-host" style="display: none;"></bubble-host>
+
+  <!-- Fungi Grid -->
+  <div class="fungi-grid" id="grid-view-host">
+    {fungi && fungi.length > 0 ? (
+      fungi.map((fungus: any) => (
+        <article class="fungus-card">
+          <div class="morphs">
+            <!-- Name Morphs -->
+            {fungus.names?.common && (
+              <name-morph 
+                perspective="culinary"
+                value={fungus.names.common}
+                lang="de"
+              ></name-morph>
+            )}
+            
+            {fungus.names?.scientific && (
+              <name-morph 
+                perspective="scientific"
+                value={fungus.names.scientific}
+                lang="la"
+              ></name-morph>
+            )}
+            
+            <!-- Image Morph -->
+            {fungus.images?.[0] && (
+              <image-morph
+                src={fungus.images[0].url}
+                alt={fungus.names?.common || fungus.names?.scientific}
+                caption={fungus.names?.scientific}
+              ></image-morph>
+            )}
+            
+            <!-- Tag Morphs -->
+            <div class="tags">
+              {fungus.tags?.map((tag: string) => (
+                <tag-morph tag={tag} color="auto"></tag-morph>
+              ))}
+            </div>
+            
+            <!-- Text Morph (Description) -->
+            {fungus.description && (
+              <text-morph 
+                perspective="culinary"
+                value={fungus.description}
+                maxlines={3}
+              ></text-morph>
+            )}
+            
+            <!-- Link to detail page -->
+            <a href={`/fungi/${fungus.slug || fungus._id}`} class="detail-link">
+              Details ansehen →
+            </a>
+          </div>
+        </article>
+      ))
+    ) : (
+      <div class="empty-state">
+        <p style="font-size: 1.5rem; color: rgba(255, 255, 255, 0.7); text-align: center;">
+          🍄 Keine Pilze gefunden
+        </p>
+        <p style="color: rgba(255, 255, 255, 0.5); text-align: center; margin-top: 0.5rem;">
+          Stelle sicher, dass Convex Daten enthält und PUBLIC_CONVEX_URL korrekt ist.
+        </p>
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  /* View Toggle */
+  .view-toggle {
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+  }
+
+  .view-btn {
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .view-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .view-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  /* Bubble Host */
+  #bubble-view-host {
+    margin-bottom: 2rem;
+  }
+
+  /* Fungi Grid */
+  .fungi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+  }
+  
+  /* Fungus Card */
+  .fungus-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+  
+  .fungus-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Morphs */
+  .morphs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  /* Tags */
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+  }
+  
+  /* Detail Link */
+  .detail-link {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+  }
+  
+  .detail-link:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+  
+  /* Empty State */
+  .empty-state {
+    grid-column: 1 / -1;
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .fungi-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    
+    .fungus-card {
+      padding: 1rem;
+    }
+
+    header {
+      flex-direction: column;
+      align-items: flex-start !important;
+    }
+  }
+  
+  /* Dark Mode */
+  @media (prefers-color-scheme: dark) {
+    .fungus-card {
+      background: rgba(30, 30, 30, 0.9);
+      color: rgba(255, 255, 255, 0.9);
+    }
+  }
+</style>
+
+<script define:vars={{ fungi }}>
+  // Wait for AMORPH and hosts to load
+  function initViewToggle() {
+    const amorph = window.amorph;
+    if (!amorph) {
+      console.log('⏳ Waiting for AMORPH...');
+      setTimeout(initViewToggle, 100);
+      return;
+    }
+
+    // Get host elements
+    const bubbleHost = document.getElementById('bubble-view-host');
+    const gridHost = document.getElementById('grid-view-host');
+    
+    if (!bubbleHost || !gridHost) {
+      console.warn('⚠️ Host elements not found, retrying...');
+      setTimeout(initViewToggle, 100);
+      return;
+    }
+
+    // Wait for bubbleHost to be fully upgraded (web component ready)
+    if (!bubbleHost.setData) {
+      console.log('⏳ Waiting for BubbleHost to upgrade...');
+      setTimeout(initViewToggle, 100);
+      return;
+    }
+
+    // DATENGETRIEBEN: Übergebe Fungi-Daten an BubbleHost
+    console.log('📊 Fungi data:', fungi);
+    bubbleHost.setData(fungi);
+    console.log(`✅ Passed ${fungi.length} fungi to BubbleHost`);
+
+    // View Toggle functionality
+    const viewBtns = document.querySelectorAll('.view-btn');
+
+    viewBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const view = btn.dataset.view;
+        
+        // Update active state
+        viewBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Toggle views
+        if (view === 'grid') {
+          gridHost.style.display = 'grid';
+          bubbleHost.style.display = 'none';
+          console.log('📊 Switched to Grid View');
+        } else {
+          gridHost.style.display = 'none';
+          bubbleHost.style.display = 'block';
+          console.log('🫧 Switched to Bubble View');
+        }
+      });
+    });
+
+    console.log('✅ View toggle initialized with', fungi.length, 'fungi');
+  }
+
+  // Start initialization
+  console.log('🚀 Starting view toggle initialization...');
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initViewToggle);
+  } else {
+    initViewToggle();
+  }
+</script>
