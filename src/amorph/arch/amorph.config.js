@@ -139,6 +139,12 @@ export const AmorphConfig = {
       enabled: false,
       fuzzy: true,
       caseSensitive: false
+    },
+    perspective: {
+      enabled: false, // Disabled - PerspectiveCard handles data switching
+      animate: true,
+      duration: 300,
+      highlightActive: true
     }
   },
   

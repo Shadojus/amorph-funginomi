@@ -5,18 +5,107 @@
  * Globale Header-Komponente für das AMORPH System
  * 
  * Features:
- * - Perspective Selector (max 4 gleichzeitig)
- * - Reactor Toggles (Glow, Search, Animation)
+ * - Perspective Selector (max 4 gleichzeitig, FIFO)
+ * - Tag-to-Perspective Auto-Activation
  * - Global Search Bar
- * - View Mode Switcher (Grid, List, Compact)
  * - Glassmorphism Design
  * 
  * @author AMORPH System
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 import { LitElement, html, css } from 'lit';
 import { globalStyles } from '../../arch/styles/tokens.js';
+
+/**
+ * Tag to Perspective Mapping
+ * Lightweight - tags trigger relevant perspectives
+ */
+const TAG_TO_PERSPECTIVE = {
+  // Culinary & Nutritional
+  'edible': 'culinaryAndNutritional',
+  'delicious': 'culinaryAndNutritional',
+  'gourmet': 'culinaryAndNutritional',
+  'cooking': 'culinaryAndNutritional',
+  'culinary': 'culinaryAndNutritional',
+  'taste': 'culinaryAndNutritional',
+  'nutrition': 'culinaryAndNutritional',
+  
+  // Safety & Identification
+  'toxic': 'safetyAndIdentification',
+  'poisonous': 'safetyAndIdentification',
+  'deadly': 'safetyAndIdentification',
+  'warning': 'safetyAndIdentification',
+  'lookalike': 'safetyAndIdentification',
+  'caution': 'safetyAndIdentification',
+  
+  // Medicinal & Health
+  'medicinal': 'medicinalAndHealth',
+  'therapeutic': 'medicinalAndHealth',
+  'antioxidant': 'medicinalAndHealth',
+  'health': 'medicinalAndHealth',
+  'healing': 'medicinalAndHealth',
+  'immune-boost': 'medicinalAndHealth',
+  
+  // Ecology & Habitat
+  'forest': 'ecologyAndHabitat',
+  'grassland': 'ecologyAndHabitat',
+  'spring': 'ecologyAndHabitat',
+  'summer': 'ecologyAndHabitat',
+  'fall': 'ecologyAndHabitat',
+  'winter': 'ecologyAndHabitat',
+  'parasitic': 'ecologyAndHabitat',
+  'decomposer': 'ecologyAndHabitat',
+  'mycorrhizal': 'ecologyAndHabitat',
+  'habitat': 'ecologyAndHabitat',
+  
+  // Cultivation & Processing
+  'cultivation': 'cultivationAndProcessing',
+  'farming': 'cultivationAndProcessing',
+  'substrate': 'cultivationAndProcessing',
+  'harvest': 'cultivationAndProcessing',
+  'growing': 'cultivationAndProcessing',
+  
+  // Research & Innovation
+  'research': 'researchAndInnovation',
+  'study': 'researchAndInnovation',
+  'innovation': 'researchAndInnovation',
+  'biotechnology': 'researchAndInnovation',
+  'scientific': 'researchAndInnovation',
+  
+  // Chemical & Properties
+  'compound': 'chemicalAndProperties',
+  'molecule': 'chemicalAndProperties',
+  'enzyme': 'chemicalAndProperties',
+  'chemical': 'chemicalAndProperties',
+  'bioactive': 'chemicalAndProperties',
+  
+  // Cultural & Historical
+  'traditional': 'culturalAndHistorical',
+  'folklore': 'culturalAndHistorical',
+  'cultural': 'culturalAndHistorical',
+  'history': 'culturalAndHistorical',
+  'mythology': 'culturalAndHistorical',
+  
+  // Commercial & Market
+  'commercial': 'commercialAndMarket',
+  'market': 'commercialAndMarket',
+  'price': 'commercialAndMarket',
+  'trade': 'commercialAndMarket',
+  'business': 'commercialAndMarket',
+  
+  // Environmental & Conservation
+  'endangered': 'environmentalAndConservation',
+  'protected': 'environmentalAndConservation',
+  'conservation': 'environmentalAndConservation',
+  'sustainable': 'environmentalAndConservation',
+  'biodiversity': 'environmentalAndConservation',
+  
+  // Taxonomy (for completeness)
+  'fungi': 'taxonomy',
+  'basidiomycota': 'taxonomy',
+  'scientific': 'taxonomy'
+};
 
 export class MorphHeader extends LitElement {
   static properties = {
@@ -73,156 +162,35 @@ export class MorphHeader extends LitElement {
       max-width: 1400px;
       margin: 0 auto;
       display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .header-row {
+      display: flex;
       align-items: center;
       gap: 2rem;
-      flex-wrap: wrap;
+      width: 100%;
     }
 
-    /* ===== LOGO / TITLE ===== */
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: -0.5px;
-      user-select: none;
-    }
-
-    /* ===== PERSPECTIVES SECTION ===== */
-    .perspectives-section {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex: 1;
-      min-width: 200px;
-    }
-
-    .perspective-pills {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .perspective-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      border: 2px solid;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
-
-    .perspective-pill:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-    }
-
-    .perspective-pill .remove {
-      font-size: 1rem;
-      opacity: 0.6;
-      transition: opacity 0.2s ease;
-    }
-
-    .perspective-pill:hover .remove {
-      opacity: 1;
-    }
-
-    .add-perspective-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: 2px dashed rgba(0, 0, 0, 0.2);
-      background: transparent;
-      color: rgba(0, 0, 0, 0.5);
-      font-size: 1.25rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
+    /* ===== SEARCH BAR (TOP ROW) ===== */
+    .top-row {
       justify-content: center;
-    }
-
-    .add-perspective-btn:hover {
-      border-color: #667eea;
-      color: #667eea;
-      background: rgba(102, 126, 234, 0.05);
-    }
-
-    /* ===== PERSPECTIVE MENU (DROPDOWN) ===== */
-    .perspective-menu {
-      position: absolute;
-      top: calc(100% + 0.5rem);
-      left: 0;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      padding: 0.5rem;
-      min-width: 200px;
-      z-index: 100;
-      animation: slideDown 0.2s ease;
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .perspective-menu-item {
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .perspective-menu-item:hover {
-      background: rgba(0, 0, 0, 0.05);
-    }
-
-    .perspective-menu-item.active {
-      background: rgba(102, 126, 234, 0.1);
-      color: #667eea;
-      font-weight: 500;
-    }
-
-    .perspective-color-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      border: 2px solid currentColor;
     }
 
     /* ===== SEARCH BAR ===== */
     .search-section {
       flex: 1;
-      max-width: 400px;
-      min-width: 200px;
+      max-width: 600px;
       position: relative;
     }
 
     .search-input {
       width: 100%;
-      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      padding: 0.875rem 1.5rem 0.875rem 3rem;
       border: 2px solid rgba(0, 0, 0, 0.1);
-      border-radius: 20px;
-      font-size: 0.875rem;
+      border-radius: 24px;
+      font-size: 1rem;
       background: white;
       transition: all 0.2s ease;
       outline: none;
@@ -235,16 +203,17 @@ export class MorphHeader extends LitElement {
 
     .search-icon {
       position: absolute;
-      left: 1rem;
+      left: 1.25rem;
       top: 50%;
       transform: translateY(-50%);
       color: rgba(0, 0, 0, 0.4);
       pointer-events: none;
+      font-size: 1.125rem;
     }
 
     .search-results {
       position: absolute;
-      right: 1rem;
+      right: 1.5rem;
       top: 50%;
       transform: translateY(-50%);
       font-size: 0.75rem;
@@ -287,6 +256,75 @@ export class MorphHeader extends LitElement {
 
     .reactor-icon {
       font-size: 1rem;
+    }
+
+    /* ===== PERSPECTIVE BUTTONS (BOTTOM ROW) ===== */
+    .perspectives-row {
+      display: flex;
+      gap: 0.375rem;
+      flex-wrap: nowrap;
+      justify-content: center;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      padding: 0.25rem 0;
+    }
+
+    .perspectives-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .perspective-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.375rem;
+      padding: 0.5rem 0.875rem;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1.5px solid;
+      background: rgba(0, 0, 0, 0.85);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      white-space: nowrap;
+      flex-shrink: 0;
+      text-transform: capitalize;
+    }
+
+    .perspective-btn.active {
+      padding: 0.625rem 1.125rem;
+      font-size: 0.875rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.1);
+      font-weight: 600;
+      background: rgba(0, 0, 0, 0.95);
+      transform: scale(1.05);
+    }
+
+    .perspective-btn.inactive {
+      opacity: 0.7;
+      padding: 0.4rem 0.7rem;
+      font-size: 0.7rem;
+      transform: scale(0.95);
+    }
+
+    .perspective-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+      opacity: 1;
+    }
+
+    .perspective-icon {
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .perspective-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* ===== VIEW MODE SWITCHER ===== */
@@ -404,14 +442,20 @@ export class MorphHeader extends LitElement {
   constructor() {
     super();
     
-    // State
+    // State - Match schema perspectives
     this.perspectives = [
-      { name: 'culinary', label: 'Kulinarisch', color: '#667eea' },
-      { name: 'medical', label: 'Medizinisch', color: '#f093fb' },
-      { name: 'ecological', label: 'Ökologisch', color: '#4facfe' },
-      { name: 'cultural', label: 'Kulturell', color: '#43e97b' },
-      { name: 'scientific', label: 'Wissenschaftlich', color: '#fa709a' },
-      { name: 'foraging', label: 'Sammeln', color: '#feca57' },
+      { name: 'taxonomy', label: 'Taxonomy', icon: '🧬', color: '#ef4444' },
+      { name: 'physicalCharacteristics', label: 'Physical', icon: '👁️', color: '#f97316' },
+      { name: 'ecologyAndHabitat', label: 'Ecology', icon: '🌍', color: '#eab308' },
+      { name: 'culinaryAndNutritional', label: 'Culinary', icon: '🍳', color: '#22c55e' },
+      { name: 'medicinalAndHealth', label: 'Medicinal', icon: '⚕️', color: '#06b6d4' },
+      { name: 'cultivationAndProcessing', label: 'Cultivation', icon: '🌱', color: '#3b82f6' },
+      { name: 'safetyAndIdentification', label: 'Safety', icon: '⚠️', color: '#8b5cf6' },
+      { name: 'chemicalAndProperties', label: 'Chemical', icon: '🧪', color: '#ec4899' },
+      { name: 'culturalAndHistorical', label: 'Cultural', icon: '📜', color: '#d946ef' },
+      { name: 'commercialAndMarket', label: 'Commercial', icon: '💰', color: '#14b8a6' },
+      { name: 'environmentalAndConservation', label: 'Environment', icon: '🌿', color: '#10b981' },
+      { name: 'researchAndInnovation', label: 'Innovation', icon: '🔬', color: '#0ea5e9' },
     ];
     
     this.activePerspectives = [];
@@ -519,23 +563,25 @@ export class MorphHeader extends LitElement {
     // Listen to tag clicks
     this.onTagClicked = (data) => {
       console.log('[MorphHeader] Tag clicked:', data.tag);
-      // Map tag to perspective
-      const perspectiveMap = {
-        'edible': 'culinary',
-        'toxic': 'safety',
-        'medicinal': 'medicinal',
-        'cultivation': 'cultivation',
-        'spring': 'ecology',
-        'summer': 'ecology',
-        'fall': 'ecology',
-        'winter': 'ecology',
-        'parasitic': 'ecology',
-        'decomposer': 'ecology'
-      };
       
-      const perspective = perspectiveMap[data.tag.toLowerCase()];
-      if (perspective && !this.activePerspectives.includes(perspective)) {
-        this.addPerspective(perspective);
+      // Map tag to perspective
+      const perspectiveName = TAG_TO_PERSPECTIVE[data.tag.toLowerCase()];
+      if (!perspectiveName) {
+        console.log('[MorphHeader] No perspective mapping for tag:', data.tag);
+        return;
+      }
+      
+      // Find perspective object
+      const perspective = this.perspectives.find(p => p.name === perspectiveName);
+      if (!perspective) {
+        console.warn('[MorphHeader] Perspective not found:', perspectiveName);
+        return;
+      }
+      
+      // Toggle perspective (FIFO logic inside)
+      if (!this.activePerspectives.find(p => p.name === perspectiveName)) {
+        console.log('[MorphHeader] Auto-activating perspective from tag:', perspectiveName);
+        this.togglePerspective(perspective);
       }
     };
     
@@ -561,33 +607,37 @@ export class MorphHeader extends LitElement {
   // PERSPECTIVE METHODS
   // ==========================================
 
-  togglePerspectiveMenu() {
-    this.showPerspectiveMenu = !this.showPerspectiveMenu;
-  }
-
-  addPerspective(perspective) {
-    if (this.activePerspectives.length >= this.maxPerspectives) {
-      console.warn(`[MorphHeader] Maximum ${this.maxPerspectives} perspectives allowed`);
-      return;
+  togglePerspective(perspective) {
+    const isActive = this.activePerspectives.find(p => p.name === perspective.name);
+    
+    if (isActive) {
+      // Remove if already active
+      this.removePerspective(perspective);
+    } else {
+      // Add with FIFO logic
+      if (this.activePerspectives.length >= this.maxPerspectives) {
+        console.log(`[MorphHeader] FIFO: Removing oldest perspective`);
+        const removed = this.activePerspectives[0];
+        this.activePerspectives = this.activePerspectives.slice(1);
+        console.log(`[MorphHeader] Removed:`, removed.name);
+      }
+      
+      this.activePerspectives = [...this.activePerspectives, perspective];
+      this.dispatchPerspectiveChange();
+      
+      this.dispatchEvent(new CustomEvent('perspective-added', {
+        detail: perspective,
+        bubbles: true,
+        composed: true,
+      }));
     }
-    
-    if (this.activePerspectives.find(p => p.name === perspective.name)) {
-      return; // Already active
-    }
-    
-    this.activePerspectives = [...this.activePerspectives, perspective];
-    this.showPerspectiveMenu = false;
-    
-    // Emit event
-    this.dispatchEvent(new CustomEvent('perspective-added', {
-      detail: perspective,
-      bubbles: true,
-      composed: true,
-    }));
   }
 
   removePerspective(perspective) {
     this.activePerspectives = this.activePerspectives.filter(p => p.name !== perspective.name);
+    
+    // Dispatch global event for PerspectiveHosts
+    this.dispatchPerspectiveChange();
     
     // Emit event
     this.dispatchEvent(new CustomEvent('perspective-removed', {
@@ -595,6 +645,28 @@ export class MorphHeader extends LitElement {
       bubbles: true,
       composed: true,
     }));
+  }
+
+  dispatchPerspectiveChange() {
+    const perspectiveIds = this.activePerspectives.map(p => p.name);
+    
+    console.log('[MorphHeader] Dispatching perspective change:', perspectiveIds);
+    
+    // Dispatch on window for PerspectiveHosts to listen
+    window.dispatchEvent(new CustomEvent('perspective-changed', {
+      detail: { perspectives: perspectiveIds },
+      bubbles: true,
+      composed: true
+    }));
+    
+    // Also dispatch on document for broader reach
+    document.dispatchEvent(new CustomEvent('perspective-changed', {
+      detail: { perspectives: perspectiveIds },
+      bubbles: true,
+      composed: true
+    }));
+    
+    console.log('[MorphHeader] Active perspectives:', perspectiveIds);
   }
 
   // ==========================================
@@ -693,167 +765,44 @@ export class MorphHeader extends LitElement {
   render() {
     return html`
       <header class="header">
-        <div class="header-content ${this.isMobileMenuOpen ? 'mobile-open' : ''}">
-          <!-- Logo -->
-          <div class="logo">🔮 AMORPH</div>
-          
-          <!-- Perspectives -->
-          <div class="perspectives-section">
-            <div class="perspective-pills">
-              ${this.activePerspectives.map(p => html`
-                <div 
-                  class="perspective-pill"
+        <div class="header-content">
+          <!-- Top Row: Search Bar -->
+          <div class="header-row top-row">
+            <div class="search-section">
+              <span class="search-icon">🔍</span>
+              <input 
+                type="text" 
+                class="search-input"
+                placeholder="search this data..."
+                .value=${this.searchQuery}
+                @input=${this.handleSearchInput}
+              />
+              ${this.searchQuery ? html`
+                <span class="search-results">
+                  ${this.searchResults} / ${this.totalMorphs}
+                </span>
+              ` : ''}
+            </div>
+          </div>
+
+          <!-- Bottom Row: Perspective Buttons -->
+          <div class="perspectives-row">
+            ${this.perspectives.map(p => {
+              const isActive = this.activePerspectives.find(ap => ap.name === p.name);
+              const btnClass = isActive ? 'active' : 'inactive';
+              return html`
+                <button 
+                  class="perspective-btn ${btnClass}"
                   style="border-color: ${p.color}; color: ${p.color};"
-                  @click=${() => this.removePerspective(p)}
+                  @click=${() => this.togglePerspective(p)}
+                  title="${p.label}"
                 >
-                  <span>${p.label}</span>
-                  <span class="remove">×</span>
-                </div>
-              `)}
-            </div>
-            
-            ${this.activePerspectives.length < this.maxPerspectives ? html`
-              <button 
-                class="add-perspective-btn"
-                @click=${this.togglePerspectiveMenu}
-                title="Perspective hinzufügen"
-              >
-                +
-              </button>
-            ` : ''}
-            
-            ${this.showPerspectiveMenu ? html`
-              <div class="perspective-menu">
-                ${this.perspectives.map(p => {
-                  const isActive = this.activePerspectives.find(ap => ap.name === p.name);
-                  return html`
-                    <div 
-                      class="perspective-menu-item ${isActive ? 'active' : ''}"
-                      @click=${() => !isActive && this.addPerspective(p)}
-                      style="color: ${p.color};"
-                    >
-                      <div class="perspective-color-dot" style="border-color: ${p.color};"></div>
-                      <span>${p.label}</span>
-                    </div>
-                  `;
-                })}
-              </div>
-            ` : ''}
+                  <span class="perspective-icon">${p.icon}</span>
+                  <span class="perspective-label">${p.label}</span>
+                </button>
+              `;
+            })}
           </div>
-          
-          <!-- Search -->
-          <div class="search-section">
-            <span class="search-icon">🔍</span>
-            <input 
-              type="text" 
-              class="search-input"
-              placeholder="Pilze durchsuchen..."
-              .value=${this.searchQuery}
-              @input=${this.handleSearchInput}
-            />
-            ${this.searchQuery ? html`
-              <span class="search-results">
-                ${this.searchResults} / ${this.totalMorphs}
-              </span>
-            ` : ''}
-          </div>
-          
-          <!-- Reactor Toggles -->
-          <div class="reactors-section">
-            <button 
-              class="reactor-toggle ${this.enabledReactors.includes('glow') ? 'active' : ''}"
-              @click=${() => this.toggleReactor('glow')}
-              title="Glow Effect"
-            >
-              <span class="reactor-icon">✨</span>
-              <span>Glow</span>
-            </button>
-            
-            <button 
-              class="reactor-toggle ${this.enabledReactors.includes('search') ? 'active' : ''}"
-              @click=${() => this.toggleReactor('search')}
-              title="Search Filter"
-            >
-              <span class="reactor-icon">🔍</span>
-              <span>Search</span>
-            </button>
-            
-            <button 
-              class="reactor-toggle ${this.enabledReactors.includes('animation') ? 'active' : ''}"
-              @click=${() => this.toggleReactor('animation')}
-              title="Animations"
-            >
-              <span class="reactor-icon">🎬</span>
-              <span>Animation</span>
-            </button>
-          </div>
-          
-          <!-- BubbleView Controls (only when BubbleView is active) -->
-          ${this.bubbleViewActive ? html`
-            <div class="reactors-section">
-              <button 
-                class="reactor-toggle ${this.isSimulating ? 'active' : ''}"
-                @click=${this.toggleBubbleSimulation}
-                title="${this.isSimulating ? 'Pause Simulation' : 'Start Simulation'}"
-              >
-                <span class="reactor-icon">${this.isSimulating ? '⏸️' : '▶️'}</span>
-                <span>${this.isSimulating ? 'Pause' : 'Play'}</span>
-              </button>
-              
-              <button 
-                class="reactor-toggle ${this.showConnections ? 'active' : ''}"
-                @click=${this.toggleBubbleConnections}
-                title="Show Connections"
-              >
-                <span class="reactor-icon">🔗</span>
-                <span>Connections</span>
-              </button>
-              
-              <button 
-                class="reactor-toggle"
-                @click=${this.resetBubbleView}
-                title="Reset View"
-              >
-                <span class="reactor-icon">🔄</span>
-                <span>Reset</span>
-              </button>
-            </div>
-          ` : ''}
-          
-          <!-- View Mode -->
-          <div class="view-mode-section">
-            <button 
-              class="view-mode-btn ${this.viewMode === 'grid' ? 'active' : ''}"
-              @click=${() => this.setViewMode('grid')}
-              title="Grid View"
-            >
-              ▦
-            </button>
-            <button 
-              class="view-mode-btn ${this.viewMode === 'list' ? 'active' : ''}"
-              @click=${() => this.setViewMode('list')}
-              title="List View"
-            >
-              ☰
-            </button>
-            <button 
-              class="view-mode-btn ${this.viewMode === 'compact' ? 'active' : ''}"
-              @click=${() => this.setViewMode('compact')}
-              title="Compact View"
-            >
-              ▪▪▪
-            </button>
-          </div>
-          
-          <!-- Mobile Menu Toggle -->
-          <button 
-            class="mobile-menu-toggle"
-            @click=${() => this.isMobileMenuOpen = !this.isMobileMenuOpen}
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
         </div>
       </header>
     `;

@@ -1,0 +1,55 @@
+---
+import BaseLayout from '@/amorph/arch/layouts/BaseLayout.astro';
+import { fetchFungus } from '@/amorph/arch/convex';
+
+const { slug } = Astro.params;
+const fungus = await fetchFungus(slug!);
+if (!fungus) return Astro.redirect('/fungi');
+
+function renderValue(value: any, key: string) {
+  if (value === null || value === undefined) return null;
+  const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+  if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') return { type: 'tags', label, values: value };
+  if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') return { type: 'nested-array', label, values: value };
+  if (typeof value === 'object' && value.min !== undefined && value.max !== undefined) return { type: 'range', label, value: `${value.min}-${value.max} ${value.unit || ''}`.trim() };
+  if (typeof value === 'object' && !Array.isArray(value)) return { type: 'nested', label, value };
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return { type: 'text', label, value: String(value) };
+  return null;
+}
+
+function renderAllFields(obj: any, maxDepth = 3, currentDepth = 0): any[] {
+  if (!obj || currentDepth >= maxDepth) return [];
+  const results: any[] = [];
+  for (const [key, value] of Object.entries(obj)) {
+    const rendered = renderValue(value, key);
+    if (rendered) results.push(rendered);
+  }
+  return results;
+}
+
+const perspectives = [
+  { id: 'taxonomy', title: 'Taxonomy', icon: '🧬', color: '#ef4444', data: fungus.taxonomy },
+  { id: 'physicalCharacteristics', title: 'Physical', icon: '👁️', color: '#f97316', data: fungus.physicalCharacteristics },
+  { id: 'ecologyAndHabitat', title: 'Ecology', icon: '🌍', color: '#eab308', data: fungus.ecologyAndHabitat },
+  { id: 'culinaryAndNutritional', title: 'Culinary', icon: '🍳', color: '#22c55e', data: fungus.culinaryAndNutritional },
+  { id: 'medicinalAndHealth', title: 'Medicinal', icon: '⚕️', color: '#06b6d4', data: fungus.medicinalAndHealth },
+  { id: 'cultivationAndProcessing', title: 'Cultivation', icon: '🌱', color: '#3b82f6', data: fungus.cultivationAndProcessing },
+  { id: 'safetyAndIdentification', title: 'Safety', icon: '⚠️', color: '#8b5cf6', data: fungus.safetyAndIdentification },
+  { id: 'chemicalAndProperties', title: 'Chemical', icon: '🧪', color: '#ec4899', data: fungus.chemicalAndProperties },
+  { id: 'culturalAndHistorical', title: 'Cultural', icon: '📜', color: '#d946ef', data: fungus.culturalAndHistorical },
+  { id: 'commercialAndMarket', title: 'Commercial', icon: '💰', color: '#14b8a6', data: fungus.commercialAndMarket },
+  { id: 'environmentalAndConservation', title: 'Environment', icon: '🌿', color: '#10b981', data: fungus.environmentalAndConservation },
+  { id: 'researchAndInnovation', title: 'Innovation', icon: '🔬', color: '#0ea5e9', data: fungus.researchAndInnovation }
+];
+---
+<BaseLayout title={`${fungus.commonName} - Funginomi`} description={fungus.description} enableGlow={true} enableSearch={false} enableAnimation={true} showPerspectives={true}>
+<div class="fungus-detail">
+<section class="hero">
+<div class="hero-image">{fungus.imageUrl && (<image-morph src={fungus.imageUrl} alt={fungus.commonName} width="100%" height="400px" style="border-radius: 16px;"></image-morph>)}</div>
+<div class="hero-content"><name-morph value={fungus.commonName} subtitle={fungus.latinName} size="large"></name-morph>{fungus.description && (<text-morph value={fungus.description} label="Description"></text-morph>)}</div>
+</section>
+{perspectives.map(p => { if (!p.data) return null; const fields = renderAllFields(p.data); if (fields.length === 0) return null; return (<perspective-host perspective={p.id} title={p.title} icon={p.icon} color={p.color}>{fields.map(f => { if (f.type === 'tags') return (<div class="morph-wrapper"><label class="morph-label">{f.label}</label><div class="tags-container">{f.values.map((t: string) => (<tag-morph tag={t}></tag-morph>))}</div></div>); if (f.type === 'range' || f.type === 'text') return <text-morph value={f.value} label={f.label}></text-morph>; if (f.type === 'nested') { const sub = renderAllFields(f.value, 2, 1); return (<div class="nested-section"><h4 class="nested-title">{f.label}</h4>{sub.map(s => { if (s.type === 'tags') return (<div class="morph-wrapper"><label class="morph-label">{s.label}</label><div class="tags-container">{s.values.map((t: string) => (<tag-morph tag={t}></tag-morph>))}</div></div>); if (s.type === 'range' || s.type === 'text') return <text-morph value={s.value} label={s.label}></text-morph>; return null; })}</div>); } return null; })}</perspective-host>); })}
+</div>
+</BaseLayout>
+<style>.fungus-detail{max-width:1400px;margin:0 auto;padding:2rem}.hero{margin-bottom:3rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem}.hero-image{border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.2)}.hero-content{display:flex;flex-direction:column;gap:1.5rem}.morph-wrapper{background:rgba(255,255,255,.03);padding:1.5rem;border-radius:8px;border:1px solid rgba(255,255,255,.1);margin-bottom:1rem}.morph-label{display:block;font-size:.875rem;font-weight:600;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem}.tags-container{display:flex;flex-wrap:wrap;gap:.5rem}.nested-section{margin-bottom:1.5rem;padding-left:1rem;border-left:3px solid rgba(255,255,255,.2)}.nested-title{font-size:1.125rem;font-weight:600;color:rgba(255,255,255,.9);margin-bottom:1rem;text-transform:capitalize}@media (max-width:768px){.fungus-detail{padding:1rem}.hero{grid-template-columns:1fr}}</style>
+<script>import '@/amorph/hosts/PerspectiveHost.js';const d=['taxonomy','ecologyAndHabitat','culinaryAndNutritional','safetyAndIdentification'];window.addEventListener('DOMContentLoaded',()=>{window.dispatchEvent(new CustomEvent('perspective-changed',{detail:{perspectives:d}}));console.log('[Detail] Init:',d);});</script>

@@ -658,4 +658,53 @@ if (typeof window !== 'undefined') {
   if (amorph.config.system.debug) {
     console.log('🔮 AMORPH System Ready!', amorph.getSystemInfo());
   }
+  
+  // Listen to perspective-changed events from MorphHeader
+  window.addEventListener('perspective-changed', (event) => {
+    const perspectives = event.detail.perspectives || [];
+    amorph.log('[AmorphSystem] Perspective changed:', perspectives);
+    
+    // Update PerspectiveReactor if enabled
+    const perspectiveReactor = amorph.state.enabledReactors.get('perspective');
+    if (perspectiveReactor) {
+      amorph.log('[AmorphSystem] PerspectiveReactor found, updating...');
+      
+      // Map perspective names to full perspective objects
+      const perspectiveObjects = perspectives.map(name => ({
+        name,
+        color: getPerspectiveColor(name)
+      }));
+      
+      perspectiveReactor.updatePerspectives(perspectiveObjects);
+      
+      // Re-apply to all morphs
+      const morphs = amorph.getAllMorphs();
+      amorph.log('[AmorphSystem] Applying to', morphs.length, 'morphs');
+      perspectiveReactor.apply(morphs);
+    } else {
+      amorph.warn('[AmorphSystem] PerspectiveReactor NOT enabled!');
+      amorph.log('[AmorphSystem] Enabled reactors:', Array.from(amorph.state.enabledReactors.keys()));
+    }
+  });
+}
+
+/**
+ * Helper: Get perspective color by name
+ */
+function getPerspectiveColor(name) {
+  const colors = {
+    'taxonomy': '#ef4444',
+    'physicalCharacteristics': '#f97316',
+    'ecologyAndHabitat': '#eab308',
+    'culinaryAndNutritional': '#22c55e',
+    'medicinalAndHealth': '#06b6d4',
+    'cultivationAndProcessing': '#3b82f6',
+    'safetyAndIdentification': '#8b5cf6',
+    'chemicalAndProperties': '#ec4899',
+    'culturalAndHistorical': '#d946ef',
+    'commercialAndMarket': '#14b8a6',
+    'environmentalAndConservation': '#10b981',
+    'researchAndInnovation': '#0ea5e9'
+  };
+  return colors[name] || '#667eea';
 }

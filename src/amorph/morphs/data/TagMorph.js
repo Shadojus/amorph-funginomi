@@ -148,6 +148,11 @@ export class TagMorph extends LitElement {
   }
   
   render() {
+    // Don't render if value is empty
+    if (!this.value || this.value.trim().length === 0) {
+      return html``;
+    }
+    
     return html`
       <span 
         class="tag ${this.variant} ${this.clickable ? 'clickable' : ''}"

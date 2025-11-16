@@ -59,7 +59,19 @@ export async function fetchFungi() {
       ],
       tags: extractTags(fungus),
       description: extractDescription(fungus),
-      perspectives: extractPerspectives(fungus),
+      // Pass through all perspectives as-is from schema (top-level properties)
+      taxonomy: fungus.taxonomy,
+      physicalCharacteristics: fungus.physicalCharacteristics,
+      safetyAndIdentification: fungus.safetyAndIdentification,
+      ecologyAndHabitat: fungus.ecologyAndHabitat,
+      culinaryAndNutritional: fungus.culinaryAndNutritional,
+      medicinalAndHealth: fungus.medicinalAndHealth,
+      cultivationAndProcessing: fungus.cultivationAndProcessing,
+      chemicalAndProperties: fungus.chemicalAndProperties,
+      culturalAndHistorical: fungus.culturalAndHistorical,
+      commercialAndMarket: fungus.commercialAndMarket,
+      environmentalAndConservation: fungus.environmentalAndConservation,
+      researchAndInnovation: fungus.researchAndInnovation,
     })) || [];
   } catch (error) {
     console.error('Failed to fetch fungi:', error);
@@ -136,22 +148,40 @@ function extractPerspectives(fungus: any): string[] {
 }
 
 /**
- * Fetch single fungus by ID or slug
+ * Fetch single fungus by slug (seoName)
+ * Returns full fungus data with all perspectives
  */
-export async function fetchFungus(idOrSlug: string) {
+export async function fetchFungus(slug: string) {
   try {
     // @ts-ignore - Dynamic import
     const { api } = await import('../../../convex/_generated/api');
+    const fungus = await fetchQuery(api.fungi.getBySlug, { slug });
     
-    // Try by ID first
-    const byId = await fetchQuery(api.fungi.getById, { id: idOrSlug });
-    if (byId) return byId;
+    if (!fungus) return null;
     
-    // Try by slug
-    const bySlug = await fetchQuery(api.fungi.getBySlug, { slug: idOrSlug });
-    return bySlug;
+    return {
+      _id: fungus._id,
+      slug: fungus.seoName,
+      commonName: fungus.commonName,
+      latinName: fungus.latinName,
+      description: fungus.description,
+      imageUrl: fungus.imageUrl,
+      imageUrls: fungus.imageUrls || [],
+      taxonomy: fungus.taxonomy,
+      physicalCharacteristics: fungus.physicalCharacteristics,
+      ecologyAndHabitat: fungus.ecologyAndHabitat,
+      culinaryAndNutritional: fungus.culinaryAndNutritional,
+      medicinalAndHealth: fungus.medicinalAndHealth,
+      cultivationAndProcessing: fungus.cultivationAndProcessing,
+      safetyAndIdentification: fungus.safetyAndIdentification,
+      chemicalAndProperties: fungus.chemicalAndProperties,
+      culturalAndHistorical: fungus.culturalAndHistorical,
+      commercialAndMarket: fungus.commercialAndMarket,
+      environmentalAndConservation: fungus.environmentalAndConservation,
+      researchAndInnovation: fungus.researchAndInnovation,
+    };
   } catch (error) {
-    console.error('Failed to fetch fungus:', error);
+    console.error(`Failed to fetch fungus with slug "${slug}":`, error);
     return null;
   }
 }

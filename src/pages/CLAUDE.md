@@ -101,36 +101,185 @@ const fungi = await fetchFungi();
 
 ---
 
-## fungi/[slug].astro
+## fungi/[slug].astro **[KOMPLETT NEU 2025-11-15]**
 
 ### Funktion
 
-**Detail-Seite für einzelnen Pilz** mit allen Informationen:
-- ✅ Dynamic Route (`/fungi/steinpilz`, `/fungi/mandelpilz`)
+**Detail-Seite mit PerspectiveHost Architektur** und Deep Recursive Rendering:
+- ✅ Dynamic Route (`/fungi/pholiota-adiposa`)
 - ✅ Lädt einzelnen Pilz von Convex via Slug
-- ✅ Zeigt alle 12 Perspektiven
-- ✅ Vollständige Daten (Taxonomie, Morphologie, Culinary, etc.)
+- ✅ **12 PerspectiveHosts** (ein Host pro Perspektive)
+- ✅ **Deep Recursive Rendering** (automatisch alle Daten, 5 Levels tief)
+- ✅ **FIFO-Logik** (max 4 Perspektiven gleichzeitig)
+- ✅ **Event-Driven** (perspective-changed Events)
 
-### Features
+### Architektur
 
-- ✅ Hero Section mit Bild & Namen
-- ✅ Perspective Tabs (12 Perspektiven)
-- ✅ Taxonomie-Baum
-- ✅ Physical Characteristics
-- ✅ Culinary Information
-- ✅ Medicinal Properties
-- ✅ Safety & Toxicity
-- ✅ Ecology & Habitat
-- ✅ Navigation (Back to List)
+```
+Convex (SSR)
+    ↓
+[slug].astro
+    ↓
+fungi object with 12 perspectives
+    ↓
+flattenObject(perspectiveData, maxDepth=5)
+    ↓
+Array<{ type, label, key, value/values/children }>
+    ↓
+renderField(field, depth)
+    ↓
+<perspective-host perspective="medicinalAndHealth">
+    <tag-morph>, <text-morph>, nested sections
+</perspective-host>
+```
+
+### Deep Recursive Flattening
+
+**Philosophie:** KEINE hardcoded Felder - ALLES automatisch aus Schema:
+
+```javascript
+function flattenObject(obj, prefix='', maxDepth=5, currentDepth=0) {
+  if (!obj || currentDepth >= maxDepth) return [];
+  const results = [];
+  
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === null || value === undefined) continue;
+    
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+    const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    
+    // Array of strings → tags
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
+      results.push({ type: 'tags', label, key: fullKey, values: value });
+      continue;
+    }
+    
+    // Array of objects → recurse each item
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+      value.forEach((item, idx) => {
+        const subItems = flattenObject(item, `${fullKey}[${idx}]`, maxDepth, currentDepth + 1);
+        results.push(...subItems);
+      });
+      continue;
+    }
+    
+    // Empty array → skip
+    if (Array.isArray(value) && value.length === 0) continue;
+    
+    // Object with min/max/unit → range
+    if (typeof value === 'object' && value.min !== undefined && value.max !== undefined) {
+      results.push({ 
+        type: 'text', 
+        label, 
+        key: fullKey, 
+        value: `${value.min}-${value.max} ${value.unit || ''}`.trim() 
+      });
+      continue;
+    }
+    
+    // Plain object → recurse into it
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      const nested = flattenObject(value, fullKey, maxDepth, currentDepth + 1);
+      if (nested.length > 0) {
+        results.push({ type: 'section', label, key: fullKey, children: nested });
+      }
+      continue;
+    }
+    
+    // Primitive values
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      results.push({ type: 'text', label, key: fullKey, value: String(value) });
+    }
+  }
+  
+  return results;
+}
+```
+
+### Recursive Rendering mit visueller Hierarchie
+
+```javascript
+function renderField(field, depth = 0) {
+  // Tags → Horizontal Tag-Liste
+  if (field.type === 'tags') {
+    return (
+      <div class="morph-wrapper" style={`margin-left: ${depth * 1}rem`}>
+        <label class="morph-label">{field.label}</label>
+        <div class="tags-container">
+          {field.values.map((tag) => <tag-morph tag={tag}></tag-morph>)}
+        </div>
+      </div>
+    );
+  }
+  
+  // Text → Text-Morph
+  if (field.type === 'text') {
+    return <text-morph value={field.value} label={field.label} 
+                       style={`margin-left: ${depth * 1}rem`}></text-morph>;
+  }
+  
+  // Section → Nested mit Kinder
+  if (field.type === 'section') {
+    return (
+      <div class="nested-section" style={`margin-left: ${depth * 1}rem`}>
+        <h4 class="nested-title">{field.label}</h4>
+        {field.children.map((child) => renderField(child, depth + 1))}
+      </div>
+    );
+  }
+  
+  return null;
+}
+```
+
+### Perspectives Array (EXAKTE Schema-Feldnamen!)
+
+```javascript
+const perspectives = [
+  { id: 'taxonomy', title: 'Taxonomy', icon: '🧬', color: '#ef4444', data: fungus.taxonomy },
+  { id: 'physicalCharacteristics', title: 'Physical', icon: '👁️', color: '#f97316', data: fungus.physicalCharacteristics },
+  { id: 'ecologyAndHabitat', title: 'Ecology', icon: '🌍', color: '#eab308', data: fungus.ecologyAndHabitat },
+  { id: 'culinaryAndNutritional', title: 'Culinary', icon: '🍳', color: '#22c55e', data: fungus.culinaryAndNutritional },
+  { id: 'medicinalAndHealth', title: 'Medicinal', icon: '⚕️', color: '#06b6d4', data: fungus.medicinalAndHealth },
+  { id: 'cultivationAndProcessing', title: 'Cultivation', icon: '🌱', color: '#3b82f6', data: fungus.cultivationAndProcessing },
+  { id: 'safetyAndIdentification', title: 'Safety', icon: '⚠️', color: '#8b5cf6', data: fungus.safetyAndIdentification },
+  { id: 'chemicalAndProperties', title: 'Chemical', icon: '🧪', color: '#ec4899', data: fungus.chemicalAndProperties },
+  { id: 'culturalAndHistorical', title: 'Cultural', icon: '📜', color: '#d946ef', data: fungus.culturalAndHistorical },
+  { id: 'commercialAndMarket', title: 'Commercial', icon: '💰', color: '#14b8a6', data: fungus.commercialAndMarket },
+  { id: 'environmentalAndConservation', title: 'Environment', icon: '🌿', color: '#10b981', data: fungus.environmentalAndConservation },
+  { id: 'researchAndInnovation', title: 'Innovation', icon: '🔬', color: '#0ea5e9', data: fungus.researchAndInnovation }
+];
+```
 
 ### Data Flow
 
 ```
-1. URL → /fungi/steinpilz
-2. Astro.params.slug → "steinpilz"
-3. fetchFungus(slug) → Convex Query
-4. fungusData → Full fungus object
-5. Render → All perspectives & data
+1. URL → /fungi/pholiota-adiposa
+2. Astro.params.slug → "pholiota-adiposa"
+3. fetchFungus(slug) → Convex Query (mit korrekten Feldnamen!)
+4. fungus object → 12 perspective data objects
+5. perspectives.map() → Create PerspectiveHost for each
+6. flattenObject(p.data) → Recursive flattening (maxDepth=5)
+7. renderField(field, depth) → Morphs mit visual hierarchy
+8. Result: 12 PerspectiveHosts mit datengetriebenen Morphs
+```
+
+### Default Perspectives (Initial State)
+
+```javascript
+const defaultPerspectives = [
+  'taxonomy', 
+  'ecologyAndHabitat', 
+  'culinaryAndNutritional', 
+  'safetyAndIdentification'
+];
+
+window.addEventListener('DOMContentLoaded', () => {
+  window.dispatchEvent(new CustomEvent('perspective-changed', {
+    detail: { perspectives: defaultPerspectives }
+  }));
+  console.log('[Detail Page] Initialized with deep recursion. Default perspectives:', defaultPerspectives);
+});
 ```
 
 ### Code Structure

@@ -8,6 +8,17 @@ Reactors sind **PLUG & PLAY** Module die Effekte auf Morphs anwenden:
 - ✅ Konfigurierbar über `reactors.config.js`
 - ✅ Wirken auf bestimmte Morph-Typen
 
+## 🆕 New: PerspectiveReactor (2025-11-16)
+
+**Smart perspective-driven morph filtering & highlighting!**
+
+- 🔮 **Tag-to-Perspective Auto-Activation** - 80+ tag mappings
+- 🎨 **Smart Highlighting** - Relevant morphs highlighted with perspective colors
+- 🌫️ **Dim, don't hide** - Irrelevant morphs dimmed (opacity 0.3)
+- ⚡ **Lightweight** - Pure CSS, no DOM manipulation
+
+**Siehe:** [PERSPECTIVE_SYSTEM.md](./PERSPECTIVE_SYSTEM.md) für Details!
+
 ## Reactor-Architektur
 
 Alle Reactors folgen demselben Pattern:

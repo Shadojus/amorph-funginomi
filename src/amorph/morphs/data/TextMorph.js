@@ -146,6 +146,11 @@ export class TextMorph extends LitElement {
   }
   
   render() {
+    // Don't render if value is empty
+    if (!this.value || this.value.trim().length === 0) {
+      return html``;
+    }
+    
     const classes = [
       'text',
       this.maxlines ? 'ellipsis' : '',

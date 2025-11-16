@@ -118,9 +118,9 @@ culinaryAndNutritional: {
 }
 ```
 
-#### 5. **Medicinal Properties** (Perspektive 2)
+#### 5. **Medicinal & Health** (Perspektive 2) ⚠️ KORREKT: `medicinalAndHealth`
 ```typescript
-medicinalProperties: {
+medicinalAndHealth: {
   compounds: {
     name: string,
     category: string,     // polysaccharide, terpenoid, phenolic
@@ -139,6 +139,8 @@ medicinalProperties: {
   contraindications: string[]
 }
 ```
+
+**⚠️ WICHTIG:** Schema-Feldname ist `medicinalAndHealth` (NICHT `medicinalProperties` oder `medicinalAndBioactive`)
 
 #### 6. **Cultivation** (Perspektive 3)
 ```typescript
@@ -186,13 +188,28 @@ ecologyAndHabitat: {
 ```
 
 #### 9-12. **Weitere Perspektiven**
-- **Morphology**: Mikroskopische Details
-- **Biochemistry**: Molekulare Zusammensetzung
-- **Cultural**: Kulturelle Bedeutung
-- **Commercial**: Wirtschaftliche Nutzung
-- **Legal**: Rechtlicher Status
-- **Research**: Forschungsstand
-- **Sustainability**: Nachhaltigkeit
+
+**⚠️ KRITISCHE SCHEMA-FELDNAMEN:**
+
+- ✅ `chemicalAndProperties` - Chemische & Physikalische Eigenschaften (NICHT `biochemistryAndCompounds`)
+- ✅ `culturalAndHistorical` - Kulturelle Bedeutung & Geschichte
+- ✅ `commercialAndMarket` - Wirtschaftliche Nutzung & Markt (NICHT `commercialAndEconomic`)
+- ✅ `environmentalAndConservation` - Umwelt & Naturschutz (NICHT `legalAndRegulatory`)
+- ✅ `researchAndInnovation` - Forschung & Innovation (NICHT `researchAndScientific`)
+
+**Vollständige Liste aller 12 Perspektiven-Feldnamen:**
+1. `taxonomy`
+2. `physicalCharacteristics`
+3. `ecologyAndHabitat`
+4. `culinaryAndNutritional`
+5. `medicinalAndHealth`
+6. `cultivationAndProcessing`
+7. `safetyAndIdentification`
+8. `chemicalAndProperties`
+9. `culturalAndHistorical`
+10. `commercialAndMarket`
+11. `environmentalAndConservation`
+12. `researchAndInnovation`
 
 ### Indizes
 

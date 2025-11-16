@@ -52,56 +52,50 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
   <div class="fungi-grid" id="grid-view-host">
     {fungi && fungi.length > 0 ? (
       fungi.map((fungus: any) => (
-        <article class="fungus-card">
-          <div class="morphs">
-            <!-- Name Morphs -->
-            {fungus.names?.common && (
-              <name-morph 
-                perspective="culinary"
-                value={fungus.names.common}
-                lang="de"
-              ></name-morph>
-            )}
-            
-            {fungus.names?.scientific && (
-              <name-morph 
-                perspective="scientific"
-                value={fungus.names.scientific}
-                lang="la"
-              ></name-morph>
-            )}
-            
-            <!-- Image Morph -->
-            {fungus.images?.[0] && (
-              <image-morph
-                src={fungus.images[0].url}
-                alt={fungus.names?.common || fungus.names?.scientific}
-                caption={fungus.names?.scientific}
+        <div class="fungus-card">
+          {fungus.imageUrl && (
+            <div class="card-image">
+              <image-morph 
+                src={fungus.imageUrl} 
+                alt={fungus.commonName}
               ></image-morph>
-            )}
-            
-            <!-- Tag Morphs -->
-            <div class="tags">
-              {fungus.tags?.map((tag: string) => (
-                <tag-morph tag={tag} color="auto"></tag-morph>
-              ))}
             </div>
-            
-            <!-- Text Morph (Description) -->
-            {fungus.description && (
-              <text-morph 
-                perspective="culinary"
-                value={fungus.description}
-                maxlines={3}
-              ></text-morph>
-            )}
-            
-            <!-- Link to detail page -->
-            <a href={`/fungi/${fungus.slug || fungus._id}`} class="detail-link">
-              Details ansehen →
-            </a>
+          )}
+          
+          <div class="card-header">
+            <name-morph 
+              value={fungus.commonName} 
+              size="large"
+            ></name-morph>
+            <name-morph 
+              value={fungus.latinName} 
+              perspective="scientific"
+              lang="la"
+              size="small"
+            ></name-morph>
           </div>
-        </article>
+
+          <div class="card-data">
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="edibility"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="habitat"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="sporePrintColor"
+            ></data-morph>
+          </div>
+
+          <a href={`/fungi/${fungus.slug}`} class="card-link">
+            Details ansehen →
+          </a>
+        </div>
       ))
     ) : (
       <div class="empty-state">
@@ -117,6 +111,72 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
 </BaseLayout>
 
 <style>
+  .fungus-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fungus-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .card-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .card-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .card-header name-morph {
+    display: block;
+  }
+
+  .card-header name-morph:first-child {
+    margin-bottom: 0.5rem;
+  }
+
+  .card-data {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .card-data data-morph {
+    margin-bottom: 0;
+  }
+
+  .card-link {
+    display: block;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .card-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #22c55e;
+  }
+
   /* View Toggle */
   .view-toggle {
     display: flex;
@@ -275,6 +335,13 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
     console.log('📊 Fungi data:', fungi);
     bubbleHost.setData(fungi);
     console.log(`✅ Passed ${fungi.length} fungi to BubbleHost`);
+
+    // Initialize with default perspectives for DataMorphs
+    const defaultPerspectives = ['culinaryAndNutritional', 'ecologyAndHabitat'];
+    window.dispatchEvent(new CustomEvent('perspective-changed', {
+      detail: { perspectives: defaultPerspectives }
+    }));
+    console.log('✅ DataMorphs initialized with perspectives:', defaultPerspectives);
 
     // View Toggle functionality
     const viewBtns = document.querySelectorAll('.view-btn');

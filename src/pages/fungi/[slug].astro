@@ -1,230 +1,201 @@
 ---
-/**
- * 🍄 FUNGUS DETAIL PAGE
- * =====================
- * 
- * Shows complete fungus data with all 12 perspectives
- * Dynamic route: /fungi/[slug]
- */
-
 import BaseLayout from '@/amorph/arch/layouts/BaseLayout.astro';
 import { fetchFungus } from '@/amorph/arch/convex';
 
-// Get slug from URL params
 const { slug } = Astro.params;
+const fungus = await fetchFungus(slug!);
+if (!fungus) return Astro.redirect('/fungi');
 
-// Fetch fungus data
-const fungusData = await fetchFungus(slug);
-
-if (!fungusData) {
-  return Astro.redirect('/fungi');
+// Deep recursive renderer - renders ALL nested data
+function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): any[] {
+  if (!obj || currentDepth >= maxDepth) return [];
+  const results: any[] = [];
+  
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === null || value === undefined) continue;
+    
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+    const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    
+    // Array of strings → tags (filter empty strings!)
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
+      const validStrings = value.filter((s: string) => s && s.trim().length > 0);
+      if (validStrings.length > 0) {
+        results.push({ type: 'tags', label, key: fullKey, values: validStrings });
+      }
+      continue;
+    }
+    
+    // Array of objects → render each object
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+      value.forEach((item, idx) => {
+        const subItems = flattenObject(item, `${fullKey}[${idx}]`, maxDepth, currentDepth + 1);
+        results.push(...subItems);
+      });
+      continue;
+    }
+    
+    // Empty array → skip
+    if (Array.isArray(value) && value.length === 0) continue;
+    
+    // Object with min/max/unit → range
+    if (typeof value === 'object' && value.min !== undefined && value.max !== undefined) {
+      results.push({ 
+        type: 'text', 
+        label, 
+        key: fullKey, 
+        value: `${value.min}-${value.max} ${value.unit || ''}`.trim() 
+      });
+      continue;
+    }
+    
+    // Plain object → recurse into it
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      const nested = flattenObject(value, fullKey, maxDepth, currentDepth + 1);
+      if (nested.length > 0) {
+        results.push({ type: 'section', label, key: fullKey, children: nested });
+      }
+      continue;
+    }
+    
+    // Primitive values (skip empty strings!)
+    if (typeof value === 'string') {
+      if (value.trim().length > 0) {
+        results.push({ type: 'text', label, key: fullKey, value: value.trim() });
+      }
+    } else if (typeof value === 'number' || typeof value === 'boolean') {
+      results.push({ type: 'text', label, key: fullKey, value: String(value) });
+    }
+  }
+  
+  return results;
 }
 
-// Helper to get perspective color
-const perspectiveColors = {
-  culinary: '#22c55e',
-  medicinal: '#ef4444',
-  cultivation: '#f59e0b',
-  safety: '#dc2626',
-  ecology: '#10b981',
-  morphology: '#8b5cf6',
-  biochemistry: '#06b6d4',
-  cultural: '#ec4899',
-  commercial: '#f97316',
-  legal: '#64748b',
-  research: '#0ea5e9',
-  sustainability: '#84cc16'
-};
+const perspectives = [
+  { id: 'taxonomy', title: 'Taxonomy', icon: '🧬', color: '#ef4444', data: fungus.taxonomy },
+  { id: 'physicalCharacteristics', title: 'Physical', icon: '👁️', color: '#f97316', data: fungus.physicalCharacteristics },
+  { id: 'ecologyAndHabitat', title: 'Ecology', icon: '🌍', color: '#eab308', data: fungus.ecologyAndHabitat },
+  { id: 'culinaryAndNutritional', title: 'Culinary', icon: '🍳', color: '#22c55e', data: fungus.culinaryAndNutritional },
+  { id: 'medicinalAndHealth', title: 'Medicinal', icon: '⚕️', color: '#06b6d4', data: fungus.medicinalAndHealth },
+  { id: 'cultivationAndProcessing', title: 'Cultivation', icon: '🌱', color: '#3b82f6', data: fungus.cultivationAndProcessing },
+  { id: 'safetyAndIdentification', title: 'Safety', icon: '⚠️', color: '#8b5cf6', data: fungus.safetyAndIdentification },
+  { id: 'chemicalAndProperties', title: 'Chemical', icon: '🧪', color: '#ec4899', data: fungus.chemicalAndProperties },
+  { id: 'culturalAndHistorical', title: 'Cultural', icon: '📜', color: '#d946ef', data: fungus.culturalAndHistorical },
+  { id: 'commercialAndMarket', title: 'Commercial', icon: '💰', color: '#14b8a6', data: fungus.commercialAndMarket },
+  { id: 'environmentalAndConservation', title: 'Environment', icon: '🌿', color: '#10b981', data: fungus.environmentalAndConservation },
+  { id: 'researchAndInnovation', title: 'Innovation', icon: '🔬', color: '#0ea5e9', data: fungus.researchAndInnovation }
+];
+
+// Recursive component renderer
+function renderField(field: any, depth = 0) {
+  const marginStyle = `margin-left: ${depth * 1}rem`;
+  
+  if (field.type === 'tags') {
+    return (
+      <div className="morph-wrapper" style={marginStyle}>
+        <label className="morph-label">{field.label}</label>
+        <div className="tags-container">
+          {field.values.map((tag: string) => <tag-morph value={tag}></tag-morph>)}
+        </div>
+      </div>
+    );
+  }
+  
+  if (field.type === 'text') {
+    return (
+      <div className="morph-wrapper" style={marginStyle}>
+        <label className="morph-label">{field.label}</label>
+        <text-morph value={field.value}></text-morph>
+      </div>
+    );
+  }
+  
+  if (field.type === 'section') {
+    return (
+      <div className="nested-section" style={marginStyle}>
+        <h4 className="nested-title">{field.label}</h4>
+        {field.children.map((child: any) => renderField(child, depth + 1))}
+      </div>
+    );
+  }
+  
+  return null;
+}
 ---
 
 <BaseLayout 
-  title={`${fungusData.commonName} - Funginomi`}
-  description={fungusData.description}
-  enableGlow={true}
-  enableSearch={true}
-  enableAnimation={true}
+  title={`${fungus.commonName} - Funginomi`} 
+  description={fungus.description} 
+  enableGlow={true} 
+  enableSearch={false} 
+  enableAnimation={true} 
+  showPerspectives={true}
 >
-  <div class="detail-container">
-    <!-- Hero Section -->
+  <div class="fungus-detail">
     <section class="hero">
-      <div class="hero-content">
-        <name-morph 
-          perspective="common"
-          value={fungusData.commonName}
-          size="large"
-        ></name-morph>
-        
-        <name-morph 
-          perspective="scientific"
-          value={fungusData.latinName}
-          lang="la"
-        ></name-morph>
-        
-        {fungusData.description && (
-          <text-morph 
-            perspective="general"
-            value={fungusData.description}
-          ></text-morph>
-        )}
-      </div>
-      
       <div class="hero-image">
-        {fungusData.images?.[0] && (
-          <image-morph
-            src={fungusData.images[0].url}
-            alt={fungusData.commonName}
-            aspect-ratio="1/1"
+        {fungus.imageUrl && (
+          <image-morph 
+            src={fungus.imageUrl} 
+            alt={fungus.commonName} 
+            width="100%" 
+            height="400px" 
+            style="border-radius:16px"
           ></image-morph>
         )}
       </div>
-    </section>
-
-    <!-- All Images Gallery -->
-    {fungusData.images && fungusData.images.length > 1 && (
-      <section class="gallery">
-        <h2>📸 Gallery</h2>
-        <div class="gallery-grid">
-          {fungusData.images.slice(1).map((image: any) => (
-            <image-morph
-              src={image.url}
-              alt={image.alt}
-              caption={image.caption}
-            ></image-morph>
-          ))}
-        </div>
-      </section>
-    )}
-
-    <!-- Quick Facts -->
-    <section class="quick-facts">
-      <h2>⚡ Quick Facts</h2>
-      <div class="facts-grid">
-        {fungusData.safetyAndIdentification?.edibility && (
-          <boolean-morph
-            value={fungusData.safetyAndIdentification.edibility === 'edible'}
-            label="Edible"
-            perspectives={JSON.stringify(['safety', 'culinary'])}
-          ></boolean-morph>
-        )}
-        
-        {fungusData.cultivationAndProcessing?.cultivable !== undefined && (
-          <boolean-morph
-            value={fungusData.cultivationAndProcessing.cultivable}
-            label="Cultivable"
-            perspectives={JSON.stringify(['cultivation'])}
-          ></boolean-morph>
-        )}
-        
-        {fungusData.medicinalAndHealth?.medicinalUse !== undefined && (
-          <boolean-morph
-            value={fungusData.medicinalAndHealth.medicinalUse}
-            label="Medicinal"
-            perspectives={JSON.stringify(['medicinal'])}
-          ></boolean-morph>
+      <div class="hero-content">
+        <name-morph 
+          value={fungus.commonName} 
+          subtitle={fungus.latinName} 
+          size="large"
+        ></name-morph>
+        {fungus.description && (
+          <text-morph 
+            value={fungus.description} 
+            label="Description"
+          ></text-morph>
         )}
       </div>
     </section>
 
-    <!-- Ecology & Habitat -->
-    {fungusData.ecologyAndHabitat && (
-      <section class="perspective-section">
-        <h2 style="color: {perspectiveColors.ecology}">🌿 Ecology & Habitat</h2>
-        
-        {fungusData.ecologyAndHabitat.habitat && (
-          <list-morph
-            items={JSON.stringify(fungusData.ecologyAndHabitat.habitat)}
-            label="Habitat"
-            color={perspectiveColors.ecology}
-            perspectives={JSON.stringify(['ecology'])}
-          ></list-morph>
-        )}
-        
-        {fungusData.ecologyAndHabitat.substrate && (
-          <list-morph
-            items={JSON.stringify(fungusData.ecologyAndHabitat.substrate)}
-            label="Substrate"
-            color={perspectiveColors.ecology}
-            perspectives={JSON.stringify(['ecology'])}
-          ></list-morph>
-        )}
-      </section>
-    )}
-
-    <!-- Cultivation -->
-    {fungusData.cultivationAndProcessing && (
-      <section class="perspective-section">
-        <h2 style="color: {perspectiveColors.cultivation}">🌱 Cultivation</h2>
-        
-        {fungusData.cultivationAndProcessing.cultivationDifficulty && (
-          <text-morph
-            label="Difficulty"
-            value={fungusData.cultivationAndProcessing.cultivationDifficulty}
-            perspectives={JSON.stringify(['cultivation'])}
-          ></text-morph>
-        )}
-        
-        {fungusData.cultivationAndProcessing.temperatureRequirements?.optimal && (
-          <number-morph
-            value={fungusData.cultivationAndProcessing.temperatureRequirements.optimal.optimal}
-            unit="°C"
-            label="Optimal Temperature"
-            min={fungusData.cultivationAndProcessing.temperatureRequirements.optimal.min}
-            max={fungusData.cultivationAndProcessing.temperatureRequirements.optimal.max}
-            show-range
-            color={perspectiveColors.cultivation}
-            perspectives={JSON.stringify(['cultivation'])}
-          ></number-morph>
-        )}
-      </section>
-    )}
-
-    <!-- Safety & Identification -->
-    {fungusData.safetyAndIdentification && (
-      <section class="perspective-section">
-        <h2 style="color: {perspectiveColors.safety}">⚠️ Safety & Identification</h2>
-        
-        {fungusData.safetyAndIdentification.toxicityLevel && (
-          <text-morph
-            label="Toxicity Level"
-            value={fungusData.safetyAndIdentification.toxicityLevel}
-            perspectives={JSON.stringify(['safety'])}
-          ></text-morph>
-        )}
-        
-        {fungusData.safetyAndIdentification.keyIdentificationFeatures && (
-          <list-morph
-            items={JSON.stringify(fungusData.safetyAndIdentification.keyIdentificationFeatures)}
-            label="Key Features"
-            color={perspectiveColors.safety}
-            perspectives={JSON.stringify(['safety'])}
-          ></list-morph>
-        )}
-      </section>
-    )}
-
-    <!-- Back to List -->
-    <div class="back-link">
-      <a href="/fungi">← Back to Fungi List</a>
-    </div>
+    {perspectives.map(p => {
+      if (!p.data) return null;
+      const fields = flattenObject(p.data);
+      if (fields.length === 0) return null;
+      
+      return (
+        <perspective-host 
+          perspective={p.id} 
+          title={p.title} 
+          icon={p.icon} 
+          color={p.color}
+        >
+          {fields.map(f => renderField(f, 0))}
+        </perspective-host>
+      );
+    })}
   </div>
 </BaseLayout>
 
 <style>
-  .detail-container {
-    max-width: 1200px;
+  .fungus-detail {
+    max-width: 1400px;
     margin: 0 auto;
     padding: 2rem;
   }
 
   .hero {
+    margin-bottom: 3rem;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    margin-bottom: 3rem;
-    padding: 2rem;
-    background: rgba(255, 255, 255, 0.03);
+    gap: 2rem;
+  }
+
+  .hero-image {
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   }
 
   .hero-content {
@@ -233,77 +204,71 @@ const perspectiveColors = {
     gap: 1.5rem;
   }
 
-  .hero-image {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  section {
-    margin-bottom: 3rem;
-  }
-
-  h2 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    color: white;
-  }
-
-  .quick-facts {
-    padding: 2rem;
+  .morph-wrapper {
     background: rgba(255, 255, 255, 0.03);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .facts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-  }
-
-  .gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-  }
-
-  .perspective-section {
-    padding: 2rem;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .back-link {
-    margin-top: 3rem;
-    text-align: center;
-  }
-
-  .back-link a {
-    display: inline-block;
-    padding: 0.75rem 2rem;
-    background: rgba(102, 126, 234, 0.1);
-    border: 1.5px solid rgba(102, 126, 234, 0.3);
-    color: #8b9dff;
+    padding: 1.5rem;
     border-radius: 8px;
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1rem;
   }
 
-  .back-link a:hover {
-    background: rgba(102, 126, 234, 0.2);
-    transform: translateY(-2px);
+  .morph-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+  }
+
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .nested-section {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-left: 3px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .nested-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 1rem;
+    text-transform: capitalize;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.5rem;
+  }
+
+  text-morph {
+    display: block;
+    margin-bottom: 0.75rem;
   }
 
   @media (max-width: 768px) {
+    .fungus-detail {
+      padding: 1rem;
+    }
     .hero {
       grid-template-columns: 1fr;
     }
   }
 </style>
+
+<script>
+  import '@/amorph/hosts/PerspectiveHost.js';
+
+  const defaultPerspectives = ['taxonomy', 'ecologyAndHabitat', 'culinaryAndNutritional', 'safetyAndIdentification'];
+  
+  window.addEventListener('DOMContentLoaded', () => {
+    window.dispatchEvent(new CustomEvent('perspective-changed', {
+      detail: { perspectives: defaultPerspectives }
+    }));
+    console.log('[Detail Page] Initialized with deep recursion. Default perspectives:', defaultPerspectives);
+  });
+</script>

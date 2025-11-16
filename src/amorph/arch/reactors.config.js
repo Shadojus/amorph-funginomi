@@ -44,6 +44,19 @@ export const ReactorsConfig = {
     morphTypes: ['*']
   },
   
+  perspective: {
+    name: 'Perspective Reactor',
+    description: 'Filters & highlights morphs based on active perspectives',
+    category: 'filter',
+    enabled: true,
+    defaultConfig: {
+      animate: true,
+      duration: 300,
+      highlightActive: true
+    },
+    morphTypes: ['*']
+  },
+  
   animation: {
     name: 'Animation Reactor',
     description: 'Eingangs-Animationen',

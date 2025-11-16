@@ -3,9 +3,215 @@
 ## Übersicht
 
 Hosts sind **Container-Components** die Morphs organisieren und darstellen:
+- ✅ **PerspectiveHost**: Container für einzelne Perspektive (NEU 2025-11-15)
 - ✅ **GridHost**: Grid-Layout für Morphs
 - ✅ **BubbleHost**: Datengetriebener Container für BubbleView
 - ✅ **BubbleView**: Force-directed Graph Visualization
+
+---
+
+## PerspectiveHost.js **[NEU 2025-11-15]**
+
+### Funktion
+
+**Container für einzelne Perspektive** mit Event-Driven Activation:
+- ✅ Jede Perspektive hat eigenen Host
+- ✅ FIFO-Logik via MorphHeader (max 4 gleichzeitig)
+- ✅ Event-basierte Aktivierung/Deaktivierung
+- ✅ Smooth Fade-In/Out Animationen
+- ✅ Lit Web Component mit Shadow DOM
+
+### Props
+
+```javascript
+{
+  perspective: String,  // Schema-Feldname (z.B. 'medicinalAndHealth')
+  title: String,        // Display Title (z.B. 'Medicinal')
+  icon: String,         // Emoji Icon (z.B. '⚕️')
+  color: String,        // Farbe (z.B. '#06b6d4')
+  active: Boolean       // Aktiv-Status (managed by events)
+}
+```
+
+### Verwendung in Astro
+
+```astro
+<!-- [slug].astro -->
+{perspectives.map(p => {
+  if (!p.data) return null;
+  const fields = flattenObject(p.data);
+  if (fields.length === 0) return null;
+  
+  return (
+    <perspective-host 
+      perspective={p.id} 
+      title={p.title} 
+      icon={p.icon} 
+      color={p.color}
+    >
+      {fields.map(f => renderField(f, 0))}
+    </perspective-host>
+  );
+})}
+```
+
+### Event System
+
+```javascript
+// PerspectiveHost listens to 'perspective-changed' event
+connectedCallback() {
+  super.connectedCallback();
+  
+  // Listen auf BEIDE window UND document (wichtig für Shadow DOM)
+  window.addEventListener('perspective-changed', this.handlePerspectiveChange);
+  document.addEventListener('perspective-changed', this.handlePerspectiveChange);
+}
+
+handlePerspectiveChange = (e) => {
+  const { perspectives } = e.detail;
+  this.active = perspectives.includes(this.perspective);
+};
+```
+
+### CSS States
+
+```css
+:host {
+  display: block;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+}
+
+:host([active]) {
+  opacity: 1;
+  transform: translateY(0);
+  position: relative;
+}
+
+:host(:not([active])) {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+}
+```
+
+### Implementierung
+
+```javascript
+import { LitElement, html, css } from 'lit';
+
+export class PerspectiveHost extends LitElement {
+  static properties = {
+    perspective: { type: String, reflect: true },
+    title: { type: String },
+    icon: { type: String },
+    color: { type: String },
+    active: { type: Boolean, reflect: true }
+  };
+  
+  constructor() {
+    super();
+    this.perspective = '';
+    this.title = '';
+    this.icon = '';
+    this.color = '#ffffff';
+    this.active = false;
+  }
+  
+  connectedCallback() {
+    super.connectedCallback();
+    this.handlePerspectiveChange = this.handlePerspectiveChange.bind(this);
+    window.addEventListener('perspective-changed', this.handlePerspectiveChange);
+    document.addEventListener('perspective-changed', this.handlePerspectiveChange);
+  }
+  
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    window.removeEventListener('perspective-changed', this.handlePerspectiveChange);
+    document.removeEventListener('perspective-changed', this.handlePerspectiveChange);
+  }
+  
+  handlePerspectiveChange(e) {
+    const { perspectives } = e.detail;
+    const wasActive = this.active;
+    this.active = perspectives.includes(this.perspective);
+    
+    if (this.active && !wasActive) {
+      console.log(`[PerspectiveHost] ${this.perspective} ACTIVATED`);
+    } else if (!this.active && wasActive) {
+      console.log(`[PerspectiveHost] ${this.perspective} DEACTIVATED`);
+    }
+  }
+  
+  render() {
+    return html`
+      <div class="perspective-container" style="--perspective-color: ${this.color}">
+        <header class="perspective-header">
+          <span class="perspective-icon">${this.icon}</span>
+          <h2 class="perspective-title">${this.title}</h2>
+        </header>
+        <div class="perspective-content">
+          <slot></slot>
+        </div>
+      </div>
+    `;
+  }
+  
+  static styles = css`
+    :host {
+      display: block;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      margin-bottom: 2rem;
+    }
+    
+    :host([active]) {
+      opacity: 1;
+      transform: translateY(0);
+      position: relative;
+    }
+    
+    :host(:not([active])) {
+      position: absolute;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    
+    .perspective-container {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 12px;
+      padding: 2rem;
+      border: 2px solid var(--perspective-color);
+    }
+    
+    .perspective-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--perspective-color);
+    }
+    
+    .perspective-icon {
+      font-size: 2rem;
+    }
+    
+    .perspective-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--perspective-color);
+      margin: 0;
+    }
+  `;
+}
+
+customElements.define('perspective-host', PerspectiveHost);
+```
+
+---
 
 ## Architektur
 
