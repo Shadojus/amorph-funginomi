@@ -30,12 +30,13 @@ export default mutation(async ({ db }) => {
       "Adipose Pholiota",
     ],
     seoName: "pholiota-adiposa",
+    slug: "pholiota-adiposa",
 
     // ===== CORE DESCRIPTION =====
     description:
       "Pholiota adiposa, commonly known as Fat Pholiota, Chestnut Mushroom, or Schleimiger Schüppling (Slimy Scalycap), is a distinctive wood-rotting mushroom characterized by its striking appearance with large, whitish-yellow to brownish scales covering a slimy, golden-yellow cap. This eye-catching fungus grows on hardwood, particularly beech (Fagus), appearing in clusters or singly on fallen large branches and trunks. The cap measures 3-12 cm in diameter, with a greasy, slimy-sticky surface that is golden-yellow to ochre-yellow, decorated with large, adhered whitish-yellowish to brownish scales (fragments of the partial veil) that are sometimes upright and most concentrated toward the center. The cap margin is hung with veil remnants. The gills are pale yellowish to rust-yellow or grey-yellow, attached and slightly decurrent, often adorned with droplets, with wavy edges. The stem is 2-8 cm long and 5-12 mm thick, slimy-greasy, cream-yellow to yellow-brown with dark brown scales (partial veil fragments), lighter and scale-free at the apex, with an indicated ring zone, and rust-brown at the base. The flesh is yellowish. The spore print is rust-brown, with ellipsoid, smooth, non-amyloid spores measuring 5-8.5 × 3-5.5 µm, and highly variable cheilozystidia that are often narrow and multiply constricted. The mushroom has an insignificant, woody odor and an unpleasant, hardly pronounced, mild to slightly bitter taste. Found throughout the Northern Hemisphere from summer to late autumn, it acts as a weak parasite and decomposer on beech and other hardwoods (oak, poplar), causing white rot. While it contains bioactive compounds with antiviral, antioxidant, anticancer, and antibiotic properties, and is high in vitamins and minerals, it is considered INEDIBLE due to its unpleasant taste and texture. The slimy, scaly appearance with veil remnants, growth on hardwood, rust-brown spore print, and yellowish flesh are key identification features.",
-    imageUrl: undefined,
-    imageUrls: undefined,
+    imageUrl: "/images/fungi/pholiota-adiposa.jpg",
+    imageUrls: ["/images/fungi/pholiota-adiposa.jpg"],
 
     // ===== TAXONOMIC CLASSIFICATION =====
     taxonomy: {

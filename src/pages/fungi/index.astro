@@ -53,14 +53,12 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
     {fungi && fungi.length > 0 ? (
       fungi.map((fungus: any) => (
         <div class="fungus-card">
-          {fungus.imageUrl && (
-            <div class="card-image">
-              <image-morph 
-                src={fungus.imageUrl} 
-                alt={fungus.commonName}
-              ></image-morph>
-            </div>
-          )}
+          <div class="card-image">
+            <image-morph 
+              src={`/images/fungi/${fungus.slug}.jpg`}
+              alt={fungus.commonName}
+            ></image-morph>
+          </div>
           
           <div class="card-header">
             <name-morph 
@@ -73,9 +71,22 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
               lang="la"
               size="small"
             ></name-morph>
+            {fungus.taxonomy && (
+              <div class="quick-info">
+                <span class="info-item">
+                  <span class="info-label">Familie:</span>
+                  <span class="info-value">{fungus.taxonomy.family}</span>
+                </span>
+                <span class="info-item">
+                  <span class="info-label">Gattung:</span>
+                  <span class="info-value">{fungus.taxonomy.genus}</span>
+                </span>
+              </div>
+            )}
           </div>
 
           <div class="card-data">
+            <!-- Safety & Identification -->
             <data-morph
               fungus-data={JSON.stringify(fungus)}
               field="edibility"
@@ -83,12 +94,148 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
 
             <data-morph
               fungus-data={JSON.stringify(fungus)}
-              field="habitat"
+              field="toxicityLevel"
+            ></data-morph>
+
+            <!-- Ecology & Habitat -->
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="primarySeason"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="substrate"
+            ></data-morph>
+
+            <!-- Physical Characteristics -->
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="capColor"
             ></data-morph>
 
             <data-morph
               fungus-data={JSON.stringify(fungus)}
               field="sporePrintColor"
+            ></data-morph>
+
+            <!-- Culinary & Nutritional -->
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="flavorProfile"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="cookingMethods"
+            ></data-morph>
+
+            <!-- Medicinal & Health -->
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="medicinalProperties"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="activeCompounds"
+            ></data-morph>
+
+            <!-- Cultivation & Processing -->
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="cultivationDifficulty"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="cultivationMethods"
+            ></data-morph>
+
+            <!-- Cultural & Historical -->
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="historicalSignificance"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="firstDocumented"
+            ></data-morph>
+
+            <!-- Commercial & Market -->
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="commercialValue"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="marketSegments"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="commercialProducts"
+            ></data-morph>
+
+            <!-- Environmental & Conservation -->
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="ecologicalRole"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="ecosystemServices"
+            ></data-morph>
+
+            <!-- Research & Innovation -->
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="researchInterest"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="activeResearchAreas"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="innovativeApplications"
+            ></data-morph>
+
+            <!-- Chemical & Properties -->
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="primaryCompounds"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="secondaryMetabolites"
+            ></data-morph>
+
+            <!-- Taxonomy -->
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="kingdom"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="phylum"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="class"
+            ></data-morph>
+
+            <data-morph
+              fungus-data={JSON.stringify(fungus)}
+              field="order"
             ></data-morph>
           </div>
 
@@ -111,33 +258,57 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
 </BaseLayout>
 
 <style>
+  /* Black Glassmorphism Card */
   .fungus-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    border-radius: 20px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
   }
 
   .fungus-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-8px) scale(1.02);
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+    border-color: rgba(255, 255, 255, 0.15);
   }
 
   .card-image {
     width: 100%;
-    height: 200px;
+    height: 0;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
     overflow: hidden;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.4);
+    position: relative;
+  }
+
+  .card-image image-morph {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .card-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+    pointer-events: none;
   }
 
   .card-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.02);
+    padding: 1.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
   }
 
   .card-header name-morph {
@@ -145,15 +316,47 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
   }
 
   .card-header name-morph:first-child {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.625rem;
+    font-size: 1.25rem;
+  }
+
+  .quick-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+  }
+
+  .info-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.6875rem;
+  }
+
+  .info-value {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
   }
 
   .card-data {
-    padding: 1.5rem;
+    padding: 1.75rem;
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.125rem;
+    background: rgba(0, 0, 0, 0.5);
+    min-height: 280px;
   }
 
   .card-data data-morph {
@@ -164,27 +367,34 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
     display: block;
     padding: 1rem 1.5rem;
     text-align: center;
-    background: rgba(255, 255, 255, 0.05);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
     text-decoration: none;
     font-weight: 600;
-    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
   }
 
   .card-link:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.7);
     color: #22c55e;
+    box-shadow: 0 -2px 12px rgba(34, 197, 94, 0.3) inset, 0 0 20px rgba(34, 197, 94, 0.1);
   }
 
-  /* View Toggle */
+  /* View Toggle - Black Glassmorphism */
   .view-toggle {
     display: flex;
     gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 0.25rem;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(16px);
+    padding: 0.375rem;
     border-radius: 12px;
-    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.02) inset;
   }
 
   .view-btn {
@@ -192,21 +402,23 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
     background: transparent;
     border: none;
     border-radius: 8px;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.6);
     font-size: 1rem;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
   }
 
   .view-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    background: rgba(0, 0, 0, 0.6);
+    color: rgba(255, 255, 255, 0.9);
   }
 
   .view-btn.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
     color: white;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
   }
 
   /* Bubble Host */
@@ -217,25 +429,10 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
   /* Fungi Grid */
   .fungi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 2rem;
     margin-bottom: 4rem;
-  }
-  
-  /* Fungus Card */
-  .fungus-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
-  }
-  
-  .fungus-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+    padding: 1rem 0;
   }
   
   /* Morphs */
@@ -336,12 +533,8 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
     bubbleHost.setData(fungi);
     console.log(`✅ Passed ${fungi.length} fungi to BubbleHost`);
 
-    // Initialize with default perspectives for DataMorphs
-    const defaultPerspectives = ['culinaryAndNutritional', 'ecologyAndHabitat'];
-    window.dispatchEvent(new CustomEvent('perspective-changed', {
-      detail: { perspectives: defaultPerspectives }
-    }));
-    console.log('✅ DataMorphs initialized with perspectives:', defaultPerspectives);
+    // MorphHeader will initialize with 4 default perspectives automatically
+    console.log('✅ Perspectives will be initialized by MorphHeader');
 
     // View Toggle functionality
     const viewBtns = document.querySelectorAll('.view-btn');

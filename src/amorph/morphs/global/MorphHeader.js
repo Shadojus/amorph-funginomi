@@ -147,13 +147,13 @@ export class MorphHeader extends LitElement {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     }
 
-    /* ===== GLASSMORPHISM HEADER ===== */
+    /* ===== DARK GLASSMORPHISM HEADER ===== */
     .header {
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(20px) saturate(150%);
+      -webkit-backdrop-filter: blur(20px) saturate(150%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
       padding: 1rem 2rem;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -188,17 +188,24 @@ export class MorphHeader extends LitElement {
     .search-input {
       width: 100%;
       padding: 0.875rem 1.5rem 0.875rem 3rem;
-      border: 2px solid rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 24px;
       font-size: 1rem;
-      background: white;
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(255, 255, 255, 0.9);
       transition: all 0.2s ease;
       outline: none;
+      backdrop-filter: blur(10px);
+    }
+
+    .search-input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
     }
 
     .search-input:focus {
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
     }
 
     .search-icon {
@@ -206,7 +213,7 @@ export class MorphHeader extends LitElement {
       left: 1.25rem;
       top: 50%;
       transform: translateY(-50%);
-      color: rgba(0, 0, 0, 0.4);
+      color: rgba(255, 255, 255, 0.5);
       pointer-events: none;
       font-size: 1.125rem;
     }
@@ -217,7 +224,7 @@ export class MorphHeader extends LitElement {
       top: 50%;
       transform: translateY(-50%);
       font-size: 0.75rem;
-      color: rgba(0, 0, 0, 0.5);
+      color: rgba(255, 255, 255, 0.6);
       font-weight: 500;
       pointer-events: none;
     }
@@ -286,34 +293,54 @@ export class MorphHeader extends LitElement {
       font-weight: 500;
       cursor: pointer;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 1.5px solid;
-      background: rgba(0, 0, 0, 0.85);
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      border: 1px solid;
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       white-space: nowrap;
       flex-shrink: 0;
       text-transform: capitalize;
+      opacity: 0.5;
     }
 
     .perspective-btn.active {
       padding: 0.625rem 1.125rem;
       font-size: 0.875rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
       font-weight: 600;
-      background: rgba(0, 0, 0, 0.95);
-      transform: scale(1.05);
+      opacity: 1;
+      animation: perspective-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes perspective-pulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+      }
+      50% {
+        transform: scale(1.03);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15) inset, 0 0 12px var(--btn-color, rgba(255, 255, 255, 0.2));
+      }
     }
 
     .perspective-btn.inactive {
-      opacity: 0.7;
-      padding: 0.4rem 0.7rem;
-      font-size: 0.7rem;
-      transform: scale(0.95);
+      opacity: 0.35;
+      padding: 0.5rem 0.875rem;
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.02);
     }
 
     .perspective-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      opacity: 0.85;
+    }
+
+    .perspective-btn.active:hover {
       opacity: 1;
+      background: rgba(255, 255, 255, 0.15);
     }
 
     .perspective-icon {
@@ -527,9 +554,20 @@ export class MorphHeader extends LitElement {
     this.enabledReactors = info.enabledReactors || [];
     this.totalMorphs = info.morphCount || 0;
     
-    // Get active perspectives (falls bereits gesetzt)
-    // TODO: Implement perspective system in AmorphSystem
-    this.activePerspectives = [];
+    // Initialize with 2 most interesting perspectives for users
+    const defaultPerspectiveNames = [
+      'ecologyAndHabitat',           // Where to find them - habitat, season
+      'safetyAndIdentification',     // Safety first - edibility, toxicity
+    ];
+    
+    this.activePerspectives = defaultPerspectiveNames
+      .map(name => this.perspectives.find(p => p.name === name))
+      .filter(Boolean);
+    
+    // Dispatch initial perspective change
+    if (this.activePerspectives.length > 0) {
+      this.dispatchPerspectiveChange();
+    }
   }
 
   attachEventListeners() {
@@ -793,7 +831,7 @@ export class MorphHeader extends LitElement {
               return html`
                 <button 
                   class="perspective-btn ${btnClass}"
-                  style="border-color: ${p.color}; color: ${p.color};"
+                  style="border-color: ${p.color}; color: ${p.color}; --btn-color: ${p.color};"
                   @click=${() => this.togglePerspective(p)}
                   title="${p.label}"
                 >

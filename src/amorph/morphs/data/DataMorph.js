@@ -34,37 +34,39 @@ export class DataMorph extends LitElement {
     }
 
     .data-container {
-      background: rgba(255, 255, 255, 0.02);
-      padding: 1rem;
-      border-radius: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      margin-bottom: 0.5rem;
+      background: transparent;
+      padding: 0;
+      margin-bottom: 1.25rem;
+      border-left: 3px solid var(--perspective-color, rgba(255, 255, 255, 0.15));
+      padding-left: 1rem;
       transition: all 0.3s ease;
     }
 
     .data-container:hover {
-      background: rgba(255, 255, 255, 0.04);
-      border-color: rgba(255, 255, 255, 0.15);
+      border-left-width: 4px;
+      padding-left: 1.125rem;
     }
 
     .data-label {
-      display: block;
-      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      font-size: 0.6875rem;
       font-weight: 700;
       color: rgba(255, 255, 255, 0.5);
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 0.5rem;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
     }
 
     .data-value {
       color: rgba(255, 255, 255, 0.95);
-      line-height: 1.5;
-      font-size: 0.9rem;
+      line-height: 1.7;
+      font-size: 0.9375rem;
     }
 
     .data-value.text {
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 500;
     }
 
@@ -75,25 +77,28 @@ export class DataMorph extends LitElement {
     }
 
     .tag {
-      padding: 0.25rem 0.75rem;
-      border-radius: 12px;
+      padding: 0.25rem 0.5rem;
       font-size: 0.875rem;
-      font-weight: 500;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      transition: all 0.2s ease;
+      font-weight: 400;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.85);
+      border: none;
     }
 
     .perspective-badge {
-      display: inline-block;
-      padding: 0.25rem 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.625rem;
       border-radius: 6px;
-      font-size: 0.75rem;
+      font-size: 0.625rem;
       font-weight: 600;
-      margin-left: 0.5rem;
-      background: var(--perspective-color, rgba(255, 255, 255, 0.1));
-      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.075em;
+      background: transparent;
+      color: var(--perspective-color, rgba(255, 255, 255, 0.5));
+      border: 1px solid var(--perspective-color, rgba(255, 255, 255, 0.15));
+      opacity: 0.7;
     }
 
     .multi-perspective {
@@ -243,10 +248,13 @@ export class DataMorph extends LitElement {
 
     const extracted = {};
 
-    // Search in active perspectives first
-    const searchPerspectives = this.activePerspectives.length > 0 
-      ? this.activePerspectives 
-      : allPerspectives;
+    // Only search if perspectives are active (no fallback to all perspectives)
+    if (this.activePerspectives.length === 0) {
+      this.currentData = {};
+      return;
+    }
+
+    const searchPerspectives = this.activePerspectives;
 
     // Perspectives are direct properties on fungusData (matches schema structure)
     for (const perspectiveName of searchPerspectives) {
@@ -326,6 +334,27 @@ export class DataMorph extends LitElement {
   }
 
   /**
+   * Format perspective name for display (shorter labels)
+   */
+  formatPerspectiveName(perspectiveName) {
+    const shortNames = {
+      taxonomy: 'Taxonomy',
+      physicalCharacteristics: 'Physical',
+      ecologyAndHabitat: 'Ecology',
+      culinaryAndNutritional: 'Culinary',
+      medicinalAndHealth: 'Medicinal',
+      cultivationAndProcessing: 'Cultivation',
+      safetyAndIdentification: 'Safety',
+      chemicalAndProperties: 'Chemical',
+      culturalAndHistorical: 'Cultural',
+      commercialAndMarket: 'Commercial',
+      environmentalAndConservation: 'Environment',
+      researchAndInnovation: 'Research'
+    };
+    return shortNames[perspectiveName] || perspectiveName;
+  }
+
+  /**
    * Get perspective icon
    */
   getPerspectiveIcon(perspectiveName) {
@@ -369,13 +398,39 @@ export class DataMorph extends LitElement {
       `;
     }
 
+    // Array of objects → extract name or compound property
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+      const labels = value.map(obj => {
+        // Try common properties for compound objects
+        return obj.name || obj.compound || obj.label || obj.title || JSON.stringify(obj);
+      }).filter(Boolean);
+      
+      return html`
+        <div class="data-value tags">
+          ${labels.map(label => html`<span class="tag">${label}</span>`)}
+        </div>
+      `;
+    }
+
     // Object with min/max/unit → range
-    if (typeof value === 'object' && value.min !== undefined && value.max !== undefined) {
+    if (typeof value === 'object' && !Array.isArray(value) && value.min !== undefined && value.max !== undefined) {
       return html`
         <div class="data-value text">
           ${value.min}-${value.max} ${value.unit || ''}
         </div>
       `;
+    }
+
+    // Single object → try to extract readable value
+    if (typeof value === 'object' && !Array.isArray(value) && value !== null) {
+      const readable = value.name || value.value || value.label || value.description;
+      if (readable) {
+        return html`
+          <div class="data-value text">
+            ${String(readable)}
+          </div>
+        `;
+      }
     }
 
     // Plain string/number/boolean
@@ -389,57 +444,48 @@ export class DataMorph extends LitElement {
   render() {
     const dataEntries = Object.entries(this.currentData);
 
-    // Debug logging
+    // Hide completely if no data (don't show empty cards)
     if (dataEntries.length === 0) {
-      console.log(`[DataMorph] No data for field "${this.field}"`, {
-        fungusData: this.fungusData,
-        activePerspectives: this.activePerspectives,
-        currentData: this.currentData
-      });
+      return html``;
     }
 
-    if (dataEntries.length === 0) {
-      return html`
-        <div class="data-container">
-          <span class="data-label">${this.formatFieldName(this.field)}</span>
-          <div class="empty-state">No data available</div>
-        </div>
-      `;
-    }
+    // Get first perspective for color (primary)
+    const [firstPerspective] = dataEntries[0];
+    const color = this.getPerspectiveColor(firstPerspective);
+    const icon = this.getPerspectiveIcon(firstPerspective);
 
-    // Single perspective
+    // Single perspective - clean display
     if (dataEntries.length === 1) {
       const [perspectiveName, value] = dataEntries[0];
-      const color = this.getPerspectiveColor(perspectiveName);
-      const icon = this.getPerspectiveIcon(perspectiveName);
 
       return html`
-        <div class="data-container" style="border-left: 3px solid ${color}">
-          <span class="data-label">
+        <div class="data-container" style="--perspective-color: ${color}">
+          <div class="data-label">
             ${this.formatFieldName(this.field)}
             <span class="perspective-badge" style="--perspective-color: ${color}">
-              ${icon} ${perspectiveName}
+              ${icon} ${this.formatPerspectiveName(perspectiveName)}
             </span>
-          </span>
+          </div>
           ${this.renderValue(value, perspectiveName)}
         </div>
       `;
     }
 
-    // Multiple perspectives
+    // Multiple perspectives - stack them
     return html`
-      <div class="data-container">
-        <span class="data-label">${this.formatFieldName(this.field)}</span>
+      <div class="data-container" style="--perspective-color: ${color}">
+        <div class="data-label">
+          ${this.formatFieldName(this.field)}
+        </div>
         <div class="multi-perspective">
           ${dataEntries.map(([perspectiveName, value]) => {
-            const color = this.getPerspectiveColor(perspectiveName);
-            const icon = this.getPerspectiveIcon(perspectiveName);
+            const pColor = this.getPerspectiveColor(perspectiveName);
+            const pIcon = this.getPerspectiveIcon(perspectiveName);
             return html`
-              <div class="perspective-section" style="--perspective-color: ${color}">
-                <div class="perspective-header">
-                  <span>${icon}</span>
-                  <span>${perspectiveName}</span>
-                </div>
+              <div style="margin-bottom: 0.75rem;">
+                <span class="perspective-badge" style="--perspective-color: ${pColor}; margin-bottom: 0.375rem;">
+                  ${pIcon} ${this.formatPerspectiveName(perspectiveName)}
+                </span>
                 ${this.renderValue(value, perspectiveName)}
               </div>
             `;

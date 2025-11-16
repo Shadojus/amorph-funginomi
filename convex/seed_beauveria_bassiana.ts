@@ -45,12 +45,13 @@ export default mutation(async ({ db }) => {
       "Beauveria",
     ],
     seoName: "beauveria-bassiana",
+    slug: "beauveria-bassiana",
 
     // ===== CORE DESCRIPTION =====
     description:
       "Beauveria bassiana is an entomopathogenic fungus that acts as a parasite on various arthropods. It grows on dead insects, forming white, granular, head-like or clustered fruiting bodies. This fungus is widely used as a biological insecticide due to its ability to infect and kill a wide range of insect pests including whiteflies, thrips, spider mites, Colorado potato beetles, European corn borers, and bark beetles. The fungus is extremely rare to find in nature.",
-    imageUrl: undefined,
-    imageUrls: undefined,
+    imageUrl: "/images/fungi/beauveria-bassiana.jpg",
+    imageUrls: ["/images/fungi/beauveria-bassiana.jpg"],
 
     // ===== TAXONOMIC CLASSIFICATION =====
     taxonomy: {

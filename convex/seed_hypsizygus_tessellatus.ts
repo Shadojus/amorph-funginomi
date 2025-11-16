@@ -40,9 +40,12 @@ export default mutation(async ({ db }) => {
     "Japanese Beech Mushroom",
   ],
   seoName: "buna-shimeji-beech-mushroom-hypsizygus-tessellatus",
+  slug: "buna-shimeji-beech-mushroom-hypsizygus-tessellatus",
   
   // ===== CORE DESCRIPTION =====
   description: "Hypsizygus tessellatus, known as Buna-shimeji or Beech Mushroom, is a superior edible mushroom highly esteemed in Japan for its firm, crunchy texture and mildly sweet nutty flavor. The cap is distinctive with spotted to marbled 'water spots', measuring 2-7 cm, progressing from dark tan to gray tawny brown or creamy brown at maturity. Naturally found on dying hardwoods throughout temperate regions, this saprophytic species can also behave as a facultative parasite. Commercially cultivated worldwide, particularly in Japan, it shows remarkable anti-tumor properties with 100% tumor inhibition in animal studies. The flavor undergoes complex transformations during cooking, making it versatile in vegetable, meat, or seafood stir-fries, soups, and sauces.",
+  imageUrl: "/images/fungi/buna-shimeji-beech-mushroom-hypsizygus-tessellatus.jpg",
+  imageUrls: ["/images/fungi/buna-shimeji-beech-mushroom-hypsizygus-tessellatus.jpg"],
   
   // ===== TAXONOMIC CLASSIFICATION =====
   taxonomy: {
