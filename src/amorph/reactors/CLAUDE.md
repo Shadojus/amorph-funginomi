@@ -8,7 +8,29 @@ Reactors sind **PLUG & PLAY** Module die Effekte auf Morphs anwenden:
 - ✅ Konfigurierbar über `reactors.config.js`
 - ✅ Wirken auf bestimmte Morph-Typen
 
-## 🆕 New: PerspectiveReactor (2025-11-16)
+## 🆕 New: Dual Search System (2025-11-17)
+
+**Two complementary search reactors working together!**
+
+### SearchReactor (Morph-based)
+- 🔍 **Searches rendered morphs** - Checks visible text in Shadow DOM
+- 🎯 **Weighted scoring** - Tags: 100, Name: 50, DataMorph: 30
+- 🔮 **Word boundary matching** - Precise, no over-matching
+- 📊 **Container-based filtering** - Hides/shows entire fungus cards
+
+### AstroDataSearchReactor (Data-based)
+- 📦 **Searches raw data** - Checks fungus-data attributes before rendering
+- 🔬 **Deep object traversal** - Searches all nested properties
+- 🎨 **Field-aware weighting** - Different weights for different data fields
+- 🧬 **Finds hidden data** - Discovers data not yet rendered in morphs
+
+**Benefits:**
+- ✅ Finds data even when morphs aren't rendered yet
+- ✅ Searches inactive perspectives (data not visible)
+- ✅ More comprehensive results
+- ✅ Better auto-perspective detection
+
+## 🆕 PerspectiveReactor (2025-11-16)
 
 **Smart perspective-driven morph filtering & highlighting!**
 
@@ -111,85 +133,286 @@ cleanup(morphs) {
 
 ---
 
-### SearchReactor.js
+### SearchReactor.js ✨ **[UPDATED 2025-11-17]**
 
-**Funktion:** Filtert & sortiert Morphs mit weighted Scoring
+**Funktion:** Intelligente Suche mit weighted Scoring, Auto-Perspective-Switching & Debouncing
+
+**Features:**
+- ✅ **Word boundary matching** - Präzise Start-of-Word Suche (verhindert False Positives)
+- ✅ **Minimum query length** - 2 Zeichen minimum (reduziert unnötige Matches)
+- ✅ **Container-based filtering** - Versteckt ganze `.fungus-card` Elemente statt einzelner Morphs
+- ✅ **Weighted scoring** - Tags: 100, Name: 50, DataMorph: 30, ImageMorph: 25, Text: 10, Fuzzy: 5
+- ✅ **Debounced search** - 150ms Verzögerung (Performance Optimierung)
+- ✅ **Auto-perspective switching** - Aktiviert automatisch relevante Perspektiven basierend auf Matches
+- ✅ **Field-to-Perspective mapping** - 26+ Feld-Mappings (secondaryMetabolites → chemicalAndProperties, etc.)
+- ✅ **fungus-data attribute reading** - Liest verschachtelte Daten von inaktiven Perspektiven via JSON.parse()
+- ✅ **Nested object navigation** - getNestedValue() mit Dot-Notation Support (z.B. "taxonomy.kingdom")
+- ✅ **Event-driven architecture** - Publishes `search:completed` Event mit matchedPerspectives Array
 
 **Config:**
 ```javascript
 {
-  query: '',
-  fuzzy: true,
-  caseSensitive: false,
+  minQueryLength: 2,
+  debounceDelay: 150,
   weights: {
     tag: 100,
     name: 50,
-    description: 10
+    data: 30,
+    image: 25,
+    text: 10,
+    fuzzy: 5
   },
-  minScore: 10
+  minScore: 5
 }
 ```
 
-**Implementierung:**
+**Field-to-Perspective Mapping:**
 ```javascript
-apply(morphs) {
-  if (!this.config.query) {
-    // Alle anzeigen
-    morphs.forEach(m => m.classList.remove('reactor-search-hidden'));
-    return;
+this.fieldToPerspectiveMap = {
+  // Chemical & Properties
+  'primaryCompounds': 'chemicalAndProperties',
+  'secondaryMetabolites': 'chemicalAndProperties',
+  'enzymeActivity': 'chemicalAndProperties',
+  
+  // Culinary & Nutritional
+  'nutritionalValue': 'culinaryAndNutritional',
+  'flavorProfile': 'culinaryAndNutritional',
+  'preparationMethods': 'culinaryAndNutritional',
+  
+  // Cultivation & Processing
+  'cultivationDifficulty': 'cultivationAndProcessing',
+  'substratePreferences': 'cultivationAndProcessing',
+  
+  // Medicinal & Health
+  'medicinalProperties': 'medicinalAndHealth',
+  'activeCompounds': 'medicinalAndHealth',
+  'therapeuticApplications': 'medicinalAndHealth',
+  
+  // Research & Innovation
+  'activeResearchAreas': 'researchAndInnovation',
+  'innovativeApplications': 'researchAndInnovation',
+  
+  // Ecology & Habitat
+  'substrate': 'ecologyAndHabitat',
+  'seasonality': 'ecologyAndHabitat',
+  'habitat': 'ecologyAndHabitat',
+  
+  // Safety & Identification
+  'edibility': 'safetyAndIdentification',
+  'toxicityLevel': 'safetyAndIdentification',
+  
+  // Physical Characteristics
+  'capColor': 'physicalCharacteristics',
+  'sporePrintColor': 'physicalCharacteristics',
+  
+  // Taxonomy
+  'kingdom': 'taxonomy',
+  'phylum': 'taxonomy',
+  'class': 'taxonomy',
+  'order': 'taxonomy',
+  'family': 'taxonomy',
+  'genus': 'taxonomy'
+};
+```
+
+**Key Implementation Details:**
+
+```javascript
+// Word boundary matching for precision
+const wordBoundaryRegex = new RegExp(`\\b${query}`, 'i');
+if (wordBoundaryRegex.test(textContent)) {
+  score += weight;
+}
+
+// fungus-data attribute reading for inactive perspectives
+const fungusDataAttr = morph.getAttribute('fungus-data');
+if (fungusDataAttr) {
+  const fungusData = JSON.parse(fungusDataAttr);
+  const fullPath = `${perspective}.${fieldName}`;
+  const fieldValue = this.getNestedValue(fungusData, fullPath);
+  // ... score calculation
+}
+
+// Nested object navigation with dot notation
+getNestedValue(obj, path) {
+  // Try direct key first (e.g., "secondaryMetabolites")
+  if (obj && obj.hasOwnProperty(path)) {
+    return obj[path];
   }
   
-  morphs.forEach(morph => {
-    const score = this.calculateScore(morph);
-    
-    if (score >= this.config.minScore) {
-      morph.classList.remove('reactor-search-hidden');
-      morph.dataset.searchScore = score;
-      morph.style.order = -score; // Sortierung
+  // Fall back to dot notation (e.g., "chemicalAndProperties.secondaryMetabolites")
+  if (!path.includes('.')) return null;
+  
+  const keys = path.split('.');
+  let current = obj;
+  
+  for (const key of keys) {
+    if (current && typeof current === 'object' && current.hasOwnProperty(key)) {
+      current = current[key];
     } else {
-      morph.classList.add('reactor-search-hidden');
+      return null;
+    }
+  }
+  
+  return current;
+}
+
+// Container-based filtering
+applyContainerFiltering(containerMatches) {
+  const containers = document.querySelectorAll('.fungus-card');
+  containers.forEach(container => {
+    if (containerMatches.has(container)) {
+      container.style.display = '';
+    } else {
+      container.style.display = 'none';
     }
   });
 }
 
-calculateScore(morph) {
-  let score = 0;
-  const query = this.config.caseSensitive 
-    ? this.config.query 
-    : this.config.query.toLowerCase();
-  
-  // Tag Matching (höchste Priorität)
-  const tags = this.extractTags(morph);
-  tags.forEach(tag => {
-    if (this.matches(tag, query)) {
-      score += this.config.weights.tag;
-    }
-  });
-  
-  // Name Matching
-  const name = morph.dataset.name || '';
-  if (this.matches(name, query)) {
-    score += this.config.weights.name;
-  }
-  
-  // Description Matching
-  const desc = morph.textContent || '';
-  if (this.matches(desc, query)) {
-    score += this.config.weights.description;
-  }
-  
-  return score;
-}
+// Event publishing with matched perspectives
+amorph.streamPublish('search:completed', {
+  query,
+  totalResults: results.filter(r => r.score > this.config.minScore).length,
+  totalMorphs: this.morphs.size,
+  matchedPerspectives: Array.from(matchedPerspectives),
+  perspectiveMatchCounts // For header marking
+});
+```
 
-matches(text, query) {
-  text = this.config.caseSensitive ? text : text.toLowerCase();
-  
-  if (this.config.fuzzy) {
-    return text.includes(query);
-  } else {
-    return text === query;
-  }
+**Auto-Perspective Switching Flow:**
+1. User types search query (e.g., "peptide")
+2. SearchReactor finds matches in DataMorph elements
+3. Tracks which field was matched (e.g., "secondaryMetabolites")
+4. Maps field to perspective using fieldToPerspectiveMap
+5. Adds perspective to matchedPerspectives Set
+6. Publishes `search:completed` event with matchedPerspectives array
+7. MorphHeader receives event and auto-activates perspectives **with 400ms debounce**
+8. Debounce prevents rapid switching while user is still typing
+9. Only activates when user pauses typing
+
+**Performance:**
+- ✅ Debounced at 150ms for search execution
+- ✅ Word boundary regex prevents false matches
+- ✅ Container filtering (O(n) containers vs O(n*m) morphs)
+- ✅ fungus-data caching in DOM attributes
+- ✅ Early return on empty query
+
+---
+
+## 📦 AstroDataSearchReactor
+
+**Searches raw data from Astro pages BEFORE morphs are rendered.**
+
+### Purpose
+Complements SearchReactor by searching the raw `fungus-data` JSON attributes that are set in Astro pages. This allows finding matches even when:
+- Morphs haven't rendered yet
+- Perspectives are inactive (data not visible)
+- Deep nested data not displayed in UI
+
+### Key Features
+
+**1. Deep Object Traversal**
+```javascript
+searchInObject(obj, query, path = '', matchedFields = new Set()) {
+  // Recursively searches ALL properties in nested objects
+  // Arrays, objects, primitives - everything!
 }
+```
+
+**2. Field-Aware Weighting**
+```javascript
+fieldWeights: {
+  // High priority
+  'commonName': 100,
+  'scientificName': 90,
+  'tags': 100,
+  'family': 80,
+  
+  // Medium priority
+  'medicinalProperties': 60,
+  'activeCompounds': 60,
+  'secondaryMetabolites': 60,
+  
+  // Low priority
+  'description': 30,
+  'default': 20  // Unlisted fields
+}
+```
+
+**3. Container-Based Operation**
+- Works on `.fungus-card` containers (not individual morphs)
+- Extracts ALL `[fungus-data]` elements from each container
+- Aggregates scores across all data in container
+- Shows/hides entire cards based on total score
+
+**4. Perspective Detection**
+- Tracks which fields matched the query
+- Maps fields to perspectives (same map as SearchReactor)
+- Publishes `astro-search:completed` event with matched perspectives
+- Coordinates with SearchReactor for unified results
+
+### Implementation
+
+**Setup in Astro Page:**
+```javascript
+// In index.astro <script>
+const { AstroDataSearchReactor } = await import('../amorph/reactors/AstroDataSearchReactor.js');
+const astroDataSearchReactor = new AstroDataSearchReactor();
+
+const fungusCards = document.querySelectorAll('.fungus-card');
+astroDataSearchReactor.apply(Array.from(fungusCards));
+```
+
+**Event Flow:**
+1. User types query
+2. AstroDataSearchReactor receives `search:query` event
+3. Extracts all `[fungus-data]` from each container
+4. Recursively searches through JSON objects
+5. Scores matches based on field weights
+6. Hides/shows containers
+7. Publishes `astro-search:completed` with perspectives
+
+**Coordination with SearchReactor:**
+- Both reactors listen to same `search:query` event
+- Both publish separate completion events
+- MorphHeader combines results for perspective activation
+- Container visibility handled by whichever reactor finds a match
+
+### Benefits Over Morph-Only Search
+
+| Aspect | SearchReactor (Morphs) | AstroDataSearchReactor (Data) |
+|--------|------------------------|------------------------------|
+| **Searches** | Rendered text in Shadow DOM | Raw JSON data attributes |
+| **Scope** | Only visible morphs | All data (visible or not) |
+| **Timing** | After render | Immediate |
+| **Depth** | Surface-level text | Deep nested objects |
+| **Coverage** | Active perspectives only | ALL perspectives |
+
+**Example:**
+```
+Query: "peptide"
+
+SearchReactor:
+- ❌ Finds 0 results if "chemicalAndProperties" perspective is inactive
+- ✅ Only searches visible DataMorph text
+
+AstroDataSearchReactor:
+- ✅ Finds match in fungus-data.chemicalAndProperties.secondaryMetabolites
+- ✅ Even though perspective is inactive!
+- ✅ Auto-triggers perspective activation
+```
+
+### Configuration
+
+```javascript
+new AstroDataSearchReactor({
+  minScore: 0,           // Minimum score to show container
+  debounce: 150,         // Debounce delay (ms)
+  hideUnmatched: true,   // Hide or dim non-matches
+  fieldWeights: {        // Custom field weights
+    myField: 50
+  }
+})
 ```
 
 ---

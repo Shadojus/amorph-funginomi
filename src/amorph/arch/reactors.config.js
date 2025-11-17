@@ -44,6 +44,33 @@ export const ReactorsConfig = {
     morphTypes: ['*']
   },
   
+  astroDataSearch: {
+    name: 'Astro Data Search Reactor',
+    description: 'Durchsucht Rohdaten aus Astro-Seiten (fungus-data Attribute)',
+    category: 'filter',
+    enabled: false,
+    defaultConfig: {
+      minScore: 0,
+      debounce: 150,
+      hideUnmatched: true,
+      fieldWeights: {
+        commonName: 100,
+        scientificName: 90,
+        tags: 100,
+        family: 80,
+        genus: 80,
+        edibility: 70,
+        toxicityLevel: 70,
+        medicinalProperties: 60,
+        activeCompounds: 60,
+        primaryCompounds: 60,
+        secondaryMetabolites: 60,
+        default: 20
+      }
+    },
+    containerBased: true  // Works on containers, not individual morphs
+  },
+  
   perspective: {
     name: 'Perspective Reactor',
     description: 'Filters & highlights morphs based on active perspectives',

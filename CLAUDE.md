@@ -1,13 +1,75 @@
-# 📝 CLAUDE.md Update Summary - 16. November 2025
+# 📝 AMORPH Funginomi - Project Documentation
+
+**Last Updated:** 17. November 2025
 
 ## 🎯 Ziel
 
-Alle CLAUDE.md Dateien auf den neuesten Stand bringen:
+Alle CLAUDE.md Dateien auf dem neuesten Stand:
 - ✅ **Jungfräulich** - Für neue Claude-Sessions verständlich
 - ✅ **Vollständig** - Keine Details der Implementierung verloren
 - ✅ **Akkurat** - Exakte Schema-Feldnamen dokumentiert
 
-## 🔄 Latest Changes (2025-11-16)
+---
+
+## 🔥 Latest Changes (2025-11-17)
+
+### 1. ⭐ Smart Search System (MAJOR UPDATE!)
+
+**SearchReactor.js Improvements:**
+- ✅ **Word boundary matching** - Präzise Start-of-Word Suche (`\b${query}`)
+- ✅ **Minimum query length** - 2 Zeichen minimum (verhindert Spam)
+- ✅ **Container-based filtering** - Versteckt ganze `.fungus-card` statt einzelner Morphs
+- ✅ **fungus-data attribute reading** - Liest JSON-Daten von inaktiven Perspektiven
+- ✅ **Field-to-Perspective mapping** - 26+ Feld-Mappings (secondaryMetabolites → chemicalAndProperties)
+- ✅ **Nested object navigation** - getNestedValue() mit Dot-Notation Support
+- ✅ **Auto-perspective detection** - Tracked welche Felder gematcht wurden
+- ✅ **Event publishing** - Publishes `search:completed` mit matchedPerspectives Array
+
+**Performance:**
+- 150ms debounce für Search Execution
+- 400ms debounce für Auto-Perspective Switching
+- Word boundary regex prevents false matches
+- Container filtering: O(n) vs O(n*m)
+
+### 2. ⭐ Auto-Perspective Switching (NEW!)
+
+**MorphHeader.js Auto-Activation:**
+- ✅ **Listens to search:completed events** from SearchReactor
+- ✅ **400ms debounce** - Prevents switching while user is typing
+- ✅ **Only switches when user pauses** - Smooth UX
+- ✅ **Duplicate prevention** - Checks if perspective already active
+- ✅ **FIFO management** - Removes oldest when adding 5th perspective
+
+**Flow:**
+1. User types "peptide" → Search finds match in secondaryMetabolites field
+2. SearchReactor maps field to perspective: secondaryMetabolites → chemicalAndProperties
+3. SearchReactor publishes `search:completed` event with matchedPerspectives array
+4. MorphHeader receives event, starts 400ms timer
+5. User stops typing → Timer fires → chemicalAndProperties perspective auto-activates!
+
+### 3. 🔧 Event System Fix (CRITICAL!)
+
+**AmorphSystem.js Event Namespace:**
+- ✅ **Fixed event listener registration** - Event names now WITHOUT `amorph:` prefix
+- ✅ **emit() adds prefix internally** - Consistent behavior
+- ✅ **streamPublish() strips prefix** - Proper fallback to emit()
+- ✅ **on()/off() use names without prefix** - Correct listener lookup
+
+**Before (BROKEN):**
+```javascript
+// ❌ This didn't work!
+amorph.on('amorph:search:completed', callback);
+```
+
+**After (FIXED):**
+```javascript
+// ✅ This works!
+amorph.on('search:completed', callback);
+```
+
+---
+
+## 🔄 Previous Changes (2025-11-16)
 
 ### 1. MorphHeader.js Vereinfachung
 - ❌ **Entfernt:** Reactor Toggles (Glow, Search, Animation)
@@ -15,15 +77,13 @@ Alle CLAUDE.md Dateien auf den neuesten Stand bringen:
 - ❌ **Entfernt:** BubbleView Controls
 - ✅ **Fokus:** Search Bar + 12 Perspektiven-Buttons (FIFO max 4)
 
-### 2. 🆕 PerspectiveReactor System (NEW!)
+### 2. 🆕 PerspectiveReactor System
 - ✅ **PerspectiveReactor.js** - Smart morph filtering based on perspectives
 - ✅ **TAG_TO_PERSPECTIVE** - 80+ tag mappings for auto-activation
 - ✅ **PERSPECTIVE_CONFIG** - 12 perspective configurations
 - ✅ **Event-driven** - Listens to perspective-changed events
 - ✅ **Lightweight** - Pure CSS, dim irrelevant morphs (don't hide!)
 - ✅ **Color consistency** - Tags keep colors, perspectives as border/shadow
-
-**Details:** `src/amorph/reactors/PERSPECTIVE_SYSTEM.md`
 
 ---
 
@@ -217,7 +277,70 @@ legalAndRegulatory
 researchAndScientific
 ```
 
-### 2. PerspectiveHost Architektur
+### 2. Event-System Konvention (CRITICAL!)
+
+```javascript
+// ✅ KORREKT - Event Namen OHNE 'amorph:' Prefix:
+amorph.on('search:completed', callback);
+amorph.emit('search:completed', data);
+amorph.streamPublish('search:completed', data);
+
+// ❌ FALSCH - NIEMALS 'amorph:' Prefix verwenden:
+amorph.on('amorph:search:completed', callback); // BROKEN!
+
+// Grund: emit() fügt 'amorph:' intern hinzu!
+// emit() nutzt eventName für Listener-Lookup (ohne Prefix)
+// emit() nutzt 'amorph:' + eventName für CustomEvent (mit Prefix)
+```
+
+### 3. Search Field-to-Perspective Mapping
+
+```javascript
+// Beispiele aus fieldToPerspectiveMap:
+'secondaryMetabolites' → 'chemicalAndProperties'
+'nutritionalValue' → 'culinaryAndNutritional'
+'medicinalProperties' → 'medicinalAndHealth'
+'kingdom' → 'taxonomy'
+'edibility' → 'safetyAndIdentification'
+
+// Insgesamt 26+ Feld-Mappings!
+```
+
+### 4. Search Features
+
+```javascript
+// Word boundary matching:
+const regex = new RegExp(`\\b${query}`, 'i');
+
+// fungus-data attribute reading:
+const fungusData = JSON.parse(morph.getAttribute('fungus-data'));
+
+// Nested object navigation:
+const value = this.getNestedValue(fungusData, 'taxonomy.kingdom');
+
+// Container-based filtering:
+document.querySelectorAll('.fungus-card').forEach(container => {
+  container.style.display = hasMatch ? '' : 'none';
+});
+```
+
+### 5. Auto-Perspective Switching
+
+```javascript
+// 400ms debounce in MorphHeader:
+this.autoSwitchTimer = setTimeout(() => {
+  // Activate perspectives
+}, 400);
+
+// Event flow:
+SearchReactor → publishes 'search:completed' with matchedPerspectives
+     ↓
+MorphHeader → receives event → starts 400ms timer
+     ↓
+User stops typing → Timer fires → Perspectives auto-activate!
+```
+
+### 6. PerspectiveHost Architektur
 
 ```
 Detail-Seite
@@ -225,7 +348,7 @@ Detail-Seite
         └── Deep Recursive Morphs
 ```
 
-### 3. FIFO-Logik (Max 4)
+### 7. FIFO-Logik (Max 4)
 
 ```javascript
 if (activePerspectives.length >= 4) {
@@ -233,15 +356,7 @@ if (activePerspectives.length >= 4) {
 }
 ```
 
-### 4. Event-System (WICHTIG!)
-
-```javascript
-// Dispatch auf BEIDE für Shadow DOM Support:
-window.dispatchEvent(event);
-document.dispatchEvent(event);
-```
-
-### 5. Deep Recursion
+### 8. Deep Recursion
 
 ```javascript
 flattenObject(obj, prefix='', maxDepth=5, currentDepth=0)
@@ -254,6 +369,17 @@ renderField(field, depth=0)
 ## 🚀 Status
 
 **HAUPTZIEL ERREICHT:** ✅
+
+**Production-Ready Features:**
+- ✅ Smart Search with Auto-Perspective Switching
+- ✅ Debounced interactions (150ms search, 400ms auto-switch)
+- ✅ Field-to-Perspective mapping (26+ fields)
+- ✅ Word boundary matching for precision
+- ✅ Container-based filtering
+- ✅ fungus-data attribute reading for inactive perspectives
+- ✅ Event system with consistent namespace
+- ✅ FIFO perspective management (max 4)
+- ✅ Smooth UX with debouncing
 
 Alle kritischen CLAUDE.md Dateien sind aktualisiert und dokumentieren:
 - ✅ PerspectiveHost Architektur

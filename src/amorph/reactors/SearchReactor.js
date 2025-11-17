@@ -247,17 +247,33 @@ export class SearchReactor {
     allContainers.forEach(container => {
       const bestScore = containerMatches.get(container) || 0;
       
+      // Check if AstroDataSearchReactor has hidden this container
+      // If AstroDataSearchReactor has hidden it, respect that decision
+      const astroDataHidden = container.classList.contains('reactor-astro-search-hidden');
+      
       if (bestScore > this.config.minScore) {
-        // Show container
-        container.style.removeProperty('display');
-        container.classList.remove('reactor-search-hidden');
+        // Show container (SearchReactor found matches)
+        // Only override if AstroDataSearchReactor hasn't explicitly hidden it
+        if (!astroDataHidden) {
+          container.style.removeProperty('display');
+          container.classList.remove('reactor-search-hidden');
+        }
       } else {
-        // Hide container (no matches)
-        if (this.config.hideUnmatched) {
-          container.style.display = 'none';
-          container.classList.add('reactor-search-hidden');
+        // SearchReactor found no matches
+        // Only hide if AstroDataSearchReactor hasn't explicitly shown it
+        // (i.e., if the container doesn't have reactor-astro-search-hidden, Astro is showing it)
+        if (!astroDataHidden) {
+          // AstroDataSearchReactor is showing this container, so don't hide it
+          // Remove any SearchReactor hiding
+          container.classList.remove('reactor-search-hidden');
         } else {
-          container.style.opacity = '0.3';
+          // AstroDataSearchReactor has hidden it, we can also hide it
+          if (this.config.hideUnmatched) {
+            container.style.display = 'none';
+            container.classList.add('reactor-search-hidden');
+          } else {
+            container.style.opacity = '0.3';
+          }
         }
       }
     });

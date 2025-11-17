@@ -7,7 +7,7 @@ Globale Components für die gesamte App:
 
 ---
 
-## MorphHeader.js **[UPDATED 2025-11-16]**
+## MorphHeader.js ✨ **[UPDATED 2025-11-17]**
 
 ### Funktion
 
@@ -15,9 +15,18 @@ Globale Components für die gesamte App:
 - ✅ **Search Bar** (zentriert, glassmorphism)
 - ✅ **12 Perspektiven-Buttons** (FIFO max 4)
 - ✅ **Shrinkable/Expandable Buttons** (inactive/active states)
+- ✅ **Auto-Perspective Switching** (basierend auf Search Results) ⭐ NEW
+- ✅ **Debounced Auto-Switching** (400ms delay) ⭐ NEW
 - ✅ Event Dispatching (window + document für Shadow DOM)
 
 **Entfernt:** ❌ Reactor Toggles, ❌ View Mode Switcher, ❌ BubbleView Controls
+
+**Latest Features (2025-11-17):**
+- ✅ Auto-activates perspectives when search finds matches in specific fields
+- ✅ 400ms debounce prevents perspective switching while user is typing
+- ✅ Only switches when user pauses typing
+- ✅ Prevents duplicate activations (checks if perspective already active)
+- ✅ FIFO queue management (removes oldest when adding 5th perspective)
 
 ### Layout-Struktur
 
@@ -51,6 +60,76 @@ this.perspectives = [
   { name: 'environmentalAndConservation', label: 'Environment', icon: '🌿', color: '#10b981' },
   { name: 'researchAndInnovation', label: 'Innovation', icon: '🔬', color: '#0ea5e9' }
 ];
+```
+
+### Auto-Perspective Switching ⭐ NEW (2025-11-17)
+
+**Automatische Perspektiven-Aktivierung basierend auf Suchergebnissen:**
+
+```javascript
+constructor() {
+  super();
+  // ...
+  this.autoSwitchTimer = null; // Debounce timer
+}
+
+// Event Listener für search:completed
+this.onSearchCompleted = (data) => {
+  this.searchResults = data.totalResults;
+  this.totalMorphs = data.totalMorphs;
+  this.matchedPerspectives = data.perspectiveMatchCounts || {};
+  
+  // Clear previous auto-switch timer (debounce)
+  if (this.autoSwitchTimer) {
+    clearTimeout(this.autoSwitchTimer);
+  }
+  
+  const matchedPerspectiveNames = data.matchedPerspectives || [];
+  
+  if (matchedPerspectiveNames.length > 0) {
+    // Debounce: Wait 400ms before auto-switching (user might still be typing)
+    this.autoSwitchTimer = setTimeout(() => {
+      matchedPerspectiveNames.forEach(perspectiveName => {
+        const perspective = this.perspectives.find(p => p.name === perspectiveName);
+        const isAlreadyActive = this.activePerspectives.find(p => p.name === perspectiveName);
+        
+        if (perspective && !isAlreadyActive) {
+          console.log('[MorphHeader] Auto-activating perspective from search:', perspectiveName);
+          this.togglePerspective(perspective);
+        }
+      });
+    }, 400); // 400ms debounce - nearly unnoticeable but prevents accidental switches
+  }
+};
+
+// Register listener (event name WITHOUT 'amorph:' prefix!)
+this.amorph.on('search:completed', this.onSearchCompleted);
+```
+
+**Debounce Flow:**
+1. User types "p" → Search fires → Timer starts (400ms)
+2. User types "e" → Search fires → Previous timer cancelled, new timer starts
+3. User types "p" → Search fires → Previous timer cancelled, new timer starts
+4. User types "t" → Search fires → Previous timer cancelled, new timer starts
+5. User types "i" → Search fires → Previous timer cancelled, new timer starts
+6. User types "d" → Search fires → Previous timer cancelled, new timer starts
+7. User types "e" → Search fires → Previous timer cancelled, new timer starts
+8. **User stops typing** → After 400ms → Perspectives auto-activate!
+
+**Cleanup:**
+```javascript
+disconnectedCallback() {
+  super.disconnectedCallback();
+  
+  // Clear auto-switch timer
+  if (this.autoSwitchTimer) {
+    clearTimeout(this.autoSwitchTimer);
+  }
+  
+  if (this.amorph) {
+    this.detachEventListeners();
+  }
+}
 ```
 
 ### FIFO Perspektiven-Management

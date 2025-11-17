@@ -162,32 +162,45 @@ setSearchQuery(query) {
 }
 ```
 
-### Event System **[UPDATED]**
+### Event System ✨ **[UPDATED 2025-11-17]**
+
+**CRITICAL FIX:** Event namespace now consistent! 
+
+**Event Name Convention:**
+- ✅ **WITHOUT prefix** when calling `.on()` or `.emit()` → System adds `amorph:` internally
+- ✅ Example: `amorph.on('search:completed', callback)` ← NO `amorph:` prefix!
+- ✅ Example: `amorph.emit('search:completed', data)` ← NO `amorph:` prefix!
+- ❌ NEVER use: `amorph.on('amorph:search:completed', callback)` ← WRONG!
 
 ```javascript
 // NEW: Stream Event Publishing (RECOMMENDED)
 async streamPublish(eventName, data) {
   if (!this.eventBridge.isConnected()) {
     // Fallback zu lokalem emit()
-    this.emit(eventName, data);
+    // IMPORTANT: Strip 'amorph:' prefix if present (emit() adds it)
+    const strippedEventName = eventName.replace(/^amorph:/, '');
+    this.emit(strippedEventName, data);
     return false;
   }
   
   return await this.eventBridge.streamPublish(eventName, data);
 }
 
-// Legacy: Event emittieren (lokal + Redis Pub/Sub)
+// Event emittieren (lokal + Redis Pub/Sub)
 emit(eventName, data) {
-  const fullEventName = `amorph:${eventName}`;
+  const fullEventName = `amorph:${eventName}`; // Adds prefix here!
   
-  // Trigger lokale Listener
-  if (this.listeners.has(eventName)) {
-    this.listeners.get(eventName).forEach(callback => {
+  // Trigger lokale Listener (using eventName WITHOUT prefix)
+  const listeners = this.listeners.get(eventName) || [];
+  listeners.forEach(callback => {
+    try {
       callback(data);
-    });
-  }
+    } catch (err) {
+      this.error(`Error in event listener for "${eventName}":`, err);
+    }
+  });
   
-  // CustomEvent dispatchen (Browser)
+  // CustomEvent dispatchen (Browser) - uses fullEventName WITH prefix
   if (typeof document !== 'undefined') {
     const event = new CustomEvent(fullEventName, {
       detail: data,
@@ -196,7 +209,68 @@ emit(eventName, data) {
     });
     document.dispatchEvent(event);
   }
+  
+  this.log(`📡 Local Event: ${fullEventName}`, data);
 }
+
+// Subscribe zu Event (WITHOUT prefix!)
+on(eventName, callback) {
+  if (!this.listeners.has(eventName)) {
+    this.listeners.set(eventName, []);
+  }
+  
+  this.listeners.get(eventName).push(callback);
+  
+  // Return unsubscribe function
+  return () => {
+    const listeners = this.listeners.get(eventName);
+    const index = listeners.indexOf(callback);
+    if (index > -1) {
+      listeners.splice(index, 1);
+    }
+  };
+}
+
+// Unsubscribe von Event (WITHOUT prefix!)
+off(eventName, callback) {
+  const listeners = this.listeners.get(eventName);
+  if (listeners) {
+    const index = listeners.indexOf(callback);
+    if (index > -1) {
+      listeners.splice(index, 1);
+    }
+  }
+}
+```
+
+**Example Usage:**
+```javascript
+// ✅ CORRECT: Register listener without prefix
+amorph.on('search:completed', (data) => {
+  console.log('Search completed!', data);
+});
+
+// ✅ CORRECT: Publish event without prefix
+amorph.streamPublish('search:completed', {
+  query: 'peptide',
+  totalResults: 1,
+  matchedPerspectives: ['chemicalAndProperties']
+});
+
+// ✅ CORRECT: Emit event without prefix
+amorph.emit('search:completed', { query: 'test' });
+
+// ❌ WRONG: Don't use 'amorph:' prefix!
+amorph.on('amorph:search:completed', callback); // Will NOT work!
+```
+
+**Key Events:**
+- `search:input` - Search query changed
+- `search:completed` - Search finished, includes matchedPerspectives array
+- `reactor:enabled` - Reactor was enabled
+- `reactor:disabled` - Reactor was disabled
+- `morph:created` - New morph registered
+- `perspective:changed` - Active perspectives changed
 
 // Event subscriben (Legacy)
 on(eventName, callback) {
