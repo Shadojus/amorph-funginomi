@@ -27,6 +27,7 @@ const fungi = defineTable({
   scientificNameSynonyms: v.optional(v.array(v.string())),
   commonNameVariants: v.optional(v.array(v.string())),
   seoName: v.string(), // URL-friendly slug
+  slug: v.string(), // URL-friendly identifier (alias for seoName)
   
   // ===== CORE DESCRIPTION =====
   description: v.optional(v.string()),

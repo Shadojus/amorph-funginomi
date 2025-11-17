@@ -36,7 +36,7 @@ class BubbleHost extends LitElement {
       border-radius: 16px;
       overflow: hidden;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      background: rgba(0, 0, 0, 0.3);
+      background: #000000;
     }
 
     bubble-view {
@@ -176,7 +176,8 @@ class BubbleHost extends LitElement {
     setTimeout(() => {
       if (this.bubbleView && allMorphs.length > 0) {
         this.bubbleView.setMorphs(allMorphs);
-        console.log(`[BubbleHost] Passed ${allMorphs.length} morphs to BubbleView`);
+        this.bubbleView.setFungiData(this.data); // Pass fungi data for similarity
+        console.log(`[BubbleHost] Passed ${allMorphs.length} morphs and ${this.data.length} fungi to BubbleView`);
       }
     }, 500);
   }

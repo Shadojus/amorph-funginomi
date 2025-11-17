@@ -683,6 +683,195 @@ createMorphsFromData() {
 
 ---
 
+---
+
+## 🆕 BubbleMorph.js (NEW 2025-11-16)
+
+### Funktion
+
+**Lightweight AMORPH integration element** for BubbleView:
+- ✅ Custom element representing a bubble
+- ✅ Auto-registers with AMORPH system
+- ✅ Virtual morph - actual rendering on canvas
+- ✅ Event bridge between BubbleView and Reactors
+
+### Props
+
+```javascript
+{
+  slug: String,          // Fungus identifier (e.g., 'steinpilz')
+  label: String,         // Display name (e.g., 'Steinpilz')
+  similarity: Number,    // Similarity score 0-1
+  perspectives: String   // Comma-separated perspectives (e.g., 'culinary,medicinal')
+}
+```
+
+### Why BubbleMorph?
+
+**Problem:** Bubbles rendered on canvas can't be registered as morphs
+**Solution:** Create invisible DOM elements that:
+1. Register with AMORPH system
+2. Listen to reactor events
+3. Notify BubbleView of updates via events
+
+### Implementierung
+
+```javascript
+export class BubbleMorph extends HTMLElement {
+  constructor() {
+    super();
+    
+    // Set morph attributes for AMORPH
+    this.dataset.morph = 'true';
+    this.dataset.morphType = 'bubble';
+  }
+
+  connectedCallback() {
+    // Register with AMORPH system
+    if (window.amorph) {
+      window.amorph.registerMorph(this);
+    }
+  }
+
+  disconnectedCallback() {
+    // Cleanup if needed
+  }
+
+  // Reactive properties
+  get slug() {
+    return this.getAttribute('slug');
+  }
+
+  set slug(value) {
+    this.setAttribute('slug', value);
+  }
+
+  get label() {
+    return this.getAttribute('label');
+  }
+
+  set label(value) {
+    this.setAttribute('label', value);
+  }
+
+  get similarity() {
+    return parseFloat(this.getAttribute('similarity')) || 0;
+  }
+
+  set similarity(value) {
+    this.setAttribute('similarity', value);
+  }
+
+  get perspectives() {
+    const attr = this.getAttribute('perspectives');
+    return attr ? attr.split(',').map(p => p.trim()) : [];
+  }
+
+  set perspectives(value) {
+    this.setAttribute('perspectives', Array.isArray(value) ? value.join(',') : value);
+  }
+}
+
+// Register custom element
+customElements.define('bubble-morph', BubbleMorph);
+```
+
+### Event System
+
+```javascript
+// BubbleView creates BubbleMorph elements
+const bubbleEl = document.createElement('bubble-morph');
+bubbleEl.setAttribute('slug', slug);
+bubbleEl.setAttribute('label', label);
+bubbleEl.setAttribute('similarity', similarity);
+bubbleEl.setAttribute('perspectives', activePerspectives.join(','));
+
+// Listen for reactor updates
+bubbleEl.addEventListener('bubble-weight-update', (e) => {
+  const bubble = this.bubbles.get(e.detail.slug);
+  if (bubble) {
+    bubble.similarity = e.detail.similarity;
+  }
+});
+
+// Register with AMORPH
+window.amorph.registerMorph(bubbleEl);
+
+// Store in hidden container
+container.appendChild(bubbleEl);
+```
+
+### Integration with PerspectiveWeightReactor
+
+```javascript
+// Reactor applies to bubble-morph elements
+applyToBubbles(bubbleMorphs) {
+  bubbleMorphs.forEach(bubbleMorph => {
+    const slug = bubbleMorph.getAttribute('slug');
+    const avgSimilarity = this.getAverageSimilarity(slug);
+    
+    // Dispatch event to BubbleView
+    bubbleMorph.dispatchEvent(new CustomEvent('bubble-weight-update', {
+      bubbles: true,
+      composed: true,
+      detail: {
+        slug,
+        similarity: avgSimilarity
+      }
+    }));
+  });
+}
+```
+
+### Usage in BubbleView
+
+```javascript
+import '../morphs/data/BubbleMorph.js'; // Import at top
+
+createBubbleElement(slug, label, similarity) {
+  // Create hidden container if needed
+  let container = this.shadowRoot.querySelector('.bubble-morphs-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'bubble-morphs-container';
+    container.style.display = 'none'; // Hidden
+    this.shadowRoot.appendChild(container);
+  }
+
+  // Create bubble element
+  const bubbleEl = document.createElement('bubble-morph');
+  bubbleEl.dataset.morph = 'true';
+  bubbleEl.dataset.morphType = 'bubble';
+  bubbleEl.dataset.morphId = `bubble-${slug}`;
+  bubbleEl.dataset.group = slug;
+  bubbleEl.setAttribute('label', label);
+  bubbleEl.setAttribute('slug', slug);
+  bubbleEl.setAttribute('similarity', similarity);
+  
+  if (this.activePerspectives.length > 0) {
+    bubbleEl.setAttribute('perspectives', this.activePerspectives.join(','));
+  }
+  
+  // Event listener for reactor updates
+  bubbleEl.addEventListener('bubble-weight-update', (e) => {
+    const bubble = this.bubbles.get(e.detail.slug);
+    if (bubble) bubble.similarity = e.detail.similarity;
+  });
+  
+  // Add to container
+  container.appendChild(bubbleEl);
+  
+  // Register with AMORPH
+  if (window.amorph) {
+    window.amorph.registerMorph(bubbleEl);
+  }
+  
+  return bubbleEl;
+}
+```
+
+---
+
 ## Status: ✅ ALLE ATOMIC MORPHS IMPLEMENTIERT
 
 Alle Data Morphs sind vollständig implementiert und produktionsbereit:
@@ -693,3 +882,4 @@ Alle Data Morphs sind vollständig implementiert und produktionsbereit:
 - ✅ BooleanMorph
 - ✅ NumberMorph
 - ✅ ListMorph
+- ✅ **BubbleMorph** (NEW 2025-11-16)

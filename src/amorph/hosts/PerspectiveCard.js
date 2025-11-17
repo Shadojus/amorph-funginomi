@@ -72,12 +72,54 @@ export class PerspectiveCard extends LitElement {
         margin: 0;
       }
 
-      .card-image {
+      .image-wrapper {
+        position: relative;
         width: 100%;
-        height: 200px;
-        object-fit: cover;
+        height: 300px;
         border-radius: 8px;
         margin: 1rem 0;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.2);
+      }
+
+      .card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+
+      .image-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.6) 50%, transparent 100%);
+        padding: 1rem;
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-end;
+      }
+
+      .taxonomy-badge {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+      }
+
+      .taxonomy-label {
+        font-size: 0.625rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .taxonomy-value {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: white;
+        font-style: italic;
       }
 
       .card-content {
@@ -319,11 +361,29 @@ export class PerspectiveCard extends LitElement {
         </div>
 
         ${hasImage ? html`
-          <img 
-            class="card-image" 
-            src="${this._parsedData.images[0].url}" 
-            alt="${this._parsedData.names?.common || ''}"
-          />
+          <div class="image-wrapper">
+            <img 
+              class="card-image" 
+              src="${this._parsedData.images[0].url}" 
+              alt="${this._parsedData.names?.common || ''}"
+            />
+            ${this._parsedData.taxonomy ? html`
+              <div class="image-overlay">
+                ${this._parsedData.taxonomy.family ? html`
+                  <div class="taxonomy-badge">
+                    <span class="taxonomy-label">Familie</span>
+                    <span class="taxonomy-value">${this._parsedData.taxonomy.family}</span>
+                  </div>
+                ` : ''}
+                ${this._parsedData.taxonomy.genus ? html`
+                  <div class="taxonomy-badge">
+                    <span class="taxonomy-label">Gattung</span>
+                    <span class="taxonomy-value">${this._parsedData.taxonomy.genus}</span>
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+          </div>
         ` : ''}
 
         ${this._parsedData.tags && this._parsedData.tags.length > 0 ? html`

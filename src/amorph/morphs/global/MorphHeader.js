@@ -122,6 +122,7 @@ export class MorphHeader extends LitElement {
     searchQuery: { type: String },
     searchResults: { type: Number },
     totalMorphs: { type: Number },
+    matchedPerspectives: { type: Object },
     
     // View Mode
     viewMode: { type: String },
@@ -191,11 +192,12 @@ export class MorphHeader extends LitElement {
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 24px;
       font-size: 1rem;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(0, 0, 0, 0.4);
       color: rgba(255, 255, 255, 0.9);
       transition: all 0.2s ease;
       outline: none;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px) saturate(120%);
+      -webkit-backdrop-filter: blur(10px) saturate(120%);
     }
 
     .search-input::placeholder {
@@ -204,8 +206,8 @@ export class MorphHeader extends LitElement {
 
     .search-input:focus {
       border-color: rgba(255, 255, 255, 0.3);
-      background: rgba(255, 255, 255, 0.08);
-      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
+      background: rgba(0, 0, 0, 0.5);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05), 0 4px 16px rgba(0, 0, 0, 0.3);
     }
 
     .search-icon {
@@ -341,6 +343,34 @@ export class MorphHeader extends LitElement {
     .perspective-btn.active:hover {
       opacity: 1;
       background: rgba(255, 255, 255, 0.15);
+    }
+
+    .perspective-btn.has-matches {
+      position: relative;
+    }
+
+    .perspective-btn.has-matches::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 8px;
+      height: 8px;
+      background: #3b82f6;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
+      animation: match-indicator-pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes match-indicator-pulse {
+      0%, 100% {
+        opacity: 0.8;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: scale(1.2);
+      }
     }
 
     .perspective-icon {
@@ -494,6 +524,7 @@ export class MorphHeader extends LitElement {
     this.searchQuery = '';
     this.searchResults = 0;
     this.totalMorphs = 0;
+    this.matchedPerspectives = {};
     
     this.viewMode = 'grid'; // 'grid', 'list', 'compact'
     
@@ -584,8 +615,31 @@ export class MorphHeader extends LitElement {
     
     // Listen to search changes
     this.onSearchCompleted = (data) => {
+      console.log('[MorphHeader] 🔥 Search completed EVENT RECEIVED!', data);
       this.searchResults = data.totalResults;
       this.totalMorphs = data.totalMorphs;
+      this.matchedPerspectives = data.perspectiveMatchCounts || {};
+      
+      // Auto-activate perspectives with matches
+      const matchedPerspectiveNames = data.matchedPerspectives || [];
+      console.log('[MorphHeader] 🎯 Matched perspectives for auto-activation:', matchedPerspectiveNames);
+      
+      if (matchedPerspectiveNames.length > 0) {
+        matchedPerspectiveNames.forEach(perspectiveName => {
+          const perspective = this.perspectives.find(p => p.name === perspectiveName);
+          const isAlreadyActive = this.activePerspectives.find(p => p.name === perspectiveName);
+          console.log('[MorphHeader] Checking perspective:', {
+            perspectiveName,
+            foundPerspective: !!perspective,
+            isAlreadyActive: !!isAlreadyActive
+          });
+          
+          if (perspective && !isAlreadyActive) {
+            console.log('[MorphHeader] Auto-activating perspective from search:', perspectiveName);
+            this.togglePerspective(perspective);
+          }
+        });
+      }
     };
     
     this.onSearchChanged = (data) => {
@@ -623,6 +677,20 @@ export class MorphHeader extends LitElement {
       }
     };
     
+    // Listen to search perspective activation
+    this.onSearchActivatePerspectives = (event) => {
+      const perspectiveNames = event.detail?.perspectives || [];
+      console.log('[MorphHeader] Search wants to activate perspectives:', perspectiveNames);
+      
+      perspectiveNames.forEach(perspectiveName => {
+        const perspective = this.perspectives.find(p => p.name === perspectiveName);
+        if (perspective && !this.activePerspectives.find(p => p.name === perspectiveName)) {
+          console.log('[MorphHeader] Auto-activating perspective from search:', perspectiveName);
+          this.togglePerspective(perspective);
+        }
+      });
+    };
+    
     // Attach
     this.amorph.on('amorph:reactor:enabled', this.onReactorEnabled);
     this.amorph.on('amorph:reactor:disabled', this.onReactorDisabled);
@@ -630,6 +698,9 @@ export class MorphHeader extends LitElement {
     this.amorph.on('amorph:search:changed', this.onSearchChanged);
     this.amorph.on('amorph:morph:registered', this.onMorphRegistered);
     this.amorph.on('amorph:tag:clicked', this.onTagClicked);
+    
+    // Listen to window events for search perspective activation
+    window.addEventListener('search:activate-perspectives', this.onSearchActivatePerspectives);
   }
 
   detachEventListeners() {
@@ -639,6 +710,8 @@ export class MorphHeader extends LitElement {
     this.amorph.off('amorph:search:changed', this.onSearchChanged);
     this.amorph.off('amorph:morph:registered', this.onMorphRegistered);
     this.amorph.off('amorph:tag:clicked', this.onTagClicked);
+    
+    window.removeEventListener('search:activate-perspectives', this.onSearchActivatePerspectives);
   }
 
   // ==========================================
@@ -746,14 +819,14 @@ export class MorphHeader extends LitElement {
     
     // SearchReactor handles its own debouncing
     if (this.amorph) {
-      this.amorph.emit('search:input', { query });
+      this.amorph.streamPublish('search:input', { query });
     }
   }
 
   clearSearch() {
     this.searchQuery = '';
     if (this.amorph) {
-      this.amorph.emit('search:input', { query: '' });
+      this.amorph.streamPublish('search:input', { query: '' });
     }
   }
 
@@ -827,13 +900,16 @@ export class MorphHeader extends LitElement {
           <div class="perspectives-row">
             ${this.perspectives.map(p => {
               const isActive = this.activePerspectives.find(ap => ap.name === p.name);
-              const btnClass = isActive ? 'active' : 'inactive';
+              const hasMatches = this.matchedPerspectives[p.name] > 0;
+              const btnClass = `${isActive ? 'active' : 'inactive'} ${hasMatches ? 'has-matches' : ''}`;
+              const matchCount = this.matchedPerspectives[p.name] || 0;
+              const title = matchCount > 0 ? `${p.label} (${matchCount} matches)` : p.label;
               return html`
                 <button 
                   class="perspective-btn ${btnClass}"
                   style="border-color: ${p.color}; color: ${p.color}; --btn-color: ${p.color};"
                   @click=${() => this.togglePerspective(p)}
-                  title="${p.label}"
+                  title="${title}"
                 >
                   <span class="perspective-icon">${p.icon}</span>
                   <span class="perspective-label">${p.label}</span>

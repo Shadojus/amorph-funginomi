@@ -139,7 +139,7 @@ export class ZoomPanController {
     this.targetPanY = y - (y - this.panY) * zoomRatio;
     this.targetZoom = newZoom;
     
-    this.emit('zoom:changed', { zoom: newZoom, x, y });
+    this.amorph.streamPublish('zoom:changed', { zoom: newZoom, x, y });
   }
 
   /**
@@ -170,7 +170,7 @@ export class ZoomPanController {
     this.targetPanX = this.lastPan.x + dx;
     this.targetPanY = this.lastPan.y + dy;
     
-    this.emit('pan:changed', { x: this.targetPanX, y: this.targetPanY });
+    this.amorph.streamPublish('pan:changed', { x: this.targetPanX, y: this.targetPanY });
   }
 
   /**
@@ -320,7 +320,7 @@ export class ZoomPanController {
     this.targetPanX = 0;
     this.targetPanY = 0;
     
-    this.emit('view:reset', {});
+    this.amorph.streamPublish('view:reset', {});
   }
 
   /**
@@ -345,7 +345,7 @@ export class ZoomPanController {
     this.targetPanX = rect.width / 2 - centerX * newZoom;
     this.targetPanY = rect.height / 2 - centerY * newZoom;
     
-    this.emit('zoom:changed', { zoom: newZoom });
+    this.amorph.streamPublish('zoom:changed', { zoom: newZoom });
   }
 
   /**

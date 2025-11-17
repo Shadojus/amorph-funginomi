@@ -85,42 +85,6 @@ const perspectives = [
   { id: 'environmentalAndConservation', title: 'Environment', icon: '🌿', color: '#10b981', data: fungus.environmentalAndConservation },
   { id: 'researchAndInnovation', title: 'Innovation', icon: '🔬', color: '#0ea5e9', data: fungus.researchAndInnovation }
 ];
-
-// Recursive component renderer
-function renderField(field: any, depth = 0) {
-  const marginStyle = `margin-left: ${depth * 1}rem`;
-  
-  if (field.type === 'tags') {
-    return (
-      <div className="morph-wrapper" style={marginStyle}>
-        <label className="morph-label">{field.label}</label>
-        <div className="tags-container">
-          {field.values.map((tag: string) => <tag-morph value={tag}></tag-morph>)}
-        </div>
-      </div>
-    );
-  }
-  
-  if (field.type === 'text') {
-    return (
-      <div className="morph-wrapper" style={marginStyle}>
-        <label className="morph-label">{field.label}</label>
-        <text-morph value={field.value}></text-morph>
-      </div>
-    );
-  }
-  
-  if (field.type === 'section') {
-    return (
-      <div className="nested-section" style={marginStyle}>
-        <h4 className="nested-title">{field.label}</h4>
-        {field.children.map((child: any) => renderField(child, depth + 1))}
-      </div>
-    );
-  }
-  
-  return null;
-}
 ---
 
 <BaseLayout 
@@ -171,7 +135,44 @@ function renderField(field: any, depth = 0) {
           icon={p.icon} 
           color={p.color}
         >
-          {fields.map(f => renderField(f, 0))}
+          {fields.map(field => {
+            const renderField = (f: any, depth = 0) => {
+              const marginStyle = `margin-left: ${depth * 1}rem`;
+              
+              if (f.type === 'tags') {
+                return (
+                  <div class="morph-wrapper" style={marginStyle}>
+                    <label class="morph-label">{f.label}</label>
+                    <div class="tags-container">
+                      {f.values.map((tag: string) => <tag-morph value={tag}></tag-morph>)}
+                    </div>
+                  </div>
+                );
+              }
+              
+              if (f.type === 'text') {
+                return (
+                  <div class="morph-wrapper" style={marginStyle}>
+                    <label class="morph-label">{f.label}</label>
+                    <text-morph value={f.value}></text-morph>
+                  </div>
+                );
+              }
+              
+              if (f.type === 'section') {
+                return (
+                  <div class="nested-section" style={marginStyle}>
+                    <h4 class="nested-title">{f.label}</h4>
+                    {f.children.map((child: any) => renderField(child, depth + 1))}
+                  </div>
+                );
+              }
+              
+              return null;
+            };
+            
+            return renderField(field, 0);
+          })}
         </perspective-host>
       );
     })}

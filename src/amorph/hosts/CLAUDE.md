@@ -3,10 +3,11 @@
 ## Übersicht
 
 Hosts sind **Container-Components** die Morphs organisieren und darstellen:
-- ✅ **PerspectiveHost**: Container für einzelne Perspektive (NEU 2025-11-15)
+- ✅ **PerspectiveHost**: Container für einzelne Perspektive (2025-11-15)
 - ✅ **GridHost**: Grid-Layout für Morphs
 - ✅ **BubbleHost**: Datengetriebener Container für BubbleView
-- ✅ **BubbleView**: Force-directed Graph Visualization
+- ✅ **BubbleView**: Interactive Bubble Visualization (MAJOR UPDATE 2025-11-16)
+- ✅ **BubbleMorph**: Custom element for AMORPH integration (NEW 2025-11-16)
 
 ---
 
@@ -673,11 +674,229 @@ Grid-Layout Container (noch nicht vollständig implementiert):
 
 ---
 
-## Status: ✅ ALLE HOSTS IMPLEMENTIERT + UPDATES
+---
 
-BubbleHost und BubbleView sind fertig und produktionsbereit.
+## 🆕 BubbleView.js - MAJOR UPDATE (2025-11-16)
 
-**Latest Updates (2025-11-15):**
+### Critical Changes
+
+**1. Selection System (FIFO, Max 4)**
+- ❌ **Removed:** Click navigation to detail pages
+- ✅ **New:** Click toggles selection (max 4 bubbles, FIFO)
+- ✅ Selected bubbles: 30% larger, fully opaque, bold text, blue glow
+- ✅ Connections only show between selected bubbles
+
+**2. Hilbert Space Similarity Integration**
+- ✅ **HilbertSpaceSimilarity.js** service for Jaccard similarity
+- ✅ **PerspectiveWeightReactor.js** for bubble size/opacity control
+- ✅ Similarity matrix calculated from active perspectives
+- ✅ Size range: 60-150px, Opacity range: 0.3-1.0
+
+**3. Connection Rendering**
+- ✅ Only between selected bubbles (2-4 active)
+- ✅ Line thickness: 2-8px based on similarity
+- ✅ **Percentage labels** showing similarity (0-100%)
+- ✅ Higher opacity for stronger connections (0.3-0.9)
+
+**4. Collision Prevention**
+- ✅ No attraction/repulsion forces (bubbles drift naturally)
+- ✅ Gentle repulsion only when bubbles get too close
+- ✅ Smooth collision resolution (10% per frame)
+- ✅ Velocity damping (30%) to prevent abrupt stops
+- ✅ Minimum distance: bubble radius + 10px
+
+**5. Multi-Perspective Borders**
+- ✅ Segmented arcs for up to 4 active perspectives
+- ✅ Each segment shows one perspective color
+- ✅ 360° / perspectiveCount = segment angle
+
+**6. BubbleMorph Integration**
+- ✅ Custom element `<bubble-morph>` for AMORPH registration
+- ✅ Auto-registers with window.amorph on connectedCallback
+- ✅ Event system: `bubble-weight-update` for reactor updates
+- ✅ Props: slug, label, similarity, perspectives
+
+### Physics System
+
+```javascript
+// Simple collision-based physics
+updatePhysics() {
+  // 1. Check all bubble pairs
+  for (bubble1, bubble2) {
+    const minDistance = (size1 + size2) / 2 + 10;
+    
+    // 2. Only apply force if too close
+    if (distance < minDistance) {
+      // Gentle repulsion
+      totalForce = -(minDistance - distance) * 0.01;
+    }
+  }
+  
+  // 3. Apply damping (95%)
+  bubble.vx *= 0.95;
+  
+  // 4. Update positions
+  bubble.x += bubble.vx;
+  
+  // 5. Collision resolution (gentle separation)
+  if (overlapping) {
+    separation = overlap * 0.1; // Only 10% per frame
+    bubble1.x -= nx * separation * 0.5;
+    bubble2.x += nx * separation * 0.5;
+    
+    // Dampen approach velocity (30%)
+    if (approaching) {
+      bubble1.vx -= nx * approachSpeed * 0.3;
+    }
+  }
+}
+```
+
+### Selection System
+
+```javascript
+// FIFO selection (max 4)
+toggleBubbleSelection(slug) {
+  const index = this.selectedBubbles.indexOf(slug);
+  
+  if (index !== -1) {
+    // Deselect
+    this.selectedBubbles.splice(index, 1);
+  } else {
+    // Select (FIFO: remove oldest if at max)
+    if (this.selectedBubbles.length >= 4) {
+      this.selectedBubbles.shift(); // Remove oldest
+    }
+    this.selectedBubbles.push(slug);
+  }
+  
+  this.requestUpdate(); // Trigger re-render
+}
+```
+
+### Rendering System
+
+```javascript
+renderCanvas() {
+  // 1. Clear canvas
+  this.ctx.clearRect(0, 0, width, height);
+  
+  // 2. Draw connections (FIRST - behind bubbles)
+  if (this.selectedBubbles.length >= 2) {
+    for (i, j in selected pairs) {
+      const similarity = this.getSimilarity(slug1, slug2);
+      
+      // Line with percentage label
+      this.ctx.lineWidth = 2 + (similarity * 6);
+      this.ctx.strokeStyle = `rgba(102, 126, 234, ${0.3 + similarity * 0.6})`;
+      
+      // Draw line
+      this.ctx.moveTo(bubble1.x, bubble1.y);
+      this.ctx.lineTo(bubble2.x, bubble2.y);
+      this.ctx.stroke();
+      
+      // Draw percentage at midpoint
+      const midX = (bubble1.x + bubble2.x) / 2;
+      const midY = (bubble1.y + bubble2.y) / 2;
+      this.ctx.fillText(`${Math.round(similarity * 100)}%`, midX, midY);
+    }
+  }
+  
+  // 3. Draw bubbles (ON TOP)
+  this.bubbles.forEach((bubble, groupId) => {
+    const isSelected = this.selectedBubbles.includes(groupId);
+    
+    // Selection boost
+    const finalSize = bubble.size * (isSelected ? 1.3 : 1.0);
+    const finalOpacity = isSelected ? 1.0 : bubble.opacity;
+    
+    // Glow for selected
+    if (isSelected) {
+      this.ctx.arc(bubble.x, bubble.y, finalSize / 2 + 8, 0, Math.PI * 2);
+      this.ctx.fillStyle = 'rgba(102, 126, 234, 0.3)';
+      this.ctx.fill();
+    }
+    
+    // Fill
+    this.ctx.arc(bubble.x, bubble.y, finalSize / 2, 0, Math.PI * 2);
+    this.ctx.fillStyle = `rgba(${isSelected ? 120 : 100}, ..., ${finalOpacity * 0.8})`;
+    this.ctx.fill();
+    
+    // Multi-perspective border (segmented arcs)
+    const segmentAngle = (Math.PI * 2) / colors.length;
+    colors.forEach((color, i) => {
+      const start = i * segmentAngle - Math.PI / 2;
+      const end = (i + 1) * segmentAngle - Math.PI / 2;
+      
+      this.ctx.arc(bubble.x, bubble.y, finalSize / 2, start, end);
+      this.ctx.strokeStyle = color;
+      this.ctx.lineWidth = isSelected ? 6 : 4;
+      this.ctx.stroke();
+    });
+    
+    // Label
+    this.ctx.font = isSelected ? 'bold 16px sans-serif' : '14px sans-serif';
+    this.ctx.fillText(bubble.label, bubble.x, bubble.y);
+  });
+}
+```
+
+### Event System
+
+```javascript
+// BubbleMorph custom element
+export class BubbleMorph extends HTMLElement {
+  connectedCallback() {
+    if (window.amorph) {
+      window.amorph.registerMorph(this);
+    }
+  }
+  
+  // Listen for weight updates from PerspectiveWeightReactor
+  addEventListener('bubble-weight-update', (e) => {
+    const { slug, similarity } = e.detail;
+    // BubbleView updates bubble.similarity
+  });
+}
+```
+
+### Integration with Reactors
+
+```javascript
+// PerspectiveWeightReactor applies to BubbleMorph elements
+applyToBubbles(bubbleMorphs) {
+  bubbleMorphs.forEach(bubbleMorph => {
+    const slug = bubbleMorph.getAttribute('slug');
+    const avgSimilarity = this.getAverageSimilarity(slug);
+    
+    // Dispatch event to notify BubbleView
+    bubbleMorph.dispatchEvent(new CustomEvent('bubble-weight-update', {
+      bubbles: true,
+      composed: true,
+      detail: { slug, similarity: avgSimilarity }
+    }));
+  });
+}
+```
+
+---
+
+## Status: ✅ ALLE HOSTS IMPLEMENTIERT + MAJOR UPDATES
+
+BubbleHost, BubbleView, and BubbleMorph are fully implemented and production-ready.
+
+**Latest Updates (2025-11-16):**
+- ✅ FIFO selection system (max 4 bubbles) with click toggle
+- ✅ Hilbert space similarity with weighted perspectives
+- ✅ Connection rendering only between selected bubbles
+- ✅ Percentage labels on connection lines
+- ✅ Gentle collision prevention (no overlap, no wild movement)
+- ✅ Multi-perspective segmented borders (up to 4 colors)
+- ✅ BubbleMorph custom element for AMORPH integration
+- ✅ PerspectiveWeightReactor for dynamic sizing/opacity
+- ✅ Visual selection feedback (glow, larger, bold text)
+
+**Previous Updates (2025-11-15):**
 - ✅ BubbleView gruppiert Morphs nach `data-group` (1 Bubble pro Gruppe, nicht pro Morph!)
 - ✅ 3 Fungi → 12 Morphs → 3 Bubbles (grouped by data-group)
 - ✅ BubbleView Controls entfernt (alle Controls jetzt in MorphHeader)

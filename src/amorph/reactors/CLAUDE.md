@@ -373,9 +373,217 @@ if (amorph.isReactorActive('glow')) {
 
 ---
 
+---
+
+## 🆕 HilbertSpaceSimilarity.js (NEW 2025-11-16)
+
+### Funktion
+
+**Similarity calculation service** for Hilbert space visualization:
+- ✅ Jaccard similarity for arrays (30% threshold)
+- ✅ Recursive object comparison
+- ✅ Weighted similarity based on perspective importance
+- ✅ FIFO weighted perspectives (oldest = 0.25, newest = 1.0)
+- ✅ Full similarity matrix generation
+
+### Methods
+
+```javascript
+// Calculate similarity between two fungi
+HilbertSpaceSimilarity.calculate(fungus1, fungus2, activePerspectives)
+// Returns 0-1 (0 = completely different, 1 = identical)
+
+// Calculate weighted similarity with perspective weights
+HilbertSpaceSimilarity.calculateWeighted(fungus1, fungus2, perspectiveWeights)
+
+// Get FIFO-based weights for perspectives
+HilbertSpaceSimilarity.getPerspectiveWeights(activePerspectives)
+// Returns Map<perspective, weight>
+// Newest perspective = 1.0, oldest = 0.25
+
+// Generate full similarity matrix
+HilbertSpaceSimilarity.calculateMatrix(fungi, activePerspectives)
+// Returns Map<slug, Map<otherSlug, similarity>>
+```
+
+### Implementation Details
+
+```javascript
+// Jaccard similarity for arrays
+static compareArrays(arr1, arr2) {
+  const set1 = new Set(arr1.map(v => JSON.stringify(v)));
+  const set2 = new Set(arr2.map(v => JSON.stringify(v)));
+  
+  const intersection = new Set([...set1].filter(x => set2.has(x)));
+  const union = new Set([...set1, ...set2]);
+  
+  const jaccardSimilarity = intersection.size / union.size;
+  return jaccardSimilarity > 0.3; // 30% threshold
+}
+
+// FIFO perspective weights
+static getPerspectiveWeights(activePerspectives) {
+  const weights = new Map();
+  const count = activePerspectives.length;
+  
+  activePerspectives.forEach((perspective, index) => {
+    // Linear weight: oldest = 0.25, newest = 1.0
+    const weight = 0.25 + (index / Math.max(1, count - 1)) * 0.75;
+    weights.set(perspective, weight);
+  });
+  
+  return weights;
+}
+```
+
+---
+
+## 🆕 PerspectiveWeightReactor.js (NEW 2025-11-16)
+
+### Funktion
+
+**Controls bubble size and opacity** based on Hilbert space similarity:
+- ✅ Dynamic sizing: 60-150px based on average similarity
+- ✅ Opacity control: 0.3-1.0 for relevance indication
+- ✅ Live updates on perspective changes
+- ✅ Smooth transitions (600ms)
+- ✅ Handles both bubble-morphs and regular morphs
+
+### Config
+
+```javascript
+{
+  minSize: 60,
+  maxSize: 150,
+  minOpacity: 0.3,
+  maxOpacity: 1.0,
+  transitionDuration: 600
+}
+```
+
+### Implementation
+
+```javascript
+export class PerspectiveWeightReactor {
+  constructor(config = {}) {
+    this.config = {
+      minSize: 60,
+      maxSize: 150,
+      minOpacity: 0.3,
+      maxOpacity: 1.0,
+      transitionDuration: 600,
+      ...config
+    };
+    
+    this.activePerspectives = [];
+    this.fungi = [];
+    this.similarityMatrix = new Map();
+  }
+  
+  apply(morphs = []) {
+    // Separate bubble-morphs from regular morphs
+    const bubbleMorphs = morphs.filter(m => 
+      m.tagName?.toLowerCase() === 'bubble-morph'
+    );
+    const regularMorphs = morphs.filter(m => 
+      m.tagName?.toLowerCase() !== 'bubble-morph'
+    );
+    
+    // Handle bubble morphs
+    if (bubbleMorphs.length > 0) {
+      this.applyToBubbles(bubbleMorphs);
+    }
+    
+    // Handle regular morphs
+    if (regularMorphs.length > 0) {
+      const fungiGroups = this.groupMorphsByFungus(regularMorphs);
+      
+      // Calculate similarity matrix
+      this.similarityMatrix = HilbertSpaceSimilarity.calculateMatrix(
+        this.fungi,
+        this.activePerspectives
+      );
+      
+      // Apply weights
+      fungiGroups.forEach(({ slug, morphs, fungusData }) => {
+        const avgSimilarity = this.getAverageSimilarity(slug);
+        this.applyWeightToGroup(morphs, avgSimilarity, fungusData);
+      });
+    }
+  }
+  
+  applyToBubbles(bubbleMorphs) {
+    bubbleMorphs.forEach(bubbleMorph => {
+      const slug = bubbleMorph.getAttribute('slug');
+      if (!slug) return;
+      
+      const avgSimilarity = this.getAverageSimilarity(slug);
+      
+      // Dispatch event to BubbleView
+      bubbleMorph.dispatchEvent(new CustomEvent('bubble-weight-update', {
+        bubbles: true,
+        composed: true,
+        detail: { slug, similarity: avgSimilarity }
+      }));
+    });
+  }
+  
+  getAverageSimilarity(slug) {
+    const similarities = this.similarityMatrix.get(slug);
+    if (!similarities) return 0.5;
+    
+    let total = 0;
+    let count = 0;
+    
+    similarities.forEach((sim, otherSlug) => {
+      if (otherSlug !== slug) {
+        total += sim;
+        count++;
+      }
+    });
+    
+    return count > 0 ? total / count : 0.5;
+  }
+}
+```
+
+### Event System
+
+```javascript
+// BubbleMorph listens for weight updates
+bubbleEl.addEventListener('bubble-weight-update', (e) => {
+  const { slug, similarity } = e.detail;
+  
+  // Update bubble properties
+  const bubble = this.bubbles.get(slug);
+  if (bubble) {
+    bubble.similarity = similarity;
+    
+    // Calculate size and opacity
+    const size = this.config.minSize + 
+      (similarity * (this.config.maxSize - this.config.minSize));
+    const opacity = this.config.minOpacity + 
+      (similarity * (this.config.maxOpacity - this.config.minOpacity));
+    
+    bubble.size = size;
+    bubble.opacity = opacity;
+  }
+});
+```
+
+---
+
 ## Status: ✅ ALLE REACTORS IMPLEMENTIERT
 
 Alle Core- und Extended-Reactors sind fertig und produktionsbereit.
+
+**Latest Updates (2025-11-16):**
+- ✅ **HilbertSpaceSimilarity.js** - Similarity calculation service
+- ✅ **PerspectiveWeightReactor.js** - Dynamic bubble sizing/opacity
+- ✅ FIFO weighted perspectives (newest = 1.0, oldest = 0.25)
+- ✅ Jaccard similarity with 30% threshold
+- ✅ Full similarity matrix generation
+- ✅ Event-based communication with BubbleView
 
 **Event System (2025-11-15):**
 - Reactors publishen jetzt `reactor:*` Events zu Redis Streams

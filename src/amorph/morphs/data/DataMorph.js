@@ -34,17 +34,22 @@ export class DataMorph extends LitElement {
     }
 
     .data-container {
-      background: transparent;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px) saturate(120%);
+      -webkit-backdrop-filter: blur(10px) saturate(120%);
       padding: 0;
       margin-bottom: 1.25rem;
       border-left: 3px solid var(--perspective-color, rgba(255, 255, 255, 0.15));
       padding-left: 1rem;
+      border-radius: 8px;
       transition: all 0.3s ease;
     }
 
     .data-container:hover {
+      background: rgba(0, 0, 0, 0.4);
       border-left-width: 4px;
       padding-left: 1.125rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     }
 
     .data-label {
@@ -97,8 +102,8 @@ export class DataMorph extends LitElement {
       letter-spacing: 0.075em;
       background: transparent;
       color: var(--perspective-color, rgba(255, 255, 255, 0.5));
-      border: 1px solid var(--perspective-color, rgba(255, 255, 255, 0.15));
-      opacity: 0.7;
+      border: 1px solid var(--perspective-color, rgba(255, 255, 255, 0.05));
+      opacity: 0.32;
     }
 
     .multi-perspective {
@@ -160,8 +165,7 @@ export class DataMorph extends LitElement {
           console.error('[DataMorph] Failed to parse fungus-data:', e);
         }
       }
-      
-      this.extractData();
+      // Don't call extractData here - let updated() handle it
     }
   }
 
@@ -218,7 +222,6 @@ export class DataMorph extends LitElement {
     const perspectives = event.detail?.perspectives || [];
     this.activePerspectives = perspectives;
     this.extractData();
-    console.log(`[DataMorph] ${this.field} updated for perspectives:`, perspectives);
   }
 
   /**
@@ -248,13 +251,10 @@ export class DataMorph extends LitElement {
 
     const extracted = {};
 
-    // Only search if perspectives are active (no fallback to all perspectives)
-    if (this.activePerspectives.length === 0) {
-      this.currentData = {};
-      return;
-    }
-
-    const searchPerspectives = this.activePerspectives;
+    // If no perspectives active, search in ALL perspectives to find the field
+    const searchPerspectives = this.activePerspectives.length > 0 
+      ? this.activePerspectives 
+      : allPerspectives;
 
     // Perspectives are direct properties on fungusData (matches schema structure)
     for (const perspectiveName of searchPerspectives) {
@@ -263,21 +263,28 @@ export class DataMorph extends LitElement {
         continue;
       }
 
-      console.log(`[DataMorph] ${this.field}: searching in perspective "${perspectiveName}"`, perspectiveData);
+      // Check if field uses dot notation (e.g., "ecologyAndHabitat.seasonality.primarySeason")
+      const fieldParts = this.field.split('.');
+      
+      // If first part matches perspective name, use remaining path
+      if (fieldParts.length > 1 && fieldParts[0] === perspectiveName) {
+        const remainingPath = fieldParts.slice(1);
+        const value = this.getNestedValue(perspectiveData, remainingPath);
+        if (value !== null && value !== undefined) {
+          extracted[perspectiveName] = value;
+          continue;
+        }
+      }
 
-      // Direct field access
+      // Direct field access (no dots)
       if (this.field in perspectiveData) {
-        console.log(`[DataMorph] ${this.field}: found directly in ${perspectiveName}:`, perspectiveData[this.field]);
         extracted[perspectiveName] = perspectiveData[this.field];
       }
       // Deep search in nested objects
       else {
         const value = this.deepSearch(perspectiveData, this.field);
         if (value !== null) {
-          console.log(`[DataMorph] ${this.field}: found via deepSearch in ${perspectiveName}:`, value);
           extracted[perspectiveName] = value;
-        } else {
-          console.log(`[DataMorph] ${this.field}: NOT found in ${perspectiveName} (deepSearch returned null)`);
         }
       }
     }
@@ -286,17 +293,31 @@ export class DataMorph extends LitElement {
   }
 
   /**
+   * Get value from nested object using path array
+   * e.g., getNestedValue(obj, ['seasonality', 'primarySeason'])
+   */
+  getNestedValue(obj, pathArray) {
+    let current = obj;
+    for (const key of pathArray) {
+      if (current && typeof current === 'object' && key in current) {
+        current = current[key];
+      } else {
+        return null;
+      }
+    }
+    return current;
+  }
+
+  /**
    * Deep search for a field in nested objects
    */
   deepSearch(obj, fieldName) {
     if (!obj || typeof obj !== 'object') {
-      console.log(`[deepSearch] ${fieldName}: obj is not an object`, obj);
       return null;
     }
 
     // Direct match
     if (fieldName in obj) {
-      console.log(`[deepSearch] ${fieldName}: found directly!`, obj[fieldName]);
       return obj[fieldName];
     }
 

@@ -147,7 +147,7 @@ export class DragController {
     });
     
     // Emit event
-    this.amorph.emit('drag:start', {
+    this.amorph.streamPublish('drag:start', {
       elements: Array.from(this.draggedElements),
       pointer
     });
@@ -201,7 +201,7 @@ export class DragController {
     this.lastPointerTime = now;
     
     // Emit event
-    this.amorph.emit('drag:move', {
+    this.amorph.streamPublish('drag:move', {
       elements: Array.from(this.draggedElements),
       pointer,
       delta: { x: dx, y: dy }
@@ -232,7 +232,7 @@ export class DragController {
     });
     
     // Emit event
-    this.amorph.emit('drag:end', {
+    this.amorph.streamPublish('drag:end', {
       elements: Array.from(this.draggedElements),
       velocity
     });
@@ -273,7 +273,7 @@ export class DragController {
       this.animateThrow(el, velocity);
     });
     
-    this.amorph.emit('drag:throw', {
+    this.amorph.streamPublish('drag:throw', {
       elements: Array.from(this.draggedElements),
       velocity
     });

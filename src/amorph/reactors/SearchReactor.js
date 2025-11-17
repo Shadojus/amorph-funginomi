@@ -20,7 +20,7 @@ export class SearchReactor {
       minScore: 0,
       fuzzy: true,
       highlight: true,
-      hideUnmatched: false,
+      hideUnmatched: true,
       debounce: 150,
       ...config
     };
@@ -29,6 +29,36 @@ export class SearchReactor {
     this.styleElement = null;
     this.enabled = false;
     this.debounceTimer = null;
+    
+    // Field to perspective mapping for auto-switching
+    this.fieldToPerspectiveMap = {
+      'primaryCompounds': 'chemicalAndProperties',
+      'secondaryMetabolites': 'chemicalAndProperties',
+      'enzymeActivity': 'chemicalAndProperties',
+      'nutritionalValue': 'culinaryAndNutritional',
+      'flavorProfile': 'culinaryAndNutritional',
+      'preparationMethods': 'culinaryAndNutritional',
+      'cultivationDifficulty': 'cultivationAndProcessing',
+      'substratePreferences': 'cultivationAndProcessing',
+      'medicinalProperties': 'medicinalAndHealth',
+      'activeCompounds': 'medicinalAndHealth',
+      'therapeuticApplications': 'medicinalAndHealth',
+      'activeResearchAreas': 'researchAndInnovation',
+      'innovativeApplications': 'researchAndInnovation',
+      'substrate': 'ecologyAndHabitat',
+      'seasonality': 'ecologyAndHabitat',
+      'habitat': 'ecologyAndHabitat',
+      'edibility': 'safetyAndIdentification',
+      'toxicityLevel': 'safetyAndIdentification',
+      'capColor': 'physicalCharacteristics',
+      'sporePrintColor': 'physicalCharacteristics',
+      'kingdom': 'taxonomy',
+      'phylum': 'taxonomy',
+      'class': 'taxonomy',
+      'order': 'taxonomy',
+      'family': 'taxonomy',
+      'genus': 'taxonomy'
+    };
   }
   
   /**
@@ -53,6 +83,37 @@ export class SearchReactor {
     }
     
     console.log(`[SearchReactor] Applied to ${morphElements.length} morphs`);
+  }
+  
+  /**
+   * Get nested value from object using dot notation or direct key
+   */
+  getNestedValue(obj, path) {
+    if (!obj || !path) return null;
+    
+    // Try direct key first (e.g., "secondaryMetabolites")
+    if (obj[path] !== undefined) {
+      return obj[path];
+    }
+    
+    // Try dot notation (e.g., "chemicalAndProperties.secondaryMetabolites")
+    const keys = path.split('.');
+    let value = obj;
+    
+    for (const key of keys) {
+      // Check if value is valid before accessing
+      if (!value || typeof value !== 'object') {
+        return null;
+      }
+      
+      if (key in value) {
+        value = value[key];
+      } else {
+        return null;
+      }
+    }
+    
+    return value;
   }
   
   /**
@@ -82,36 +143,161 @@ export class SearchReactor {
       return;
     }
     
-    const normalizedQuery = query.toLowerCase().trim();
+    // Minimum query length: 2 characters to avoid over-matching
+    const trimmedQuery = query.trim();
+    if (trimmedQuery.length < 2) {
+      this.resetAllMorphs();
+      return;
+    }
+    
+    const normalizedQuery = trimmedQuery.toLowerCase();
     const results = [];
+    const matchedPerspectives = new Set();
+    const perspectiveMatchCounts = {};
     
     this.morphs.forEach(morph => {
       const score = this.calculateScore(morph, normalizedQuery);
       results.push({ morph, score });
+      
+      // Collect matched perspectives for auto-switching and header marking
+      if (score > this.config.minScore && morph._matchedPerspective) {
+        matchedPerspectives.add(morph._matchedPerspective);
+      }
     });
     
-    // Apply Results
+    // Sort by score (highest first)
+    results.sort((a, b) => b.score - a.score);
+    
+    // Group results by fungi container
+    const containerMatches = new Map();
+    
     results.forEach(({ morph, score }) => {
+      // Find parent fungi container (fungus-card)
+      const container = morph.closest('.fungus-card, article, [data-item]');
+      
+      if (container) {
+        const currentScore = containerMatches.get(container) || 0;
+        containerMatches.set(container, Math.max(currentScore, score));
+        
+        // Collect matched perspectives for containers with matches
+        if (score > this.config.minScore && morph._matchedPerspective) {
+          perspectiveMatchCounts[morph._matchedPerspective] = 
+            (perspectiveMatchCounts[morph._matchedPerspective] || 0) + 1;
+        }
+      }
+      
+      // Highlight individual morphs with matches
       if (score > this.config.minScore) {
-        this.showMorph(morph, score);
         if (this.config.highlight) {
           this.highlightMorph(morph, normalizedQuery);
         }
       } else {
-        if (this.config.hideUnmatched) {
-          this.hideMorph(morph);
-        } else {
-          this.dimMorph(morph);
-        }
+        morph.classList.remove('reactor-search-highlight');
       }
     });
     
-    // Emit Event
-    amorph.emit('search:completed', {
+    // Collect all containers for filtering
+    const allContainers = new Set();
+    this.morphs.forEach(morph => {
+      const container = morph.closest('.fungus-card, article, [data-item]');
+      if (container) allContainers.add(container);
+    });
+    
+    // Ensure all perspectives from perspectiveMatchCounts are in matchedPerspectives
+    Object.keys(perspectiveMatchCounts).forEach(perspName => {
+      matchedPerspectives.add(perspName);
+    });
+    
+    // Store data for delayed filtering
+    this._pendingContainerFiltering = {
+      containerMatches,
+      allContainers,
       query,
       totalResults: results.filter(r => r.score > this.config.minScore).length,
-      totalMorphs: this.morphs.size
+      matchedPerspectives: Array.from(matchedPerspectives),
+      perspectiveMatchCounts
+    };
+    
+    // Emit search:completed event FIRST - MorphHeader will auto-switch perspectives
+    amorph.streamPublish('search:completed', {
+      query,
+      totalResults: results.filter(r => r.score > this.config.minScore).length,
+      totalMorphs: this.morphs.size,
+      matchedPerspectives: Array.from(matchedPerspectives),
+      perspectiveMatchCounts // For header marking
     });
+    
+    // Apply container filtering after a delay to allow perspective switch
+    // If perspectives need switching, this gives time for morphs to become visible
+    setTimeout(() => {
+      if (this._pendingContainerFiltering) {
+        this.applyContainerFiltering(
+          this._pendingContainerFiltering.containerMatches,
+          this._pendingContainerFiltering.allContainers
+        );
+        this._pendingContainerFiltering = null;
+      }
+    }, matchedPerspectives.size > 0 ? 100 : 0);
+  }
+  
+  /**
+   * Apply container filtering based on match scores
+   */
+  applyContainerFiltering(containerMatches, allContainers) {
+    allContainers.forEach(container => {
+      const bestScore = containerMatches.get(container) || 0;
+      
+      if (bestScore > this.config.minScore) {
+        // Show container
+        container.style.removeProperty('display');
+        container.classList.remove('reactor-search-hidden');
+      } else {
+        // Hide container (no matches)
+        if (this.config.hideUnmatched) {
+          container.style.display = 'none';
+          container.classList.add('reactor-search-hidden');
+        } else {
+          container.style.opacity = '0.3';
+        }
+      }
+    });
+  }
+  
+  /**
+   * Auto-switch to perspectives with matches
+   */
+  autoSwitchPerspectives(perspectiveNames) {
+    // Get MorphHeader to trigger perspective change
+    const morphHeader = document.querySelector('morph-header');
+    if (!morphHeader) return;
+    
+    // Map perspective names to full names
+    const perspectiveMap = {
+      'ecologyAndHabitat': 'ecologyAndHabitat',
+      'safetyAndIdentification': 'safetyAndIdentification',
+      'culinaryAndNutritional': 'culinaryAndNutritional',
+      'medicinalAndHealth': 'medicinalAndHealth',
+      'cultivationAndProcessing': 'cultivationAndProcessing',
+      'physicalCharacteristics': 'physicalCharacteristics',
+      'chemicalAndProperties': 'chemicalAndProperties',
+      'culturalAndHistorical': 'culturalAndHistorical',
+      'commercialAndMarket': 'commercialAndMarket',
+      'environmentalAndConservation': 'environmentalAndConservation',
+      'researchAndInnovation': 'researchAndInnovation',
+      'taxonomy': 'taxonomy'
+    };
+    
+    // Trigger perspective buttons programmatically
+    const validPerspectives = perspectiveNames
+      .map(name => perspectiveMap[name])
+      .filter(Boolean);
+    
+    if (validPerspectives.length > 0) {
+      // Emit event to activate perspectives
+      window.dispatchEvent(new CustomEvent('search:activate-perspectives', {
+        detail: { perspectives: validPerspectives }
+      }));
+    }
   }
   
   /**
@@ -120,49 +306,177 @@ export class SearchReactor {
   calculateScore(morph, query) {
     let score = 0;
     const weights = amorph.config.search.weights;
+    const morphType = morph.dataset.morphType;
+    
+    // Get text content (works with Shadow DOM)
+    const getTextContent = (element) => {
+      if (element.shadowRoot) {
+        return element.shadowRoot.textContent || '';
+      }
+      return element.textContent || '';
+    };
+    
+    // Helper: Check if query matches at word boundary or as full word
+    const matchesWord = (text, query) => {
+      const lowerText = text.toLowerCase();
+      const lowerQuery = query.toLowerCase();
+      
+      // Exact match or word start match (higher relevance)
+      const wordBoundaryRegex = new RegExp(`\\b${lowerQuery}`, 'i');
+      if (wordBoundaryRegex.test(lowerText)) return true;
+      
+      // Fallback: Contains match (lower relevance, only for queries 3+ chars)
+      if (query.length >= 3 && lowerText.includes(lowerQuery)) return true;
+      
+      return false;
+    };
     
     // Tags (100 Punkte)
     const tags = morph.dataset.tags || '';
-    if (tags.toLowerCase().includes(query)) {
+    if (matchesWord(tags, query)) {
       score += weights.tag;
     }
     
     // Name (50 Punkte)
-    const morphType = morph.dataset.morphType;
     if (morphType === 'name') {
-      // Check Shadow DOM content
-      const shadowRoot = morph.shadowRoot;
-      const textContent = shadowRoot ? 
-        (shadowRoot.textContent || '') : 
-        (morph.textContent || '');
-      if (textContent.toLowerCase().includes(query)) {
+      const textContent = getTextContent(morph);
+      if (matchesWord(textContent, query)) {
         score += weights.name;
       }
     }
     
     // Text/Description (10 Punkte)
     if (morphType === 'text') {
-      // Check Shadow DOM content
-      const shadowRoot = morph.shadowRoot;
-      const textContent = shadowRoot ? 
-        (shadowRoot.textContent || '') : 
-        (morph.textContent || '');
-      if (textContent.toLowerCase().includes(query)) {
+      const textContent = getTextContent(morph);
+      if (matchesWord(textContent, query)) {
         score += weights.description;
       }
     }
     
-    // Fuzzy Matching (Bonus)
-    if (this.config.fuzzy && score === 0) {
-      const shadowRoot = morph.shadowRoot;
-      const morphText = shadowRoot ? 
-        (shadowRoot.textContent || '') : 
-        (morph.textContent || '');
+    // DataMorph (30 Punkte) - Use word boundary matching
+    if (morphType === 'data') {
+      // Get text content from rendered DOM OR from fungus-data attribute
+      let textContent = getTextContent(morph);
       
+      // If no textContent (morph not rendered yet), try fungus-data attribute
+      if (!textContent || textContent.trim().length === 0) {
+        const fungusDataAttr = morph.getAttribute('fungus-data');
+        const fieldName = morph.getAttribute('field') || '';
+        
+        // Debug for peptide searches
+        if (query.includes('peptid') && fieldName === 'secondaryMetabolites') {
+          console.log('[SearchReactor] Checking peptide in secondaryMetabolites:', {
+            hasTextContent: !!textContent,
+            hasFungusData: !!fungusDataAttr,
+            fieldName,
+            morphId: morph.dataset.morphId
+          });
+        }
+        
+        if (fungusDataAttr && fieldName) {
+          try {
+            if (query.includes('peptid') && fieldName === 'secondaryMetabolites') {
+              console.log('[SearchReactor] Attempting to parse fungus-data:', {
+                fieldName,
+                attrLength: fungusDataAttr.length,
+                attrPreview: fungusDataAttr.substring(0, 100)
+              });
+            }
+            const fungusData = JSON.parse(fungusDataAttr);
+            
+            // Build full path using fieldToPerspectiveMap if needed
+            // Only map if field doesn't already contain a dot (i.e., not already a full path)
+            let fullPath = fieldName;
+            if (!fieldName.includes('.') && this.fieldToPerspectiveMap[fieldName]) {
+              fullPath = `${this.fieldToPerspectiveMap[fieldName]}.${fieldName}`;
+            }
+            
+            if (query.includes('peptid') && fieldName === 'secondaryMetabolites') {
+              console.log('[SearchReactor] Field mapping:', {
+                fieldName,
+                fullPath,
+                hasFungusData: !!fungusData,
+                fungusDataKeys: Object.keys(fungusData || {}),
+                chemicalAndProperties: fungusData?.chemicalAndProperties,
+                secondaryMetabolites: fungusData?.chemicalAndProperties?.secondaryMetabolites
+              });
+            }
+            
+            // Navigate through nested object to find field value
+            const fieldValue = this.getNestedValue(fungusData, fullPath);
+            
+            if (query.includes('peptid') && fieldName === 'secondaryMetabolites') {
+              console.log('[SearchReactor] getNestedValue result:', {
+                fieldValue,
+                isArray: Array.isArray(fieldValue)
+              });
+            }
+            
+            if (fieldValue !== null && fieldValue !== undefined) {
+              textContent = Array.isArray(fieldValue) 
+                ? fieldValue.join(', ') 
+                : String(fieldValue);
+                
+              if (query.includes('peptid') && fieldName === 'secondaryMetabolites') {
+                console.log('[SearchReactor] Converted textContent:', textContent);
+              }
+            }
+          } catch (e) {
+            if (query.includes('peptid')) {
+              console.error('[SearchReactor] Failed to parse fungus-data:', e);
+            }
+          }
+        }
+      }
+      
+      const fieldName = morph.getAttribute('field') || '';
+      
+      // Extract perspective from field name FIRST (before scoring)
+      let perspectiveName = null;
+      if (fieldName.includes('.')) {
+        // Field has perspective prefix (e.g., "chemicalAndProperties.compounds")
+        perspectiveName = fieldName.split('.')[0];
+      } else {
+        // Try to infer perspective from field name using instance property
+        perspectiveName = this.fieldToPerspectiveMap[fieldName] || null;
+      }
+      
+      // Search in data values (with word boundary)
+      if (matchesWord(textContent, query)) {
+        score += 30;
+        // Store matched perspective if we have a match
+        if (perspectiveName && !morph._matchedPerspective) {
+          morph._matchedPerspective = perspectiveName;
+        }
+      }
+      
+      // Search in field names (with word boundary)
+      if (matchesWord(fieldName, query)) {
+        score += 20;
+        // Store matched perspective if we have a match
+        if (perspectiveName && !morph._matchedPerspective) {
+          morph._matchedPerspective = perspectiveName;
+        }
+      }
+    }
+    
+    // Image Morph (alt text) - Use word boundary matching
+    if (morphType === 'image') {
+      const altText = morph.getAttribute('alt') || '';
+      if (matchesWord(altText, query)) {
+        score += 25;
+      }
+    }
+    
+    // Fuzzy Matching (Bonus) - only for queries 3+ chars
+    if (this.config.fuzzy && score === 0 && query.length >= 3) {
+      const morphText = getTextContent(morph);
       const allText = [
         tags,
         morphText,
-        morph.dataset.morphId || ''
+        morph.dataset.morphId || '',
+        morph.getAttribute('field') || '',
+        morph.getAttribute('alt') || ''
       ].join(' ').toLowerCase();
       
       if (this.fuzzyMatch(allText, query)) {
@@ -246,6 +560,19 @@ export class SearchReactor {
   resetAllMorphs() {
     this.morphs.forEach(morph => {
       this.resetMorph(morph);
+    });
+    
+    // Reset all containers
+    const allContainers = new Set();
+    this.morphs.forEach(morph => {
+      const container = morph.closest('.fungus-card, article, [data-item]');
+      if (container) allContainers.add(container);
+    });
+    
+    allContainers.forEach(container => {
+      container.style.removeProperty('display');
+      container.style.removeProperty('opacity');
+      container.classList.remove('reactor-search-hidden');
     });
   }
   
