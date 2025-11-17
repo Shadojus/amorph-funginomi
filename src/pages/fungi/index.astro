@@ -25,12 +25,9 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
 >
   <!-- Page Header -->
   <header style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-    <div>
-      <h1 style="font-size: 2.5rem; font-weight: 700; color: white; margin-bottom: 0.5rem;">
-        🍄 Pilze Datenbank
-      </h1>
-      <p style="font-size: 1.125rem; color: rgba(255, 255, 255, 0.8);">
-        {fungi?.length || 0} Pilze · Morphologische Ansichten · Perspektivisches Wissen
+
+      <p style="font-size: 0.74rem; color: rgba(255, 255, 255, 0.8);">
+        {fungi?.length || 0} Fungi - Open Source
       </p>
     </div>
     
@@ -262,7 +259,7 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
     display: flex;
     flex-direction: column;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-    height: 100%; /* Equal height cards */
+    height: auto; /* Auto height to fit content */
   }
 
   .fungus-card:hover {
@@ -275,7 +272,7 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
   .card-image {
     width: 100%;
     height: 0;
-    padding-bottom: 100%; /* 1:1 square aspect ratio */
+    padding-bottom: 75%; /* 4:3 aspect ratio - more compact */
     overflow: hidden;
     background: rgba(0, 0, 0, 0.2);
     position: relative;
@@ -302,9 +299,9 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
     left: 0;
     right: 0;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.7) 50%, transparent 100%);
-    padding: 1rem;
+    padding: 0.75rem; /* Reduced padding */
     display: flex;
-    gap: 1rem;
+    gap: 0.75rem; /* Reduced gap */
     align-items: flex-end;
     z-index: 10;
   }
@@ -312,11 +309,11 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
   .taxonomy-badge {
     display: flex;
     flex-direction: column;
-    gap: 0.125rem;
+    gap: 0.0625rem; /* Minimal gap */
   }
 
   .taxonomy-label {
-    font-size: 0.625rem;
+    font-size: 0.5625rem; /* Smaller label */
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -324,17 +321,17 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
   }
 
   .taxonomy-value {
-    font-size: 0.875rem;
+    font-size: 0.8125rem; /* Smaller value */
     font-weight: 600;
     color: white;
     font-style: italic;
   }
 
   .card-header {
-    padding: 2rem;
-    background: transparent; /* Transparent instead of dark background */
+    padding: 1.25rem; /* Reduced from 2rem */
+    background: transparent;
     backdrop-filter: none;
-    flex-shrink: 0; /* Prevent shrinking */
+    flex-shrink: 0;
   }
 
   .card-header name-morph {
@@ -342,23 +339,23 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
   }
 
   .card-header name-morph:first-child {
-    margin-bottom: 0.75rem;
-    font-size: 1.375rem;
+    margin-bottom: 0.5rem; /* Reduced from 0.75rem */
+    font-size: 1.25rem; /* Slightly smaller */
     line-height: 1.3;
   }
 
   .quick-info {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.875rem 1.25rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
+    gap: 0.625rem 1rem; /* Reduced gaps */
+    margin-top: 0.75rem; /* Reduced from 1rem */
+    padding-top: 0.75rem; /* Reduced from 1rem */
   }
 
   .info-item {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.1875rem; /* Reduced from 0.25rem */
     font-size: 0.8125rem;
   }
 
@@ -367,44 +364,53 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-size: 0.6875rem;
+    font-size: 0.625rem; /* Slightly smaller */
   }
 
   .info-value {
     color: rgba(255, 255, 255, 0.95);
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.8125rem; /* Slightly smaller */
   }
 
   .card-data {
-    padding: 1.75rem;
-    flex: 1;
+    padding: 1.25rem; /* Reduced from 1.75rem */
     display: flex;
     flex-direction: column;
-    gap: 0.875rem;
-    background: transparent; /* Transparent instead of dark background */
-    overflow: visible; /* Let content flow naturally */
+    gap: 0.625rem; /* Reduced from 0.875rem */
+    background: transparent;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 400px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  /* Hide scrollbar for Chrome/Safari/Opera */
+  .card-data::-webkit-scrollbar {
+    display: none;
   }
 
   .card-data data-morph {
     margin-bottom: 0;
+    order: 999; /* Default: hidden at bottom until perspective activates */
   }
 
   .card-link {
     display: block;
-    padding: 1.25rem 1.5rem;
+    padding: 0.875rem 1.25rem; /* Reduced padding */
     text-align: center;
     background: rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(8px);
     color: rgba(255, 255, 255, 0.9);
     text-decoration: none;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.8125rem; /* Slightly smaller */
     text-transform: uppercase;
     letter-spacing: 0.05em;
     transition: all 0.3s ease;
-    margin-top: auto; /* Push to bottom of card */
-    flex-shrink: 0; /* Prevent shrinking */
+    margin-top: auto;
+    flex-shrink: 0;
   }
 
   .card-link:hover {
@@ -588,6 +594,68 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
 
     // MorphHeader will initialize with 4 default perspectives automatically
     console.log('✅ Perspectives will be initialized by MorphHeader');
+
+    // FIFO Perspective Ordering System
+    const perspectiveOrder = [];
+    const perspectiveFieldMap = {
+      'safetyAndIdentification': ['edibility', 'toxicityLevel'],
+      'ecologyAndHabitat': ['ecologyAndHabitat.seasonality.primarySeason', 'ecologyAndHabitat.substrate'],
+      'physicalCharacteristics': ['physicalCharacteristics.capColor', 'physicalCharacteristics.sporePrintColor'],
+      'culinaryAndNutritional': ['culinaryAndNutritional.flavorProfile', 'culinaryAndNutritional.preparationMethods'],
+      'medicinalAndHealth': ['medicinalAndHealth.medicinalProperties', 'medicinalAndHealth.activeCompounds'],
+      'cultivationAndProcessing': ['cultivationAndProcessing.cultivationDifficulty', 'cultivationAndProcessing.cultivationMethods'],
+      'culturalAndHistorical': ['culturalAndHistorical.historicalSignificance', 'culturalAndHistorical.firstDocumented'],
+      'commercialAndMarket': ['commercialAndMarket.commercialValue', 'commercialAndMarket.marketSegments', 'commercialAndMarket.commercialProducts'],
+      'environmentalAndConservation': ['environmentalAndConservation.ecologicalRole', 'environmentalAndConservation.ecosystemServices'],
+      'researchAndInnovation': ['researchAndInnovation.researchInterest', 'activeResearchAreas', 'innovativeApplications'],
+      'chemicalAndProperties': ['primaryCompounds', 'secondaryMetabolites'],
+      'taxonomy': ['kingdom', 'phylum', 'class', 'order']
+    };
+
+    function updateDataMorphOrder() {
+      const cards = document.querySelectorAll('.card-data');
+      
+      cards.forEach((cardData) => {
+        const morphs = Array.from(cardData.querySelectorAll('data-morph'));
+        
+        morphs.forEach(morph => {
+          const field = morph.getAttribute('field');
+          let order = 999;
+          
+          for (let i = 0; i < perspectiveOrder.length; i++) {
+            const perspectiveName = perspectiveOrder[i];
+            const fields = perspectiveFieldMap[perspectiveName] || [];
+            if (fields.includes(field)) {
+              order = i * 10;
+              break;
+            }
+          }
+          
+          morph.style.order = order;
+        });
+      });
+    }
+
+    // Listen to perspective changes from MorphHeader
+    // MorphHeader dispatches: window.dispatchEvent(new CustomEvent('perspective-changed', { detail: { perspectives } }))
+    console.log('✅ Setting up perspective-changed listener');
+    
+    const perspectiveHandler = (event) => {
+      const perspectives = event.detail?.perspectives || [];
+      if (perspectives.length === 0) return;
+      
+      // SIMPLE FIFO: MorphHeader adds new perspectives to the END
+      // So we REVERSE the array to get newest first
+      perspectiveOrder.length = 0;
+      perspectiveOrder.push(...perspectives.slice().reverse());
+      
+      updateDataMorphOrder();
+    };
+    
+    // Listen ONLY to window event (MorphHeader dispatches to both window and document)
+    window.addEventListener('perspective-changed', perspectiveHandler);
+    
+    console.log('✅ Perspective listeners registered');
 
     // View Toggle functionality
     const viewBtns = document.querySelectorAll('.view-btn');

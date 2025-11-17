@@ -13,39 +13,65 @@ Alle CLAUDE.md Dateien auf dem neuesten Stand:
 
 ## 🔥 Latest Changes (2025-11-17)
 
-### 1. ⭐ Smart Search System (MAJOR UPDATE!)
+### 1. ⭐ Dual Search System (MAJOR UPDATE!)
 
-**SearchReactor.js Improvements:**
+**Two complementary search reactors with priority coordination:**
+
+**SearchReactor.js (Morph-based):**
+- ✅ **Searches rendered morphs** - Checks visible text in Shadow DOM
 - ✅ **Word boundary matching** - Präzise Start-of-Word Suche (`\b${query}`)
-- ✅ **Minimum query length** - 2 Zeichen minimum (verhindert Spam)
+- ✅ **Weighted scoring** - Tags: 100, Name: 50, DataMorph: 30
 - ✅ **Container-based filtering** - Versteckt ganze `.fungus-card` statt einzelner Morphs
-- ✅ **fungus-data attribute reading** - Liest JSON-Daten von inaktiven Perspektiven
-- ✅ **Field-to-Perspective mapping** - 26+ Feld-Mappings (secondaryMetabolites → chemicalAndProperties)
-- ✅ **Nested object navigation** - getNestedValue() mit Dot-Notation Support
-- ✅ **Auto-perspective detection** - Tracked welche Felder gematcht wurden
-- ✅ **Event publishing** - Publishes `search:completed` mit matchedPerspectives Array
+- ✅ **Respects AstroDataSearchReactor** - Won't hide containers shown by AstroDataSearchReactor
+
+**AstroDataSearchReactor.js (Data-based) ⭐ Priority Reactor:**
+- ✅ **Searches raw data** - Checks fungus-data attributes before rendering
+- ✅ **Deep object traversal** - Searches all nested properties recursively
+- ✅ **Field-aware weighting** - commonName/scientificName: 100, genus/family: 90, default: 20
+- ✅ **Finds hidden data** - Discovers data not yet rendered in morphs
+- ✅ **Taxonomy matching** - Searches visible .taxonomy-value elements
+- ✅ **26+ field mappings** - Maps data fields to perspectives automatically
+- ✅ **Takes precedence** - SearchReactor defers to AstroDataSearchReactor decisions
+
+**Priority System:**
+- ✅ AstroDataSearchReactor marks containers with `reactor-astro-search-hidden` class
+- ✅ SearchReactor checks this class before hiding containers
+- ✅ If AstroDataSearchReactor is showing a container, SearchReactor won't hide it
+- ✅ Class-based coordination - no tight coupling between reactors
 
 **Performance:**
-- 150ms debounce für Search Execution
+- 150ms debounce für beide Reactors
 - 400ms debounce für Auto-Perspective Switching
 - Word boundary regex prevents false matches
 - Container filtering: O(n) vs O(n*m)
 
-### 2. ⭐ Auto-Perspective Switching (NEW!)
+### 2. ⭐ MorphHeader Enhancement (NEW!)
 
-**MorphHeader.js Auto-Activation:**
-- ✅ **Listens to search:completed events** from SearchReactor
+**Branding & Progressive Compression:**
+- ✅ **Branding** - "Funginomi" Titel + "Part of the Bifröst" Link zu https://bifroest.io
+- ✅ **Max 2 Reihen** - Perspektiven-Buttons wrappen maximal in 2 Reihen
+- ✅ **Progressive Komprimierung**:
+  - Inaktive Buttons: Keine Icons, kleiner Text (0.7rem, 0.4rem padding)
+  - Bei Platzmangel: Text schrumpft weiter
+  - Aktive Buttons: Bleiben groß mit Icon (0.875rem, flex-shrink: 0)
+- ✅ **Responsive Design**:
+  - Desktop: Branding links, Suche Mitte, Spacer rechts
+  - Mobile (< 768px): Branding kleiner (1.125rem), alle Elemente kompakter
+- ✅ **Auto-perspective detection** - Tracked welche Felder gematcht wurden
+- ✅ **Event publishing** - Publishes `search:completed` mit matchedPerspectives Array
+
+**Auto-Perspective Switching:**
+- ✅ **Listens to search:completed events** from both Reactors
 - ✅ **400ms debounce** - Prevents switching while user is typing
 - ✅ **Only switches when user pauses** - Smooth UX
 - ✅ **Duplicate prevention** - Checks if perspective already active
 - ✅ **FIFO management** - Removes oldest when adding 5th perspective
 
 **Flow:**
-1. User types "peptide" → Search finds match in secondaryMetabolites field
-2. SearchReactor maps field to perspective: secondaryMetabolites → chemicalAndProperties
-3. SearchReactor publishes `search:completed` event with matchedPerspectives array
-4. MorphHeader receives event, starts 400ms timer
-5. User stops typing → Timer fires → chemicalAndProperties perspective auto-activates!
+1. User types "beauveria" → AstroDataSearchReactor finds match in taxonomy
+2. AstroDataSearchReactor shows container 1, hides others
+3. SearchReactor finds 0 morphs but sees container 1 has no `reactor-astro-search-hidden` class
+4. SearchReactor respects AstroDataSearchReactor's decision → container 1 stays visible!
 
 ### 3. 🔧 Event System Fix (CRITICAL!)
 

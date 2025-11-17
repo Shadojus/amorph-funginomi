@@ -3,7 +3,7 @@
 ## Übersicht
 
 Globale Components für die gesamte App:
-- ✅ **MorphHeader**: Globaler Header mit 12 Perspektiven-Buttons
+- ✅ **MorphHeader**: Globaler Header mit Branding, Suche & 12 Perspektiven-Buttons
 
 ---
 
@@ -11,17 +11,29 @@ Globale Components für die gesamte App:
 
 ### Funktion
 
-**Globaler Header für das gesamte System** - **Vereinfacht auf zwei Kernfunktionen:**
+**Globaler Header für das gesamte System** - **Drei Kernfunktionen:**
+- ✅ **Branding** (Funginomi + Bifröst Link)
 - ✅ **Search Bar** (zentriert, glassmorphism)
-- ✅ **12 Perspektiven-Buttons** (FIFO max 4)
+- ✅ **12 Perspektiven-Buttons** (FIFO max 4, max 2 Reihen)
 - ✅ **Shrinkable/Expandable Buttons** (inactive/active states)
 - ✅ **Auto-Perspective Switching** (basierend auf Search Results) ⭐ NEW
 - ✅ **Debounced Auto-Switching** (400ms delay) ⭐ NEW
+- ✅ **Progressive Komprimierung** (Icons verschwinden, dann Text schrumpft) ⭐ NEW
+- ✅ **Responsive Branding** (kleiner auf Mobile, nicht versteckt) ⭐ NEW
 - ✅ Event Dispatching (window + document für Shadow DOM)
 
 **Entfernt:** ❌ Reactor Toggles, ❌ View Mode Switcher, ❌ BubbleView Controls
 
 **Latest Features (2025-11-17):**
+- ✅ **Branding**: "Funginomi" Titel + "Part of the Bifröst" Untertitel mit Link
+- ✅ **Max 2 Reihen**: Perspektiven-Buttons wrappen maximal in 2 Reihen
+- ✅ **Progressive Komprimierung**:
+  - Inaktive Buttons: Keine Icons, kleiner Text
+  - Bei Platzmangel: Text schrumpft weiter
+  - Aktive Buttons: Bleiben groß mit Icon
+- ✅ **Responsive Design**:
+  - Desktop: Branding links, Suche Mitte, Spacer rechts
+  - Mobile: Branding kleiner, alle Elemente kompakter
 - ✅ Auto-activates perspectives when search finds matches in specific fields
 - ✅ 400ms debounce prevents perspective switching while user is typing
 - ✅ Only switches when user pauses typing
@@ -31,16 +43,23 @@ Globale Components für die gesamte App:
 ### Layout-Struktur
 
 ```
-┌─────────────────────────────────────────────────────┐
-│ Top Row                                             │
-│           [🔍 Search Bar - Centered]                │
-└─────────────────────────────────────────────────────┘
-┌─────────────────────────────────────────────────────┐
-│ Bottom Row                                          │
-│ [🧬] [👁️] [🌍] [🍳] [⚕️] [🌱] [⚠️] [🧪]           │
-│ [📜] [💰] [🌿] [🔬]                               │
-│ Taxonomy Physical Ecology Culinary Medicinal ...    │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│ Top Row                                                          │
+│ Funginomi            [🔍 Search Bar - Centered]           Spacer │
+│ Part of the Bifröst                                              │
+└──────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│ Bottom Row (Max 2 Reihen)                                        │
+│ [🧬 Taxonomy] [👁️ Physical] [🌍 Ecology] [🍳 Culinary]          │
+│ [⚕️ Medicinal] [🌱 Cultivation] [⚠️ Safety] [🧪 Chemical]        │
+│ (Inaktive: kleiner, kein Icon | Aktive: groß, mit Icon)         │
+└──────────────────────────────────────────────────────────────────┘
+
+Mobile (< 768px):
+┌──────────────────────────────────────────────────────────────────┐
+│ Funginomi (klein)    [🔍 Search - Compact]                       │
+│ Part of the Bifröst (klein)                                      │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ### 12 Perspektiven (EXAKTE Schema-Feldnamen!)

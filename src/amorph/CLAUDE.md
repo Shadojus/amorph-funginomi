@@ -159,6 +159,22 @@ Siehe: `STREAM_OBSERVER_SYSTEM.md` für Details
 - **AmorphSystem**: streamPublish() API, Auto-start Observers
 - **Event Migration**: Wichtigste Events migriert zu streamPublish()
 
-## Status: ✅ SYSTEM KOMPLETT + STREAM OBSERVERS
+### ✅ TEIL 4: Dual Search System (2025-11-17)
+- **SearchReactor**: Morph-basierte Suche in gerenderten Shadow DOM Elementen
+- **AstroDataSearchReactor**: Data-basierte Suche in rohen fungus-data Attributen
+- **Priority System**: AstroDataSearchReactor hat Vorrang (class-based coordination)
+- **Field Weighting**: Intelligente Scoring für commonName (100), scientificName (100), genus (90), etc.
+- **26+ Field Mappings**: Auto-Perspektiven-Aktivierung basierend auf gefundenen Feldern
+- **Taxonomy Matching**: Sucht auch in sichtbaren .taxonomy-value Elementen
+- **Container Management**: Beide Reactors koordinieren via `reactor-astro-search-hidden` class
 
-Alle 16 Phasen + Redis Stream Observer System sind implementiert. Das System ist produktionsbereit und voll funktionsfähig.
+### ✅ TEIL 5: MorphHeader Enhancement (2025-11-17)
+- **Branding**: "Funginomi" Titel + "Part of the Bifröst" Link
+- **Progressive Komprimierung**: Inaktive Buttons schrumpfen (kein Icon, kleiner Text)
+- **Max 2 Reihen**: Perspektiven-Buttons wrappen in max 2 Reihen
+- **Responsive Design**: Branding kleiner auf Mobile (nicht versteckt)
+- **Auto-Perspective Switching**: 400ms debounced, FIFO queue management
+
+## Status: ✅ SYSTEM KOMPLETT + DUAL SEARCH + ENHANCED HEADER
+
+Alle 16 Phasen + Redis Stream Observer System + Dual Search + Enhanced MorphHeader sind implementiert. Das System ist produktionsbereit und voll funktionsfähig.

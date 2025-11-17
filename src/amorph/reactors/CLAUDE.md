@@ -10,25 +10,36 @@ Reactors sind **PLUG & PLAY** Module die Effekte auf Morphs anwenden:
 
 ## 🆕 New: Dual Search System (2025-11-17)
 
-**Two complementary search reactors working together!**
+**Two complementary search reactors with priority coordination!**
 
 ### SearchReactor (Morph-based)
 - 🔍 **Searches rendered morphs** - Checks visible text in Shadow DOM
 - 🎯 **Weighted scoring** - Tags: 100, Name: 50, DataMorph: 30
 - 🔮 **Word boundary matching** - Precise, no over-matching
 - 📊 **Container-based filtering** - Hides/shows entire fungus cards
+- 🤝 **Respects AstroDataSearchReactor** - Won't hide containers shown by AstroDataSearchReactor
 
-### AstroDataSearchReactor (Data-based)
+### AstroDataSearchReactor (Data-based) ⭐ **Priority Reactor**
 - 📦 **Searches raw data** - Checks fungus-data attributes before rendering
-- 🔬 **Deep object traversal** - Searches all nested properties
-- 🎨 **Field-aware weighting** - Different weights for different data fields
+- 🔬 **Deep object traversal** - Searches all nested properties recursively
+- 🎨 **Field-aware weighting** - commonName/scientificName: 100, genus/family: 90, default: 20
 - 🧬 **Finds hidden data** - Discovers data not yet rendered in morphs
+- 🏷️ **Taxonomy matching** - Searches visible .taxonomy-value elements
+- 🎯 **26+ field mappings** - Maps data fields to perspectives automatically
+- 👑 **Takes precedence** - SearchReactor defers to AstroDataSearchReactor decisions
+
+**Priority System:**
+- ✅ AstroDataSearchReactor marks containers with `reactor-astro-search-hidden` class
+- ✅ SearchReactor checks this class before hiding containers
+- ✅ If AstroDataSearchReactor is showing a container, SearchReactor won't hide it
+- ✅ Class-based coordination - no tight coupling between reactors
 
 **Benefits:**
 - ✅ Finds data even when morphs aren't rendered yet
 - ✅ Searches inactive perspectives (data not visible)
-- ✅ More comprehensive results
+- ✅ More comprehensive results across all perspectives
 - ✅ Better auto-perspective detection
+- ✅ No conflicts - priority system ensures correct visibility
 
 ## 🆕 PerspectiveReactor (2025-11-16)
 

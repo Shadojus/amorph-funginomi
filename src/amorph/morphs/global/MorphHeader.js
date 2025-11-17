@@ -176,7 +176,40 @@ export class MorphHeader extends LitElement {
 
     /* ===== SEARCH BAR (TOP ROW) ===== */
     .top-row {
-      justify-content: center;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* ===== BRANDING ===== */
+    .branding {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+    }
+
+    .brand-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.95);
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.5);
+      margin: 0;
+      font-weight: 400;
+    }
+
+    .brand-subtitle a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .brand-subtitle a:hover {
+      color: rgba(255, 255, 255, 0.95);
     }
 
     /* ===== SEARCH BAR ===== */
@@ -271,17 +304,11 @@ export class MorphHeader extends LitElement {
     .perspectives-row {
       display: flex;
       gap: 0.375rem;
-      flex-wrap: nowrap;
+      flex-wrap: wrap; /* Allow wrapping to max 2 rows */
       justify-content: center;
-      overflow-x: auto;
-      overflow-y: hidden;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
       padding: 0.25rem 0;
-    }
-
-    .perspectives-row::-webkit-scrollbar {
-      display: none;
+      max-height: calc(2.5rem * 2 + 0.375rem); /* Max 2 rows */
+      overflow: hidden;
     }
 
     .perspective-btn {
@@ -299,10 +326,53 @@ export class MorphHeader extends LitElement {
       background: rgba(255, 255, 255, 0.03);
       backdrop-filter: blur(8px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      white-space: nowrap;
-      flex-shrink: 0;
+      white-space: normal; /* Allow text wrapping */
+      word-break: break-word; /* Break long words */
+      flex-shrink: 1; /* Allow shrinking */
       text-transform: capitalize;
       opacity: 0.5;
+      min-width: fit-content;
+      max-width: 120px; /* Limit width to force wrapping */
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    /* Inactive buttons: hide icon first */
+    .perspective-btn.inactive .perspective-icon {
+      display: none;
+    }
+
+    .perspective-btn.inactive {
+      gap: 0;
+      padding: 0.4rem 0.7rem;
+      font-size: 0.7rem;
+      max-width: 100px; /* Smaller max width */
+    }
+
+    /* Hide icon on small screens for all buttons */
+    @media (max-width: 1200px) {
+      .perspective-btn .perspective-icon {
+        display: none;
+      }
+      .perspective-btn {
+        gap: 0;
+        padding: 0.5rem 0.75rem;
+        max-width: 100px;
+      }
+    }
+
+    /* Further compact on very small screens */
+    @media (max-width: 900px) {
+      .perspective-btn {
+        font-size: 0.65rem;
+        padding: 0.35rem 0.5rem;
+        max-width: 80px;
+      }
+      .perspective-btn.active {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
+        max-width: 90px;
+      }
     }
 
     .perspective-btn.active {
@@ -314,6 +384,12 @@ export class MorphHeader extends LitElement {
       font-weight: 600;
       opacity: 1;
       animation: perspective-pulse 2s ease-in-out infinite;
+      flex-shrink: 0; /* Active button doesn't shrink */
+      max-width: 150px; /* Larger max width for active */
+    }
+
+    .perspective-btn.active .perspective-icon {
+      display: inline; /* Always show icon on active button */
     }
 
     @keyframes perspective-pulse {
@@ -438,8 +514,62 @@ export class MorphHeader extends LitElement {
 
     /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
+      .header {
+        padding: 0.75rem 1rem; /* Smaller padding on mobile */
+      }
+
       .header-content {
+        gap: 0.75rem;
+      }
+
+      .branding {
+        /* Keep branding but make it smaller */
+        gap: 0;
+      }
+
+      .brand-title {
+        font-size: 1.125rem; /* Smaller title */
+      }
+
+      .brand-subtitle {
+        font-size: 0.625rem; /* Smaller subtitle */
+      }
+
+      .top-row {
         gap: 1rem;
+      }
+
+      .top-row > div:last-child {
+        display: none; /* Hide spacer on mobile */
+      }
+
+      .search-section {
+        max-width: 100%;
+      }
+
+      .search-input {
+        padding: 0.75rem 1.25rem 0.75rem 2.5rem;
+        font-size: 0.875rem;
+      }
+
+      .search-icon {
+        left: 1rem;
+        font-size: 1rem;
+      }
+
+      .perspectives-row {
+        gap: 0.25rem;
+        max-height: calc(2rem * 2 + 0.25rem); /* Smaller buttons on mobile */
+      }
+
+      .perspective-btn {
+        font-size: 0.65rem;
+        padding: 0.375rem 0.5rem;
+      }
+
+      .perspective-btn.active {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
       }
 
       .perspectives-section,
@@ -894,8 +1024,17 @@ export class MorphHeader extends LitElement {
     return html`
       <header class="header">
         <div class="header-content">
-          <!-- Top Row: Search Bar -->
+          <!-- Top Row: Branding + Search Bar -->
           <div class="header-row top-row">
+            <!-- Branding -->
+            <div class="branding">
+              <h1 class="brand-title">Funginomi</h1>
+              <p class="brand-subtitle">
+                Part of the <a href="https://bifroest.io" target="_blank" rel="noopener noreferrer">Bifröst</a>
+              </p>
+            </div>
+
+            <!-- Search Bar -->
             <div class="search-section">
               <span class="search-icon">🔍</span>
               <input 
@@ -911,6 +1050,9 @@ export class MorphHeader extends LitElement {
                 </span>
               ` : ''}
             </div>
+
+            <!-- Empty spacer for balance -->
+            <div style="width: 200px;"></div>
           </div>
 
           <!-- Bottom Row: Perspective Buttons -->
