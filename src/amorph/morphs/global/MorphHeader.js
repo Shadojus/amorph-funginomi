@@ -536,6 +536,9 @@ export class MorphHeader extends LitElement {
     
     this.isMobileMenuOpen = false;
     
+    // Auto-switch debounce timer
+    this.autoSwitchTimer = null;
+    
     // AMORPH System Reference
     this.amorph = null;
   }
@@ -573,6 +576,11 @@ export class MorphHeader extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('click', this.handleOutsideClick);
+    
+    // Clear auto-switch timer
+    if (this.autoSwitchTimer) {
+      clearTimeout(this.autoSwitchTimer);
+    }
     
     if (this.amorph) {
       this.detachEventListeners();
@@ -620,25 +628,34 @@ export class MorphHeader extends LitElement {
       this.totalMorphs = data.totalMorphs;
       this.matchedPerspectives = data.perspectiveMatchCounts || {};
       
-      // Auto-activate perspectives with matches
+      // Clear previous auto-switch timer (debounce)
+      if (this.autoSwitchTimer) {
+        clearTimeout(this.autoSwitchTimer);
+      }
+      
+      // Auto-activate perspectives with matches (debounced to prevent switching while typing)
       const matchedPerspectiveNames = data.matchedPerspectives || [];
       console.log('[MorphHeader] 🎯 Matched perspectives for auto-activation:', matchedPerspectiveNames);
       
       if (matchedPerspectiveNames.length > 0) {
-        matchedPerspectiveNames.forEach(perspectiveName => {
-          const perspective = this.perspectives.find(p => p.name === perspectiveName);
-          const isAlreadyActive = this.activePerspectives.find(p => p.name === perspectiveName);
-          console.log('[MorphHeader] Checking perspective:', {
-            perspectiveName,
-            foundPerspective: !!perspective,
-            isAlreadyActive: !!isAlreadyActive
+        // Debounce: Wait 400ms before auto-switching (user might still be typing)
+        this.autoSwitchTimer = setTimeout(() => {
+          console.log('[MorphHeader] ⏰ Auto-switch timer fired, activating perspectives...');
+          matchedPerspectiveNames.forEach(perspectiveName => {
+            const perspective = this.perspectives.find(p => p.name === perspectiveName);
+            const isAlreadyActive = this.activePerspectives.find(p => p.name === perspectiveName);
+            console.log('[MorphHeader] Checking perspective:', {
+              perspectiveName,
+              foundPerspective: !!perspective,
+              isAlreadyActive: !!isAlreadyActive
+            });
+            
+            if (perspective && !isAlreadyActive) {
+              console.log('[MorphHeader] Auto-activating perspective from search:', perspectiveName);
+              this.togglePerspective(perspective);
+            }
           });
-          
-          if (perspective && !isAlreadyActive) {
-            console.log('[MorphHeader] Auto-activating perspective from search:', perspectiveName);
-            this.togglePerspective(perspective);
-          }
-        });
+        }, 400); // 400ms debounce - nearly unnoticeable but prevents accidental switches
       }
     };
     
