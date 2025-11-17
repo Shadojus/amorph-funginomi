@@ -692,24 +692,24 @@ export class MorphHeader extends LitElement {
     };
     
     // Attach
-    this.amorph.on('amorph:reactor:enabled', this.onReactorEnabled);
-    this.amorph.on('amorph:reactor:disabled', this.onReactorDisabled);
-    this.amorph.on('amorph:search:completed', this.onSearchCompleted);
-    this.amorph.on('amorph:search:changed', this.onSearchChanged);
-    this.amorph.on('amorph:morph:registered', this.onMorphRegistered);
-    this.amorph.on('amorph:tag:clicked', this.onTagClicked);
+    this.amorph.on('reactor:enabled', this.onReactorEnabled);
+    this.amorph.on('reactor:disabled', this.onReactorDisabled);
+    this.amorph.on('search:completed', this.onSearchCompleted);
+    this.amorph.on('search:changed', this.onSearchChanged);
+    this.amorph.on('morph:registered', this.onMorphRegistered);
+    this.amorph.on('tag:clicked', this.onTagClicked);
     
     // Listen to window events for search perspective activation
     window.addEventListener('search:activate-perspectives', this.onSearchActivatePerspectives);
   }
 
   detachEventListeners() {
-    this.amorph.off('amorph:reactor:enabled', this.onReactorEnabled);
-    this.amorph.off('amorph:reactor:disabled', this.onReactorDisabled);
-    this.amorph.off('amorph:search:completed', this.onSearchCompleted);
-    this.amorph.off('amorph:search:changed', this.onSearchChanged);
-    this.amorph.off('amorph:morph:registered', this.onMorphRegistered);
-    this.amorph.off('amorph:tag:clicked', this.onTagClicked);
+    this.amorph.off('reactor:enabled', this.onReactorEnabled);
+    this.amorph.off('reactor:disabled', this.onReactorDisabled);
+    this.amorph.off('search:completed', this.onSearchCompleted);
+    this.amorph.off('search:changed', this.onSearchChanged);
+    this.amorph.off('morph:registered', this.onMorphRegistered);
+    this.amorph.off('tag:clicked', this.onTagClicked);
     
     window.removeEventListener('search:activate-perspectives', this.onSearchActivatePerspectives);
   }

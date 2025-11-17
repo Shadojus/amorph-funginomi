@@ -82,18 +82,18 @@ export class PerformanceObserver {
   }
 
   attachEventListeners() {
-    this.amorph.on('amorph:morph:registered', (data) => {
+    this.amorph.on('morph:registered', (data) => {
       // Measure registration performance
       // Note: This would need timing data from AmorphSystem
     });
     
-    this.amorph.on('amorph:reactor:enabled', (data) => {
+    this.amorph.on('reactor:enabled', (data) => {
       const start = performance.now();
       // Reactor application is async, so we track via another event
       this.pendingReactorStart = start;
     });
     
-    this.amorph.on('amorph:search:completed', (data) => {
+    this.amorph.on('search:completed', (data) => {
       // Search timing is embedded in the event data ideally
       if (data.duration) {
         this.recordSearch({

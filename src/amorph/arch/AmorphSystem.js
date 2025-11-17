@@ -546,7 +546,9 @@ export class AmorphSystem {
   async streamPublish(eventName, data) {
     if (!this.eventBridge.isConnected()) {
       // Fallback zu lokalem emit() (silent - Redis optional)
-      this.emit(eventName, data);
+      // emit() expects event names WITHOUT 'amorph:' prefix (it adds it)
+      const strippedEventName = eventName.replace(/^amorph:/, '');
+      this.emit(strippedEventName, data);
       return false;
     }
     
