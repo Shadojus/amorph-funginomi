@@ -364,6 +364,24 @@ export class AstroDataSearchReactor {
   }
   
   /**
+   * Parse query into keywords (handle multiple words, questions, etc.)
+   */
+  parseQuery(query) {
+    // Remove common question words and split into keywords
+    const stopWords = ['what', 'which', 'where', 'when', 'how', 'is', 'are', 'the', 'a', 'an', 'can', 'do', 'does', 'has', 'have', 'with', 'for', 'in', 'on', 'at', 'to', 'of'];
+    
+    const keywords = query
+      .toLowerCase()
+      .replace(/[?!.,;]/g, ' ') // Remove punctuation
+      .split(/\s+/) // Split on whitespace
+      .filter(word => word.length >= 2) // Min 2 chars
+      .filter(word => !stopWords.includes(word)); // Remove stop words
+    
+    console.log(`[AstroDataSearchReactor] Parsed "${query}" → Keywords:`, keywords);
+    return keywords;
+  }
+
+  /**
    * Perform Search on all containers
    */
   performSearch(query) {
@@ -378,6 +396,14 @@ export class AstroDataSearchReactor {
     const trimmedQuery = query.trim();
     if (trimmedQuery.length < 2) {
       console.log('[AstroDataSearchReactor] Query too short (<2 chars) - resetting all containers');
+      this.resetAllContainers();
+      return;
+    }
+    
+    // Parse into keywords for smart matching
+    const keywords = this.parseQuery(trimmedQuery);
+    if (keywords.length === 0) {
+      console.log('[AstroDataSearchReactor] No valid keywords found - resetting');
       this.resetAllContainers();
       return;
     }
@@ -399,20 +425,38 @@ export class AstroDataSearchReactor {
       let containerScore = 0;
       const containerMatchedFields = new Set();
       
-      // Search through each fungus-data object
+      // Search through each fungus-data object with all keywords
       fungusDataList.forEach(({ data, field }) => {
-        const searchResult = this.searchInObject(data, normalizedQuery, '', new Set());
-        if (searchResult.score > 0) {
-          console.log(`[AstroDataSearchReactor] Found match in fungus-data:`, {
-            field,
-            score: searchResult.score,
-            matchedFields: Array.from(searchResult.matchedFields)
-          });
-        }
-        containerScore += searchResult.score;
+        // Try each keyword (OR logic - any match counts)
+        keywords.forEach(keyword => {
+          const searchResult = this.searchInObject(data, keyword, '', new Set());
+          if (searchResult.score > 0) {
+            console.log(`[AstroDataSearchReactor] Found match for keyword "${keyword}" in fungus-data:`, {
+              field,
+              score: searchResult.score,
+              matchedFields: Array.from(searchResult.matchedFields)
+            });
+            containerScore += searchResult.score;
+            
+            // Merge matched fields
+            searchResult.matchedFields.forEach(f => containerMatchedFields.add(f));
+          }
+        });
         
-        // Merge matched fields
-        searchResult.matchedFields.forEach(f => containerMatchedFields.add(f));
+        // Bonus score if multiple keywords match (AND logic bonus)
+        if (keywords.length > 1) {
+          const matchedKeywords = keywords.filter(keyword => {
+            const result = this.searchInObject(data, keyword, '', new Set());
+            return result.score > 0;
+          });
+          
+          if (matchedKeywords.length > 1) {
+            // Multiply bonus: more keywords = higher relevance
+            const multiKeywordBonus = matchedKeywords.length * 50;
+            containerScore += multiKeywordBonus;
+            console.log(`[AstroDataSearchReactor] 🎯 Multi-keyword bonus: +${multiKeywordBonus} (${matchedKeywords.length} keywords matched)`);
+          }
+        }
       });
       
       // ALSO search visible text content (taxonomy badges, etc.)
@@ -420,21 +464,24 @@ export class AstroDataSearchReactor {
       console.log('[AstroDataSearchReactor] Visible text:', visibleText);
       
       if (visibleText.taxonomy) {
-        console.log('[AstroDataSearchReactor] Checking taxonomy values against query:', {
+        console.log('[AstroDataSearchReactor] Checking taxonomy values against keywords:', {
           taxonomyValues: visibleText.taxonomy,
-          query: normalizedQuery
+          keywords: keywords
         });
         
         visibleText.taxonomy.forEach(text => {
-          const matches = this.matchesWord(text, normalizedQuery);
-          console.log(`[AstroDataSearchReactor] Taxonomy "${text}" matches "${normalizedQuery}"? ${matches}`);
-          
-          if (matches) {
-            containerScore += 80; // High score for taxonomy match
-            containerMatchedFields.add('taxonomy.visible');
-            allMatchedPerspectives.add('taxonomy');
-            console.log('[AstroDataSearchReactor] ✅ MATCH FOUND in taxonomy!');
-          }
+          // Check each keyword
+          keywords.forEach(keyword => {
+            const matches = this.matchesWord(text, keyword);
+            console.log(`[AstroDataSearchReactor] Taxonomy "${text}" matches keyword "${keyword}"? ${matches}`);
+            
+            if (matches) {
+              containerScore += 80; // High score for taxonomy match
+              containerMatchedFields.add('taxonomy.visible');
+              allMatchedPerspectives.add('taxonomy');
+              console.log('[AstroDataSearchReactor] ✅ MATCH FOUND in taxonomy!');
+            }
+          });
         });
       }
       
@@ -474,7 +521,9 @@ export class AstroDataSearchReactor {
     // Apply filtering
     results.forEach(({ container, score }, index) => {
       if (score > this.config.minScore) {
-        container.style.removeProperty('display');
+        // FORCE show matched containers (even if they were hidden by other means)
+        container.style.display = 'block';
+        container.style.removeProperty('opacity');
         container.classList.remove('reactor-astro-search-hidden');
         console.log(`[AstroDataSearchReactor] ✅ Showing container ${index + 1} (score: ${score})`);
       } else {

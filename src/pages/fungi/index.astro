@@ -239,7 +239,7 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
           🍄 Keine Pilze gefunden
         </p>
         <p style="color: rgba(255, 255, 255, 0.5); text-align: center; margin-top: 0.5rem;">
-          Stelle sicher, dass Convex Daten enthält und PUBLIC_CONVEX_URL korrekt ist.
+          Searching Database
         </p>
       </div>
     )}
@@ -657,31 +657,65 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
     
     console.log('✅ Perspective listeners registered');
 
-    // View Toggle functionality
+    // View Toggle functionality with coordinated state
     const viewBtns = document.querySelectorAll('.view-btn');
+    let currentView = 'grid'; // Track current view
 
     viewBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const view = btn.dataset.view;
+        if (view === currentView) return; // Already on this view
+        
+        currentView = view;
         
         // Update active state
         viewBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         
-        // Toggle views
+        // Toggle views and activate appropriate reactors
         if (view === 'grid') {
+          // Show Grid, Hide Bubble
           gridHost.style.display = 'grid';
           bubbleHost.style.display = 'none';
+          
+          // Grid View: Enable AstroDataSearchReactor (already enabled)
+          // Perspectives and search state are already shared via events
+          
           console.log('📊 Switched to Grid View');
+          console.log('   • Search query preserved:', amorph.state.searchQuery || 'none');
+          console.log('   • Perspectives preserved via MorphHeader');
+          
         } else {
+          // Show Bubble, Hide Grid
           gridHost.style.display = 'none';
           bubbleHost.style.display = 'block';
-          console.log('🫧 Switched to Bubble View');
+          
+          // Bubble View: Enable perspective weighting and connections
+          const bubbleView = bubbleHost.shadowRoot?.querySelector('bubble-view');
+          if (bubbleView) {
+            // Ensure connections are visible for relationship view
+            bubbleView.showConnections = true;
+            
+            // Trigger similarity recalculation with current perspectives
+            bubbleView.updateSimilarityMatrixDebounced();
+            
+            console.log('🫧 Switched to Bubble View');
+            console.log('   • Connections enabled for relationship visualization');
+            console.log('   • Search query preserved:', amorph.state.searchQuery || 'none');
+            console.log('   • Perspectives preserved via MorphHeader');
+            console.log('   • Similarity matrix will update with current perspectives');
+          }
         }
+        
+        // Both views share:
+        // ✓ Search query (via amorph.state.searchQuery and search:input events)
+        // ✓ Perspectives (via MorphHeader perspective-changed events)
+        // ✓ User interactions persist across view switches
       });
     });
 
     console.log('✅ View toggle initialized with', fungi.length, 'fungi');
+    console.log('✅ Shared state: Search + Perspectives coordinated across views');
   }
 
   // Start initialization
