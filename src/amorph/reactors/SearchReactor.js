@@ -549,11 +549,8 @@ export class SearchReactor {
    */
   highlightMorph(morph, query) {
     // Simple Highlight via CSS Class
+    // Note: Complex text highlighting would require Shadow DOM manipulation
     morph.classList.add('reactor-search-highlight');
-    
-    // TODO: Für komplexeres Text-Highlighting könnte man hier
-    // den textContent parsen und <mark> Tags einfügen
-    // Aber das würde Shadow DOM erfordern oder innerHTML-Manipulation
   }
   
   /**

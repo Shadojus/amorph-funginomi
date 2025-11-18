@@ -22,6 +22,28 @@ Zentrale Registry die ALLES verwaltet:
 - ✅ Multi-Perspektiven State
 - ✅ Search State mit Weighted Scoring
 - ✅ Pixie Renderer Integration
+- ✅ Canvas Reactor Coordination (2025-11-18)
+
+### Canvas System Integration (2025-11-18)
+
+**AmorphSystem koordiniert Canvas Reactors:**
+- ✅ **CanvasConnectionReactor** - Weight badges, type-spezifische Farben
+- ✅ **CanvasPhysicsReactor** - Spring forces, damping: 0.98
+- ✅ **CanvasUserNodeReactor** - User node rendering, size/3
+
+**Event Flow:**
+```javascript
+// Perspective Change → Recalculate Weights → Redraw Canvas
+amorph.on('perspective-changed', ({ perspectives }) => {
+  // 1. DOM-Morphs werden gefiltert (PerspectiveHost)
+  // 2. BubbleView recalculiert connection weights
+  // 3. Canvas Reactors zeichnen neu
+});
+```
+
+**Wichtig:** Canvas Reactors arbeiten **unabhängig** von DOM-Morphs!
+- ❌ **KEINE BubbleMorph Elements** - Nur Canvas-Rendering
+- ✅ **Hybrid Architecture** - DOM für Morphs, Canvas für Visualization
 
 ### Architektur
 

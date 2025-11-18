@@ -4,10 +4,10 @@
  * Verwendet Pixi.js für performante Node-Darstellung
  * Rendert Bubbles, Connections und Particles (für BubbleView - Phase 11+)
  * 
- * MVP: Wird noch nicht genutzt, aber ist bereit für BubbleView!
+ * Erweitert mit Bildern, Text, Icons für volle BubbleView-Unterstützung!
  */
 
-import { Application, Graphics, Container } from 'pixi.js';
+import { Application, Graphics, Container, Text, Sprite, Assets } from 'pixi.js';
 
 export class PixieRenderer {
   constructor(config = {}) {
@@ -23,9 +23,10 @@ export class PixieRenderer {
     
     this.app = null;
     this.container = null;
-    this.nodes = new Map();  // id → PIXI.Graphics
-    this.connections = new Map();  // id → PIXI.Graphics
-    this.particles = new Map();  // id → PIXI.Graphics
+    this.nodes = new Map();  // id → Container (Graphics + Text + Sprite)
+    this.connections = new Map();  // id → Container (Graphics + Text)
+    this.particles = new Map();  // id → Graphics
+    this.imageCache = new Map();  // url → Texture
   }
   
   /**
@@ -78,9 +79,9 @@ export class PixieRenderer {
   }
   
   /**
-   * Rendere einen Node (Bubble)
+   * Rendere einen Node (Bubble) mit Bild, Text, Icons
    */
-  renderNode(id, options = {}) {
+  async renderNode(id, options = {}) {
     const {
       x = 0,
       y = 0,
@@ -88,62 +89,283 @@ export class PixieRenderer {
       color = 0x00ff88,
       alpha = 1.0,
       borderWidth = 2,
-      borderColor = 0xffffff
+      borderColor = 0xffffff,
+      glowRadius = 0,
+      glowColor = 0xffffff,
+      glowAlpha = 0.3,
+      image = null,        // Image URL
+      icon = null,         // Emoji icon
+      label = null,        // Text label
+      badge = null,        // Badge object { text, color, bgColor }
+      gradient = null      // Gradient { inner, outer }
     } = options;
     
-    // Erstelle oder hole Node
-    let node = this.nodes.get(id);
-    if (!node) {
-      node = new Graphics();
-      this.nodes.set(id, node);
-      this.container.addChild(node);
+    // Erstelle oder hole Node Container
+    let nodeContainer = this.nodes.get(id);
+    if (!nodeContainer) {
+      nodeContainer = new Container();
+      this.nodes.set(id, nodeContainer);
+      this.container.addChild(nodeContainer);
     }
     
-    // Clear & Redraw
-    node.clear();
+    // Clear children
+    nodeContainer.removeChildren();
+    
+    // Position setzen
+    nodeContainer.position.set(x, y);
+    
+    // 1. Glow effect (optional)
+    if (glowRadius > 0) {
+      const glow = new Graphics();
+      glow.circle(0, 0, radius + glowRadius);
+      glow.fill({ color: glowColor, alpha: glowAlpha });
+      nodeContainer.addChild(glow);
+    }
+    
+    // 2. Main bubble
+    const bubble = new Graphics();
+    
+    // Gradient oder einfache Farbe
+    if (gradient) {
+      // Radial gradient simulation mit mehreren Kreisen
+      const steps = 5;
+      for (let i = steps; i > 0; i--) {
+        const r = radius * (i / steps);
+        const t = i / steps;
+        const gradColor = this.interpolateColor(gradient.inner, gradient.outer, 1 - t);
+        bubble.circle(0, 0, r);
+        bubble.fill({ color: gradColor, alpha: alpha });
+      }
+    } else {
+      bubble.circle(0, 0, radius);
+      bubble.fill({ color, alpha });
+    }
     
     // Border
     if (borderWidth > 0) {
-      node.circle(x, y, radius);
-      node.stroke({ width: borderWidth, color: borderColor });
+      bubble.circle(0, 0, radius);
+      bubble.stroke({ width: borderWidth, color: borderColor });
     }
     
-    // Fill
-    node.circle(x, y, radius);
-    node.fill({ color, alpha });
+    nodeContainer.addChild(bubble);
     
-    return node;
+    // 3. Image (wenn vorhanden)
+    if (image) {
+      try {
+        const sprite = await this.loadImageSprite(image, radius * 2);
+        if (sprite) {
+          sprite.anchor.set(0.5);
+          nodeContainer.addChild(sprite);
+        }
+      } catch (err) {
+        this.error('Failed to load image:', image, err);
+      }
+    }
+    
+    // 4. Icon (Emoji als Text)
+    if (icon) {
+      const iconText = new Text({
+        text: icon,
+        style: {
+          fontFamily: 'Arial, sans-serif',
+          fontSize: radius * 0.8,
+          fill: 0xffffff,
+          align: 'center'
+        }
+      });
+      iconText.anchor.set(0.5, 0.6);
+      iconText.position.set(0, -radius * 0.15);
+      nodeContainer.addChild(iconText);
+    }
+    
+    // 5. Label (Text unter Icon)
+    if (label) {
+      const labelText = new Text({
+        text: label,
+        style: {
+          fontFamily: 'Arial, sans-serif',
+          fontSize: Math.min(radius * 0.35, 14),
+          fontWeight: 'bold',
+          fill: 0xffffff,
+          align: 'center',
+          wordWrap: true,
+          wordWrapWidth: radius * 1.6
+        }
+      });
+      labelText.anchor.set(0.5, 0);
+      labelText.position.set(0, radius * 0.25);
+      nodeContainer.addChild(labelText);
+    }
+    
+    // 6. Badge (Connection count, etc.)
+    if (badge) {
+      const badgeContainer = new Container();
+      const badgeX = radius - 12;
+      const badgeY = -radius + 12;
+      badgeContainer.position.set(badgeX, badgeY);
+      
+      // Badge background
+      const badgeBg = new Graphics();
+      badgeBg.circle(0, 0, 12);
+      badgeBg.fill({ color: badge.bgColor || 0xa855f7 });
+      badgeBg.circle(0, 0, 12);
+      badgeBg.stroke({ width: 2, color: 0x000000 });
+      badgeContainer.addChild(badgeBg);
+      
+      // Badge text
+      const badgeText = new Text({
+        text: badge.text || '0',
+        style: {
+          fontFamily: 'Arial, sans-serif',
+          fontSize: 11,
+          fontWeight: 'bold',
+          fill: 0xffffff,
+          align: 'center'
+        }
+      });
+      badgeText.anchor.set(0.5);
+      badgeContainer.addChild(badgeText);
+      
+      nodeContainer.addChild(badgeContainer);
+    }
+    
+    return nodeContainer;
   }
   
   /**
-   * Rendere eine Connection (Linie zwischen Nodes)
+   * Load image as Pixi Sprite with caching
+   */
+  async loadImageSprite(url, size) {
+    // Check cache
+    if (this.imageCache.has(url)) {
+      const texture = this.imageCache.get(url);
+      const sprite = new Sprite(texture);
+      
+      // Circular mask
+      const mask = new Graphics();
+      mask.circle(0, 0, size / 2);
+      mask.fill({ color: 0xffffff });
+      sprite.mask = mask;
+      sprite.addChild(mask);
+      
+      // Scale to fit
+      const scale = size / Math.max(texture.width, texture.height);
+      sprite.scale.set(scale);
+      
+      return sprite;
+    }
+    
+    // Load new texture
+    try {
+      const texture = await Assets.load(url);
+      this.imageCache.set(url, texture);
+      
+      const sprite = new Sprite(texture);
+      
+      // Circular mask
+      const mask = new Graphics();
+      mask.circle(0, 0, size / 2);
+      mask.fill({ color: 0xffffff });
+      sprite.mask = mask;
+      sprite.addChild(mask);
+      
+      // Scale to fit
+      const scale = size / Math.max(texture.width, texture.height);
+      sprite.scale.set(scale);
+      
+      return sprite;
+    } catch (err) {
+      this.error('Failed to load texture:', url, err);
+      return null;
+    }
+  }
+  
+  /**
+   * Interpolate between two colors
+   */
+  interpolateColor(color1, color2, t) {
+    const r1 = (color1 >> 16) & 0xff;
+    const g1 = (color1 >> 8) & 0xff;
+    const b1 = color1 & 0xff;
+    
+    const r2 = (color2 >> 16) & 0xff;
+    const g2 = (color2 >> 8) & 0xff;
+    const b2 = color2 & 0xff;
+    
+    const r = Math.round(r1 + (r2 - r1) * t);
+    const g = Math.round(g1 + (g2 - g1) * t);
+    const b = Math.round(b1 + (b2 - b1) * t);
+    
+    return (r << 16) | (g << 8) | b;
+  }
+  
+  /**
+   * Rendere eine Connection (Linie zwischen Nodes) mit Label
    */
   renderConnection(id, options = {}) {
     const {
-      x1 = 0,
-      y1 = 0,
-      x2 = 100,
-      y2 = 100,
+      from = { x: 0, y: 0 },
+      to = { x: 100, y: 100 },
       width = 2,
       color = 0x00ff88,
-      alpha = 0.5
+      alpha = 0.5,
+      label = null  // Optional: Label text (z.B. "23%")
     } = options;
     
-    // Erstelle oder hole Connection
-    let connection = this.connections.get(id);
-    if (!connection) {
-      connection = new Graphics();
-      this.connections.set(id, connection);
-      this.container.addChild(connection);
+    // Erstelle oder hole Connection Container
+    let connContainer = this.connections.get(id);
+    if (!connContainer) {
+      connContainer = new Container();
+      this.connections.set(id, connContainer);
+      // Connections HINTER Nodes rendern
+      this.container.addChildAt(connContainer, 0);
     }
     
-    // Clear & Redraw
-    connection.clear();
-    connection.moveTo(x1, y1);
-    connection.lineTo(x2, y2);
-    connection.stroke({ width, color, alpha });
+    // Clear children
+    connContainer.removeChildren();
     
-    return connection;
+    // Line
+    const line = new Graphics();
+    line.moveTo(from.x, from.y);
+    line.lineTo(to.x, to.y);
+    line.stroke({ width, color, alpha });
+    connContainer.addChild(line);
+    
+    // Label (optional)
+    if (label) {
+      const midX = (from.x + to.x) / 2;
+      const midY = (from.y + to.y) / 2;
+      
+      // Background
+      const labelBg = new Graphics();
+      const padding = 6;
+      const textWidth = label.length * 7; // Approximate
+      labelBg.rect(
+        midX - textWidth / 2 - padding,
+        midY - 8,
+        textWidth + padding * 2,
+        16
+      );
+      labelBg.fill({ color: 0x000000, alpha: 0.9 });
+      connContainer.addChild(labelBg);
+      
+      // Text
+      const labelText = new Text({
+        text: label,
+        style: {
+          fontFamily: 'monospace',
+          fontSize: 11,
+          fontWeight: 'bold',
+          fill: color,
+          align: 'center'
+        }
+      });
+      labelText.anchor.set(0.5);
+      labelText.position.set(midX, midY);
+      connContainer.addChild(labelText);
+    }
+    
+    return connContainer;
   }
   
   /**

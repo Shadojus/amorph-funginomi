@@ -17,6 +17,7 @@ interface Props {
   enableGlow?: boolean;
   enableSearch?: boolean;
   enableAnimation?: boolean;
+  enablePerspective?: boolean;
 }
 
 const { 
@@ -25,6 +26,7 @@ const {
   enableGlow = true,
   enableSearch = true,
   enableAnimation = true,
+  enablePerspective = true,
 } = Astro.props;
 ---
 
@@ -37,7 +39,7 @@ const {
   <title>{title}</title>
   
   <!-- AMORPH System -->
-  <script type="module" define:vars={{ enableGlow, enableSearch, enableAnimation }}>
+  <script type="module" define:vars={{ enableGlow, enableSearch, enableAnimation, enablePerspective }}>
     import { amorph } from '/src/amorph/init.js';
     
     // Wait for DOM ready
@@ -50,6 +52,7 @@ const {
       if (enableGlow) reactorsToEnable.push({ name: 'glow', config: { intensity: 1.5, hoverBoost: 2.0 } });
       if (enableSearch) reactorsToEnable.push({ name: 'search', config: { highlightColor: '#667eea' } });
       if (enableAnimation) reactorsToEnable.push({ name: 'animation', config: { type: 'fade-in', duration: 600, stagger: 100 } });
+      if (enablePerspective) reactorsToEnable.push({ name: 'perspective', config: { animate: true, duration: 300 } });
       
       // Wait a bit for morphs to register
       setTimeout(async () => {

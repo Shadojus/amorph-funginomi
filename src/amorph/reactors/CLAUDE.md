@@ -52,9 +52,49 @@ Reactors sind **PLUG & PLAY** Module die Effekte auf Morphs anwenden:
 
 **Siehe:** [PERSPECTIVE_SYSTEM.md](./PERSPECTIVE_SYSTEM.md) für Details!
 
+## 🎨 Canvas Reactors (2025-11-18)
+
+**Spezielle Reactors für Canvas-basiertes Rendering in BubbleView:**
+
+### CanvasConnectionReactor
+- 🎨 **Weight Badges**: Zeigt Gewichtungen als Badges auf Connection Lines
+- 🌈 **Type-spezifische Farben**: Grün (Similarity), Violett (Semantic), Blau (User-Intent)
+- 📊 **3 Dezimalstellen**: Präzise Anzeige (z.B. "0.700")
+- 🔄 **Immer sichtbar**: Alle Connections zeigen Badges (nicht nur starke)
+
+### CanvasPhysicsReactor
+- ⚛️ **Physics Simulation**: Spring forces, Damping, Collision detection
+- 🎯 **Optimiert**: damping: 0.98 (weniger Bouncing auf kleineren Systemen)
+- 🔗 **Connection Springs**: Verbindungen zwischen Bubbles wirken als Springs
+
+### CanvasUserNodeReactor
+- 👤 **User Node**: Zentraler Punkt mit gewichteten Connections
+- 📏 **Kompakt**: size/3 (reduziert von size/2)
+- 🎯 **Score Threshold**: Nur Connections > 0.3 werden gezeichnet
+- 💫 **Activity Pulse**: Ring-Animation bei hoher Aktivität
+
+**Wichtig:** Canvas Reactors arbeiten **direkt auf Canvas**, nicht auf DOM-Morphs!
+
+```javascript
+// Canvas Reactors nutzen ctx (2D Context), nicht DOM
+renderUserIntentConnection(ctx, from, to, weight) {
+  ctx.beginPath();
+  ctx.moveTo(from.x, from.y);
+  ctx.lineTo(to.x, to.y);
+  ctx.stroke();
+  
+  // Weight Badge zeichnen
+  this.drawWeightBadge(ctx, from, to, weight, 'user-intent');
+}
+```
+
+---
+
 ## Reactor-Architektur
 
-Alle Reactors folgen demselben Pattern:
+### DOM Reactors (Standard Pattern)
+
+Alle DOM Reactors folgen demselben Pattern:
 
 ```javascript
 export class ExampleReactor {

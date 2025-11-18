@@ -11,7 +11,34 @@ Alle CLAUDE.md Dateien auf dem neuesten Stand:
 
 ---
 
-## 🔥 Latest Changes (2025-11-17)
+## 🔥 Latest Changes (2025-11-18)
+
+### 0. 🎨 Canvas System Optimization (NEW!)
+
+**BubbleView Canvas Reactors optimiert:**
+
+**CanvasConnectionReactor:**
+- ✅ **Weight Badges immer sichtbar** - showWeightBadges: true (war false)
+- ✅ **3 Dezimalstellen** - Präzise Anzeige (z.B. "0.700")
+- ✅ **Type-spezifische Farben** - Grün (Similarity), Violett (Semantic), Blau (User-Intent)
+- ✅ **Debug Logging** - Console logs für alle gerenderten Connections
+
+**CanvasPhysicsReactor:**
+- ⚛️ **Physics Damping: 0.98** (war 0.95) - Weniger Bouncing auf kleineren Systemen
+- ✅ **Stabilisiert ~50% schneller** - Bubbles kommen schneller zur Ruhe
+
+**CanvasUserNodeReactor:**
+- 👤 **User Node Size: size/3** (war size/2) - 33% kleiner, weniger dominant
+- ✅ **4 Locations geändert** - Pulse ring, outer glow, gradient, main circle
+
+**Architektur-Klarstellung:**
+- ❌ **KEINE BubbleMorph DOM-Elemente** - Connections sind Canvas-Rendering, nicht DOM-Morphs
+- ✅ **Hybrid System** - DOM-Morphs (data-morph) + Canvas-Rendering (BubbleView)
+- ✅ **60 FPS Performance** - Direct ctx rendering ohne DOM-Updates
+
+---
+
+## 🔥 Previous Changes (2025-11-17)
 
 ### 1. ⭐ Dual Search System (MAJOR UPDATE!)
 

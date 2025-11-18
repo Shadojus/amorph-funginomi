@@ -6,8 +6,44 @@ Hosts sind **Container-Components** die Morphs organisieren und darstellen:
 - ✅ **PerspectiveHost**: Container für einzelne Perspektive (2025-11-15)
 - ✅ **GridHost**: Grid-Layout für Morphs
 - ✅ **BubbleHost**: Datengetriebener Container für BubbleView
-- ✅ **BubbleView**: Interactive Bubble Visualization (MAJOR UPDATE 2025-11-16)
-- ✅ **BubbleMorph**: Custom element for AMORPH integration (NEW 2025-11-16)
+- ✅ **BubbleView**: Interactive Bubble Visualization (MAJOR UPDATE 2025-11-16, Canvas Optimization 2025-11-18)
+
+## 🎨 BubbleView Architecture (2025-11-18)
+
+**Wichtig:** BubbleView ist ein **Hybrid-System** mit Canvas-Rendering:
+
+### ⚠️ KEINE BubbleMorph DOM-Elemente!
+- ❌ **BubbleMorph existiert NICHT** als DOM-Element in BubbleView
+- ✅ **Nur Canvas-Rendering**: Bubbles werden direkt auf Canvas gezeichnet
+- ✅ **DOM-Morphs existieren parallel**: data-morph Elemente sind Standard-Morphs im Grid
+- ✅ **Canvas Reactors**: CanvasConnectionReactor, CanvasPhysicsReactor, CanvasUserNodeReactor
+
+### Canvas vs DOM
+```javascript
+// ❌ FALSCH: BubbleMorphs als DOM-Elemente
+<bubble-morph data-morph data-name="..."></bubble-morph>
+
+// ✅ RICHTIG: Canvas Rendering
+ctx.beginPath();
+ctx.arc(bubble.x, bubble.y, bubble.size/3, 0, Math.PI * 2);
+ctx.fill();
+```
+
+### Weight Badges (2025-11-18)
+- ✅ **Immer sichtbar**: showWeightBadges: true (war false)
+- ✅ **3 Dezimalstellen**: Präzise Anzeige (z.B. "0.700")
+- ✅ **Type-spezifische Farben**: 
+  - Grün (#22c55e): Similarity Connections
+  - Violett (#a855f7): Semantic Connections
+  - Blau (#6366f1): User-Intent Connections
+- ✅ **Badge-Größe**: 42x20px rounded rectangles
+- ✅ **Font**: Monospace 11px für Zahlen-Alignment
+
+### Canvas Optimizations (2025-11-18)
+- ⚛️ **Physics Damping**: 0.98 (war 0.95) → weniger Bouncing
+- 👤 **User Node Size**: size/3 (war size/2) → 33% kleiner
+- 🎯 **Connection Threshold**: Nur Weights > 0.3 werden gerendert
+- 💫 **Debug Logging**: Comprehensive console logs für Connection Rendering
 
 ---
 

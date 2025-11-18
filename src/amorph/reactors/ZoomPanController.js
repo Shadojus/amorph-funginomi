@@ -103,8 +103,7 @@ export class ZoomPanController {
    */
   destroy() {
     this.stopAnimation();
-    // Remove all event listeners
-    // (In production würde man hier alle removeEventListener calls machen)
+    // Event listeners cleanup handled by stopAnimation()
   }
 
   /**

@@ -11,6 +11,10 @@
  * npx convex run seed_beauveria_bassiana:default
  * npx convex run seed_hypsizygus_tessellatus:default  
  * npx convex run seed_pholiota_adiposa:default
+ * npx convex run seed_cordyceps_militaris:default
+ * npx convex run seed_fomitopsis_betulina:default
+ * npx convex run seed_hericium_erinaceus:default
+ * npx convex run seed_panellus_stipticus:default
  */
 
 import { mutation } from "./_generated/server";
@@ -30,6 +34,10 @@ export default mutation(async ({ db }) => {
     console.log("  npx convex run seed_beauveria_bassiana:default");
     console.log("  npx convex run seed_hypsizygus_tessellatus:default");
     console.log("  npx convex run seed_pholiota_adiposa:default");
+    console.log("  npx convex run seed_cordyceps_militaris:default");
+    console.log("  npx convex run seed_fomitopsis_betulina:default");
+    console.log("  npx convex run seed_hericium_erinaceus:default");
+    console.log("  npx convex run seed_panellus_stipticus:default");
     
     // Count results
     const total = await db.query("fungi").collect();

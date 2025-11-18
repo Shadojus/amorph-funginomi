@@ -13,7 +13,7 @@
 
 import { amorph } from './AmorphSystem.js';
 
-// Import Reactors
+// Import DOM Reactors
 import { GlowReactor } from '../reactors/GlowReactor.js';
 import { SearchReactor } from '../reactors/SearchReactor.js';
 import { AnimationReactor } from '../reactors/AnimationReactor.js';
@@ -24,9 +24,14 @@ import { FilterReactor } from '../reactors/FilterReactor.js';
 import { FlowReactor } from '../reactors/FlowReactor.js';
 import { ColorShiftReactor } from '../reactors/ColorShiftReactor.js';
 import { PerspectiveReactor } from '../reactors/PerspectiveReactor.js';
-import { PerspectiveWeightReactor } from '../reactors/PerspectiveWeightReactor.js';
+// PerspectiveWeightReactor REMOVED - used bubble-morph DOM elements that don't exist in Canvas BubbleView
 
-// Register Reactors manually
+// Import Canvas Reactors (BubbleView-specific)
+import { CanvasUserNodeReactor } from '../reactors/canvas/CanvasUserNodeReactor.js';
+import { CanvasPhysicsReactor } from '../reactors/canvas/CanvasPhysicsReactor.js';
+import { CanvasConnectionReactor } from '../reactors/canvas/CanvasConnectionReactor.js';
+
+// Register DOM Reactors
 amorph.registerReactor('glow', GlowReactor);
 amorph.registerReactor('search', SearchReactor);
 amorph.registerReactor('animation', AnimationReactor);
@@ -37,7 +42,12 @@ amorph.registerReactor('filter', FilterReactor);
 amorph.registerReactor('flow', FlowReactor);
 amorph.registerReactor('colorShift', ColorShiftReactor);
 amorph.registerReactor('perspective', PerspectiveReactor);
-amorph.registerReactor('perspectiveWeight', PerspectiveWeightReactor);
+// perspectiveWeight REMOVED - used bubble-morph DOM elements that don't exist in Canvas BubbleView
+
+// Register Canvas Reactors
+amorph.registerReactor('canvasUserNode', CanvasUserNodeReactor);
+amorph.registerReactor('canvasPhysics', CanvasPhysicsReactor);
+amorph.registerReactor('canvasConnection', CanvasConnectionReactor);
 
 // Import Atomic Morphs
 import '../morphs/data/NameMorph.js';
@@ -48,7 +58,7 @@ import '../morphs/data/BooleanMorph.js';
 import '../morphs/data/NumberMorph.js';
 import '../morphs/data/ListMorph.js';
 import '../morphs/data/DataMorph.js';
-import '../morphs/data/BubbleMorph.js';
+// BubbleMorph REMOVED - BubbleView now uses Canvas rendering, no DOM elements
 
 // Import Advanced Morphs
 import '../morphs/data/ChartMorph.js';

@@ -696,8 +696,13 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
             // Ensure connections are visible for relationship view
             bubbleView.showConnections = true;
             
+            // 🎨 Re-enable Canvas Reactors when switching to Bubble View
+            if (!bubbleView.reactorsEnabled) {
+              bubbleView.enableCanvasReactors();
+            }
+            
             // Trigger similarity recalculation with current perspectives
-            bubbleView.updateSimilarityMatrixDebounced();
+            bubbleView.updateSimilarityMatrix();
             
             console.log('🫧 Switched to Bubble View');
             console.log('   • Connections enabled for relationship visualization');

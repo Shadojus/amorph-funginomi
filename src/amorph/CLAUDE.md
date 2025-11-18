@@ -175,6 +175,38 @@ Siehe: `STREAM_OBSERVER_SYSTEM.md` für Details
 - **Responsive Design**: Branding kleiner auf Mobile (nicht versteckt)
 - **Auto-Perspective Switching**: 400ms debounced, FIFO queue management
 
-## Status: ✅ SYSTEM KOMPLETT + DUAL SEARCH + ENHANCED HEADER
+### ✅ TEIL 6: Canvas System Optimization (2025-11-18)
+- **Physics Damping**: Erhöht auf 0.98 (war 0.95) für weniger Bouncing
+- **User Node Size**: Reduziert auf size/3 (war size/2) für kompaktere Darstellung
+- **Weight Badges**: Immer anzeigen (nicht nur >0.7), 3 Dezimalstellen, Type-spezifische Farben
+- **Connection Lines**: Zeichnen Gewichtungen auf allen Verbindungen (Similarity, Semantic, User-Intent)
+- **Debug Logging**: Umfangreiches Logging für Connection-Rendering
 
-Alle 16 Phasen + Redis Stream Observer System + Dual Search + Enhanced MorphHeader sind implementiert. Das System ist produktionsbereit und voll funktionsfähig.
+## Status: ✅ SYSTEM KOMPLETT + OPTIMIERT
+
+Alle 16 Phasen + Redis Stream Observer System + Dual Search + Enhanced MorphHeader + Canvas Optimization sind implementiert. Das System ist produktionsbereit und voll funktionsfähig.
+
+## 🏗️ Architektur: Hybrides DOM + Canvas System
+
+### DOM-Morphs (Atomic Data Fields)
+- ✅ Web Components mit Shadow DOM (data-morph custom elements)
+- ✅ Registrieren sich bei AmorphSystem
+- ✅ Werden von MorphHeader/Reactors beeinflusst (Perspective, Search, Glow, etc.)
+- ✅ Beispiele: name-morph, text-morph, tag-morph, image-morph
+
+### Canvas-Rendering (BubbleView)
+- ✅ Direkte Canvas-Rendering für Performance (60 FPS)
+- ✅ Keine DOM-Elemente für Bubbles/Connections
+- ✅ Physics-Simulation (CanvasPhysicsReactor)
+- ✅ Connection Lines mit Bezier-Kurven (CanvasConnectionReactor)
+- ✅ User Node mit gewichteten Verbindungen (CanvasUserNodeReactor)
+
+### Event-Koordination
+```
+MorphHeader (Perspective Change)
+  ↓ 'perspective-changed' Event
+  ├─→ DOM: PerspectiveReactor → Highlight/Dim Morphs
+  └─→ Canvas: BubbleView → Recalculate Connection Weights → Redraw
+```
+
+**Wichtig:** BubbleView hat **keine BubbleMorph DOM-Elemente**, nur **Canvas-Rendering** für maximale Performance!

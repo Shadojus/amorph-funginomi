@@ -145,6 +145,32 @@ export const AmorphConfig = {
       animate: true,
       duration: 300,
       highlightActive: true
+    },
+    // Canvas-Reactors (BubbleView)
+    canvasUserNode: {
+      enabled: true,
+      scoreThreshold: 0.3,
+      maxConnections: 8,
+      vectorStyle: 'curved',
+      showStats: true,
+      centerForce: 0.05,
+      pulseAnimation: true
+    },
+    canvasPhysics: {
+      enabled: true,
+      springStrength: 0.005,
+      damping: 0.95,
+      collisionStrength: 0.1,
+      boundaryMargin: 100,
+      boundaryAttraction: 0.002
+    },
+    canvasConnection: {
+      enabled: true,
+      minScore: 0.3,
+      maxConnections: 8,
+      lineStyle: 'curved',
+      colorByScore: true,
+      showWeights: false
     }
   },
   

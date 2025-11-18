@@ -185,6 +185,59 @@ export const ReactorsConfig = {
       multiColor: true
     },
     morphTypes: ['*']
+  },
+  
+  // ==========================================
+  // CANVAS REACTORS (BubbleView)
+  // ==========================================
+  
+  canvasUserNode: {
+    name: 'Canvas User Node Reactor',
+    description: 'Visualisiert User Node mit gewichteten Verbindungen',
+    category: 'canvas',
+    enabled: true, // Default enabled for BubbleView
+    defaultConfig: {
+      scoreThreshold: 0.15,
+      maxConnections: 8,
+      vectorStyle: 'curved',
+      showStats: true,
+      centerForce: 0.05,
+      pulseAnimation: true
+    },
+    morphTypes: ['bubble']
+  },
+  
+  canvasPhysics: {
+    name: 'Canvas Physics Reactor',
+    description: 'Physics engine für BubbleView (Spring forces, Collisions)',
+    category: 'canvas',
+    enabled: true, // Default enabled for BubbleView
+    defaultConfig: {
+      springStrength: 0.005,
+      damping: 0.95,
+      collisionStrength: 0.1,
+      boundaryMargin: 100,
+      boundaryAttraction: 0.002,
+      repulsionDistance: 400,
+      repulsionStrength: 0.0001
+    },
+    morphTypes: ['bubble']
+  },
+  
+  canvasConnection: {
+    name: 'Canvas Connection Reactor',
+    description: 'Rendert Verbindungen zwischen Nodes',
+    category: 'canvas',
+    enabled: true, // Default enabled for BubbleView
+    defaultConfig: {
+      minLineWidth: 1,
+      maxLineWidth: 8,
+      minOpacity: 0.2,
+      maxOpacity: 0.8,
+      style: 'curved',
+      showWeightBadges: false
+    },
+    morphTypes: ['bubble']
   }
 };
 

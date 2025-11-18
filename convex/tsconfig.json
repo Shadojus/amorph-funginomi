@@ -20,6 +20,6 @@
     "isolatedModules": true,
     "noEmit": true
   },
-  "include": ["./**/*"],
+  "include": ["./**/*", "seed_fomitopsis_betulina.ts", "seed_hericium_erinaceus.ts", "seed_cordyceps_militaris.ts"],
   "exclude": ["./_generated"]
 }
