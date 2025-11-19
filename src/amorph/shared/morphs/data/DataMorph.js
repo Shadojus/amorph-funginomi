@@ -34,93 +34,102 @@ export class DataMorph extends LitElement {
     }
 
     .data-container {
-      background: rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(10px) saturate(120%);
-      -webkit-backdrop-filter: blur(10px) saturate(120%);
-      padding: 0;
-      margin-bottom: 1.25rem;
+      background: transparent;
+      padding: 0.375rem 0.5rem 0.375rem 0;
+      margin-bottom: 0.5rem;
       border-left: 3px solid var(--perspective-color, rgba(255, 255, 255, 0.15));
-      padding-left: 1rem;
-      border-radius: 8px;
+      padding-left: 0.5rem;
+      border-radius: 4px;
       transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    :host(.search-highlight-morph) .data-container {
+      z-index: 50;
     }
 
     .data-container:hover {
-      background: rgba(0, 0, 0, 0.4);
       border-left-width: 4px;
-      padding-left: 1.125rem;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      padding-left: 0.625rem;
     }
 
     .data-label {
       display: flex;
       align-items: center;
-      gap: 0.625rem;
-      font-size: 0.6875rem;
+      gap: 0.375rem;
+      font-size: 0.5625rem;
       font-weight: 700;
       color: rgba(255, 255, 255, 0.5);
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 0.75rem;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.375rem;
     }
 
     .data-value {
       color: rgba(255, 255, 255, 0.95);
-      line-height: 1.7;
-      font-size: 0.9375rem;
+      line-height: 1.3;
+      font-size: 0.8125rem;
       transition: all 0.3s ease;
     }
     
-    /* Search highlight - only highlight the value, not the container */
+    /* Search highlight - background only, no overlay effect */
     :host(.search-highlight-morph) .data-value {
-      background: rgba(59, 130, 246, 0.2);
+      background: linear-gradient(90deg, rgba(59, 130, 246, 0.25), rgba(59, 130, 246, 0.35));
       border-radius: 4px;
-      padding: 4px 6px;
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+      padding: 4px 8px;
       animation: search-value-pulse 1.5s ease-in-out infinite;
+      position: relative;
+      border-left: 3px solid rgba(59, 130, 246, 0.8);
     }
     
     @keyframes search-value-pulse {
       0%, 100% {
-        box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
-        background: rgba(59, 130, 246, 0.15);
+        background: linear-gradient(90deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.3));
+        border-left-color: rgba(59, 130, 246, 0.7);
       }
       50% {
-        box-shadow: 0 0 16px rgba(59, 130, 246, 0.7);
-        background: rgba(59, 130, 246, 0.25);
+        background: linear-gradient(90deg, rgba(59, 130, 246, 0.3), rgba(59, 130, 246, 0.4));
+        border-left-color: rgba(59, 130, 246, 1);
       }
     }
 
     .data-value.text {
-      font-size: 1rem;
+      font-size: 0.9375rem;
       font-weight: 500;
     }
 
     .data-value.tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.25rem;
+      line-height: 1.2;
     }
 
     .tag {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.875rem;
+      padding: 0;
+      font-size: 0.8125rem;
       font-weight: 400;
       background: transparent;
       color: rgba(255, 255, 255, 0.85);
       border: none;
+      display: inline;
+    }
+    
+    .tag:not(:last-child)::after {
+      content: ',';
+      margin-right: 0.25rem;
     }
 
     .perspective-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.375rem;
-      padding: 0.25rem 0.625rem;
-      border-radius: 6px;
-      font-size: 0.625rem;
+      gap: 0.2rem;
+      padding: 0.1rem 0.375rem;
+      border-radius: 3px;
+      font-size: 0.5rem;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.075em;
+      letter-spacing: 0.03em;
       background: transparent;
       color: var(--perspective-color, rgba(255, 255, 255, 0.5));
       border: 1px solid var(--perspective-color, rgba(255, 255, 255, 0.05));

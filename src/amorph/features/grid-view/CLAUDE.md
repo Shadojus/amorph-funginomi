@@ -1,8 +1,16 @@
 # 📊 GRID VIEW FEATURE
 
+**Last Updated:** 19. November 2025
+
 ## Overview
 
-Simple grid-based layout for displaying fungus cards.
+Grid-based layout for displaying fungus cards with wood floor design and touch-friendly interactions.
+
+**✨ NEW (2025-11-19):**
+- 🪵 **Wood floor background** - Natural texture on cards
+- 👆 **Touch hover effects** - Cards stay highlighted until next touch
+- 📦 **Ultra-compact layout** - 40% less padding/whitespace
+- 🔍 **Search highlighting** - Background gradient on matched values
 
 ## Structure
 

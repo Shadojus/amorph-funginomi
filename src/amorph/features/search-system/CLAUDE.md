@@ -2,9 +2,13 @@
 
 ## Overview
 
-**Convex-powered server-side search** with auto-perspective switching.
+**Convex-powered server-side search** with auto-perspective switching and client-side highlighting.
 
-**✨ NEW (2025-11-19):** Migrated from client-side to server-side search using Convex local database.
+**✨ UPDATED (2025-11-19):** 
+- Server-side search via Convex with deep field matching
+- Client-side SearchFilterController for precise highlighting
+- Scroll-to-view for first matched result
+- Touch-friendly interactions
 
 ## Structure
 
@@ -60,24 +64,40 @@ Server-side search using Convex database.
 - ✅ Convex local = unlimited queries
 - ✅ All old features preserved (highlight + perspective switch)
 
-### SearchFilterController ⭐ NEW
-Client-side controller that filters static Astro cards.
+### SearchFilterController ⭐ NEW (Updated 2025-11-19)
+Client-side controller that filters static Astro cards and highlights precise data matches.
 
 **Features:**
 - Listens to `convex-search:completed` events
 - Shows/hides cards with smooth animations
-- **Highlights matched morphs** 🎨 (blue pulse animation)
-- **Highlights matched cards** (border glow)
-- Stores matched fields per fungus
+- **Precise data-based highlighting** - Parses `fungus-data` JSON attribute
+- **Only highlights matching values** - Not entire containers
+- **Scroll-to-view** - First match scrolls to center (smooth, 300ms delay)
+- Works with Shadow DOM (DataMorph web components)
 - Updates BubbleView with filtered data
-- Works with static SSR pages
 
-**Highlighting:**
-- Adds `.search-highlight-morph` class to matched morphs
-- Adds `.search-highlight-card` class to matched cards
-- Pulse animation (1.5s infinite)
-- Blue border glow (rgba(59, 130, 246, 0.4))
-- Auto-clears on search reset
+**Highlighting Strategy:**
+1. Parse `fungus-data` JSON from each `data-morph` element
+2. Extract nested field values via `getNestedValue(obj, "path.to.field")`
+3. Convert to searchable string (arrays → comma-separated, objects → JSON)
+4. Check if value contains query (case-insensitive)
+5. Add `.search-highlight-morph` class ONLY to matched morphs
+
+**Visual Design:**
+- **Background gradient** - `linear-gradient(90deg, rgba(59,130,246,0.25), rgba(59,130,246,0.35))`
+- **Border-left accent** - 3px solid blue for clear identification
+- **Smooth pulsation** - Gradient intensity pulses between 0.2-0.4 opacity
+- **No overlay effect** - Background only for better readability
+- Works with multiple active perspectives/filters
+
+**Helper Methods:**
+```javascript
+getNestedValue(obj, path)     // "ecologyAndHabitat.substrate" → "dead wood"
+valueToString(value)           // Converts arrays/objects to searchable strings
+highlightMatches(query)        // Main highlighting logic
+clearHighlights()              // Removes all highlight classes
+scrollToFirstMatch()           // Smooth scroll to center of viewport
+```
 
 ### SearchReactor (LEGACY)
 Old client-side search through Shadow DOM.

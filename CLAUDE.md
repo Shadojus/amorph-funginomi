@@ -1,6 +1,6 @@
 # 📝 AMORPH Funginomi - Project Documentation
 
-**Last Updated:** 17. November 2025
+**Last Updated:** 19. November 2025
 
 ## 🎯 Ziel
 
@@ -11,7 +11,41 @@ Alle CLAUDE.md Dateien auf dem neuesten Stand:
 
 ---
 
-## 🔥 Latest Changes (2025-11-18)
+## 🔥 Latest Changes (2025-11-19)
+
+### 0. 🎨 UI/UX Overhaul - Wood Floor Design & Touch Optimization
+
+**Wood Floor Background:**
+- ✅ **Natural wood texture** - `/images/woodfloor/Moss_Woodsf_Laub.png` as card background
+- ✅ **Dark overlay gradient** - `rgba(0,0,0,0.5-0.65)` for readability
+- ✅ **Hover effect** - Darker overlay (0.8-0.9) on hover/touch
+- ✅ **Fixed Dark Mode bug** - Removed `@media (prefers-color-scheme: dark)` background override
+
+**Touch-Friendly Interactions:**
+- ✅ **Touch hover stays active** - Cards remain highlighted until next card touched
+- ✅ **No auto-timeout** - User controls when hover disappears
+- ✅ **Scroll-friendly** - Touch during scroll activates hover state
+- ✅ `.touch-hover` class - Same styles as `:hover` for consistency
+
+**Search Highlight Improvements:**
+- ✅ **Background instead of overlay** - `linear-gradient` blue background
+- ✅ **High visibility** - Works with multiple filters/perspectives active
+- ✅ **Border-left accent** - 3px blue border for clear identification
+- ✅ **Smooth pulsation** - Gradient intensity pulses (0.2-0.4 opacity)
+
+**Compact Card Layout:**
+- ✅ **40% less whitespace** - Padding reduced from 1.25rem to 0.375-0.5rem
+- ✅ **Inline tags** - Comma-separated instead of wrapped blocks
+- ✅ **Smaller fonts** - Value: 0.8125rem, Label: 0.5625rem
+- ✅ **Tighter line-height** - 1.3 instead of 1.7
+
+**Default Perspectives Changed:**
+- ✅ **New defaults:** Cultivation, Chemical, Medicinal (was: Ecology, Safety)
+- ✅ **User-focused** - Highlights practical growing and health information
+
+---
+
+## 🔥 Previous Changes (2025-11-18)
 
 ### 0. 🎨 Canvas System Optimization (NEW!)
 

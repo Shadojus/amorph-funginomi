@@ -227,10 +227,23 @@ export class MorphHeader extends LitElement {
       font-size: 1rem;
       background: rgba(0, 0, 0, 0.4);
       color: rgba(255, 255, 255, 0.9);
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
       outline: none;
       backdrop-filter: blur(10px) saturate(120%);
       -webkit-backdrop-filter: blur(10px) saturate(120%);
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 0 40px rgba(59, 130, 246, 0.1);
+      animation: search-bar-pulse 3s ease-in-out infinite;
+    }
+    
+    @keyframes search-bar-pulse {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 0 40px rgba(59, 130, 246, 0.1);
+        border-color: rgba(255, 255, 255, 0.1);
+      }
+      50% {
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.25), 0 0 60px rgba(59, 130, 246, 0.15);
+        border-color: rgba(59, 130, 246, 0.2);
+      }
     }
 
     .search-input::placeholder {
@@ -238,9 +251,10 @@ export class MorphHeader extends LitElement {
     }
 
     .search-input:focus {
-      border-color: rgba(255, 255, 255, 0.3);
+      border-color: rgba(59, 130, 246, 0.4);
       background: rgba(0, 0, 0, 0.5);
-      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05), 0 4px 16px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 0 40px rgba(59, 130, 246, 0.3), 0 4px 16px rgba(0, 0, 0, 0.3);
+      animation: none;
     }
 
     .search-icon {
@@ -723,10 +737,11 @@ export class MorphHeader extends LitElement {
     this.enabledReactors = info.enabledReactors || [];
     this.totalMorphs = info.morphCount || 0;
     
-    // Initialize with 2 most interesting perspectives for users
+    // Initialize with 3 most interesting perspectives for users
     const defaultPerspectiveNames = [
-      'ecologyAndHabitat',           // Where to find them - habitat, season
-      'safetyAndIdentification',     // Safety first - edibility, toxicity
+      'cultivationAndProcessing',    // How to grow them
+      'chemicalAndProperties',       // Chemical composition
+      'medicinalAndHealth',          // Health benefits
     ];
     
     this.activePerspectives = defaultPerspectiveNames

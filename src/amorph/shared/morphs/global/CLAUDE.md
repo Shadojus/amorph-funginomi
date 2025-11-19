@@ -28,24 +28,29 @@ Globale Components für die gesamte App:
 
 ---
 
-## MorphHeader.js ✨ **[UPDATED 2025-11-17]**
+## MorphHeader.js ✨ **[UPDATED 2025-11-19]**
 
 ### Funktion
 
 **Globaler Header für das gesamte System** - **Drei Kernfunktionen:**
 - ✅ **Branding** (Funginomi + Bifröst Link)
-- ✅ **Search Bar** (zentriert, glassmorphism)
-- ✅ **12 Perspektiven-Buttons** (FIFO max 4, max 2 Reihen)
+- ✅ **Search Bar** (zentriert, glassmorphism, pulsating glow)
+- ✅ **12 Perspektiven-Buttons** (FIFO max 3 default, max 2 Reihen)
 - ✅ **Shrinkable/Expandable Buttons** (inactive/active states)
-- ✅ **Auto-Perspective Switching** (basierend auf Search Results) ⭐ NEW
-- ✅ **Debounced Auto-Switching** (400ms delay) ⭐ NEW
-- ✅ **Progressive Komprimierung** (Icons verschwinden, dann Text schrumpft) ⭐ NEW
-- ✅ **Responsive Branding** (kleiner auf Mobile, nicht versteckt) ⭐ NEW
+- ✅ **Auto-Perspective Switching** (basierend auf Search Results)
+- ✅ **Debounced Auto-Switching** (400ms delay)
+- ✅ **Progressive Komprimierung** (Icons verschwinden, dann Text schrumpft)
+- ✅ **Responsive Branding** (kleiner auf Mobile, nicht versteckt)
 - ✅ Event Dispatching (window + document für Shadow DOM)
 
 **Entfernt:** ❌ Reactor Toggles, ❌ View Mode Switcher, ❌ BubbleView Controls
 
-**Latest Features (2025-11-17):**
+**Latest Features (2025-11-19):**
+- ✅ **Pulsating search bar** - Blue glow animation (3s loop, stops on focus)
+- ✅ **Default perspectives changed** - Cultivation, Chemical, Medicinal (was: Ecology, Safety)
+- ✅ **3 default perspectives** - More focused starting view
+
+**Previous Features (2025-11-17):**
 - ✅ **Branding**: "Funginomi" Titel + "Part of the Bifröst" Untertitel mit Link
 - ✅ **Max 2 Reihen**: Perspektiven-Buttons wrappen maximal in 2 Reihen
 - ✅ **Progressive Komprimierung**:

@@ -1,11 +1,18 @@
 # 📄 PAGES - Astro Pages & Routes
 
+**Last Updated:** 19. November 2025
+
 ## Übersicht
 
 Alle Astro Pages der Funginomi AMORPH App:
 - ✅ **fungi/index.astro**: Hauptseite mit Grid & Bubble View
 - ✅ **fungi/[slug].astro**: Detail-Seite für einzelnen Pilz
-- ✅ **demo.astro**: Demo/Test-Seite für alle Features
+
+**✨ NEW (2025-11-19) - Visual Design:**
+- 🪵 **Wood floor background** - Natural texture on all cards
+- 👆 **Touch-friendly interactions** - Hover stays until next touch
+- 🔍 **Enhanced search highlighting** - Background gradient with border accent
+- 📦 **Ultra-compact layout** - 40% less whitespace
 
 ---
 
@@ -15,10 +22,13 @@ Alle Pages verwenden:
 - **BaseLayout.astro** als Layout Wrapper
 - **Convex Client** für Server-Side Data Fetching
 - **AMORPH System** für Morphs & Reactors
-- **Redis Stream Events** für State Management
+- **ConvexSearchReactor** für Server-Side Search
+- **SearchFilterController** für Client-Side Highlighting
 
 ```
 Convex (SSR) → Astro Page → BaseLayout → Morphs → AMORPH System
+                                      ↓
+                            SearchFilterController → Highlighting
 ```
 
 ---

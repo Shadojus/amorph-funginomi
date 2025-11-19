@@ -1,5 +1,7 @@
 # 🧩 AMORPH Data Morphs - Atomic Design Components
 
+**Last Updated:** 19. November 2025
+
 ## Übersicht
 
 **Atomic Data Morphs** - Jedes Datenfeld ist ein eigener Morph:
@@ -10,12 +12,20 @@
 - ✅ **BooleanMorph**: Ja/Nein Werte
 - ✅ **NumberMorph**: Zahlen mit Einheiten
 - ✅ **ListMorph**: Arrays als Listen
+- ✅ **DataMorph**: Universal data display with perspective awareness
 
 **Design System:**
 - Alle Morphs nutzen `globalStyles` aus `arch/styles/tokens.js`
 - CSS Custom Properties (funktionieren in Shadow DOM!)
 - Konsistente Perspektiven-Farben, Spacing, Typography
 - Dark Mode Support
+
+**✨ NEW (2025-11-19) - Compact Layout & Search Highlighting:**
+- **40% smaller padding** - 0.375-0.5rem (was 1.25rem)
+- **Inline tags** - Comma-separated display instead of wrapped blocks
+- **Search highlight background** - Blue gradient with border-left accent
+- **High visibility** - Works with multiple active perspectives
+- **Touch-friendly** - Proper z-index stacking
 
 ---
 
