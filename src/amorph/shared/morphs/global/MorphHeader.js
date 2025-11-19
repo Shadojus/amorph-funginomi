@@ -924,6 +924,13 @@ export class MorphHeader extends LitElement {
       composed: true
     }));
     
+    // ALSO dispatch via AMORPH event system for Reactors
+    if (this.amorph) {
+      this.amorph.emit('perspectives:changed', {
+        perspectives: perspectiveIds
+      });
+    }
+    
     console.log('[MorphHeader] Active perspectives:', perspectiveIds);
   }
 

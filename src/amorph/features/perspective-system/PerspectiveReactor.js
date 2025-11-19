@@ -143,10 +143,8 @@ export class PerspectiveReactor {
     style.textContent = `
       /* Perspective Reactor Styles */
       .reactor-perspective-dimmed {
-        opacity: 0.3 !important;
-        filter: grayscale(0.5);
-        transition: opacity ${this.config.duration}ms ease, 
-                    filter ${this.config.duration}ms ease;
+        opacity: 0.6 !important;
+        transition: opacity ${this.config.duration}ms ease;
       }
       
       .reactor-perspective-highlighted {

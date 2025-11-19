@@ -50,7 +50,8 @@ const {
       const reactorsToEnable = [];
       
       if (enableGlow) reactorsToEnable.push({ name: 'glow', config: { intensity: 1.5, hoverBoost: 2.0 } });
-      if (enableSearch) reactorsToEnable.push({ name: 'search', config: { highlightColor: '#667eea' } });
+      // NEW: Convex-based search (replaces old client-side search)
+      if (enableSearch) reactorsToEnable.push({ name: 'convex-search', config: { debounce: 300 } });
       if (enableAnimation) reactorsToEnable.push({ name: 'animation', config: { type: 'fade-in', duration: 600, stagger: 100 } });
       if (enablePerspective) reactorsToEnable.push({ name: 'perspective', config: { animate: true, duration: 300 } });
       

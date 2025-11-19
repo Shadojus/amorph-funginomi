@@ -49,7 +49,7 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
   <div class="fungi-grid" id="grid-view-host">
     {fungi && fungi.length > 0 ? (
       fungi.map((fungus: any) => (
-        <div class="fungus-card">
+        <div class="fungus-card" data-slug={fungus.slug}>
           <div class="card-image">
             <image-morph 
               src={`/images/fungi/${fungus.slug}.jpg`}
@@ -730,4 +730,14 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
   } else {
     initViewToggle();
   }
+</script>
+
+<!-- Search Filter Controller (NEW) -->
+<script type="module">
+  import { SearchFilterController } from '/src/amorph/features/search-system/SearchFilterController.js';
+  
+  // Initialize search filter for Grid View
+  const searchFilter = new SearchFilterController('.fungi-grid', '.fungus-card');
+  
+  console.log('🔍 SearchFilterController initialized for Grid View');
 </script>

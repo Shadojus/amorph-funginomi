@@ -2,38 +2,92 @@
 
 ## Overview
 
-Dual search system: Morph-based + Data-based with auto-perspective switching.
+**Convex-powered server-side search** with auto-perspective switching.
+
+**✨ NEW (2025-11-19):** Migrated from client-side to server-side search using Convex local database.
 
 ## Structure
 
 ```
 features/search-system/
 ├── reactors/
-│   ├── SearchReactor.js           # Searches rendered morphs
-│   └── AstroDataSearchReactor.js  # Searches raw data
+│   ├── ConvexSearchReactor.js     # ⭐ NEW: Server-side search via Convex
+│   ├── SearchReactor.js           # LEGACY: Client-side morph search
+│   └── AstroDataSearchReactor.js  # LEGACY: Client-side data search
+├── SearchFilterController.js      # ⭐ NEW: Filters static cards
 └── CLAUDE.md                      # This file
 ```
 
-## Reactors
+## Architecture
 
-### SearchReactor (Morph-based)
-Searches visible text in Shadow DOM morphs.
+```
+User Input (MorphHeader)
+    ↓
+ConvexSearchReactor (debounce 300ms)
+    ↓
+POST /api/search
+    ↓
+Convex advancedSearch Query
+    ↓
+Deep field matching + Weighted scoring
+    ↓
+Returns: { results, scores, matchedPerspectives }
+    ↓
+SearchFilterController filters Grid View cards
+    ↓
+MorphHeader auto-activates perspectives
+```
+
+## Components
+
+### ConvexSearchReactor ⭐ NEW
+Server-side search using Convex database.
 
 **Features:**
-- Word boundary matching
-- Weighted scoring (Tags: 100, Name: 50, Data: 30)
-- Container-based filtering
-- 150ms debounced
+- Deep search in Convex (not DOM!)
+- Weighted scoring server-side
+- 80+ field-to-perspective mappings
+- **Auto-perspective detection & activation** 🎯
+- 300ms debounced for better UX
+- Returns filtered fungi + scores + matched fields
+- **Dispatches events for highlighting** 🎨
 
-### AstroDataSearchReactor (Data-based) ⭐ Priority
-Searches raw `fungus-data` JSON attributes.
+**Why Better:**
+- ✅ No DOM traversal (faster)
+- ✅ Searches ALL data (even hidden perspectives)
+- ✅ Scalable to 1000+ fungi
+- ✅ No client-side performance hit
+- ✅ Convex local = unlimited queries
+- ✅ All old features preserved (highlight + perspective switch)
+
+### SearchFilterController ⭐ NEW
+Client-side controller that filters static Astro cards.
 
 **Features:**
-- Deep object traversal
-- Field-aware weighting
-- Finds inactive perspective data
-- 26+ field-to-perspective mappings
-- Takes precedence over SearchReactor
+- Listens to `convex-search:completed` events
+- Shows/hides cards with smooth animations
+- **Highlights matched morphs** 🎨 (blue pulse animation)
+- **Highlights matched cards** (border glow)
+- Stores matched fields per fungus
+- Updates BubbleView with filtered data
+- Works with static SSR pages
+
+**Highlighting:**
+- Adds `.search-highlight-morph` class to matched morphs
+- Adds `.search-highlight-card` class to matched cards
+- Pulse animation (1.5s infinite)
+- Blue border glow (rgba(59, 130, 246, 0.4))
+- Auto-clears on search reset
+
+### SearchReactor (LEGACY)
+Old client-side search through Shadow DOM.
+
+**Status:** Commented out in init.js, kept for reference.
+
+### AstroDataSearchReactor (LEGACY)
+Old client-side search through JSON attributes.
+
+**Status:** Deprecated, replaced by ConvexSearchReactor.
 
 ## 🔗 Related Components
 

@@ -26,8 +26,10 @@ import { HoverReactor } from '../shared/reactors/HoverReactor.js';
 import { SortReactor } from '../shared/reactors/SortReactor.js';
 import { FilterReactor } from '../shared/reactors/FilterReactor.js';
 
-// Import Search System
-import { SearchReactor } from '../features/search-system/reactors/SearchReactor.js';
+// Import Search System (Convex-based)
+import { ConvexSearchReactor } from '../features/search-system/reactors/ConvexSearchReactor.js';
+// Legacy client-side search (keep for backwards compatibility)
+// import { SearchReactor } from '../features/search-system/reactors/SearchReactor.js';
 
 // Import Perspective System
 import { PerspectiveReactor } from '../features/perspective-system/PerspectiveReactor.js';
@@ -45,8 +47,9 @@ amorph.registerReactor('hover', HoverReactor);
 amorph.registerReactor('sort', SortReactor);
 amorph.registerReactor('filter', FilterReactor);
 
-// Register Search System
-amorph.registerReactor('search', SearchReactor);
+// Register Search System (Convex-based - replaces old SearchReactor)
+amorph.registerReactor('convex-search', ConvexSearchReactor);
+// Legacy: amorph.registerReactor('search', SearchReactor);
 
 // Register Perspective System
 amorph.registerReactor('perspective', PerspectiveReactor);

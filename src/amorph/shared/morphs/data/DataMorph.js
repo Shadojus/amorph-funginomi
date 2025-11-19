@@ -68,6 +68,27 @@ export class DataMorph extends LitElement {
       color: rgba(255, 255, 255, 0.95);
       line-height: 1.7;
       font-size: 0.9375rem;
+      transition: all 0.3s ease;
+    }
+    
+    /* Search highlight - only highlight the value, not the container */
+    :host(.search-highlight-morph) .data-value {
+      background: rgba(59, 130, 246, 0.2);
+      border-radius: 4px;
+      padding: 4px 6px;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+      animation: search-value-pulse 1.5s ease-in-out infinite;
+    }
+    
+    @keyframes search-value-pulse {
+      0%, 100% {
+        box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+        background: rgba(59, 130, 246, 0.15);
+      }
+      50% {
+        box-shadow: 0 0 16px rgba(59, 130, 246, 0.7);
+        background: rgba(59, 130, 246, 0.25);
+      }
     }
 
     .data-value.text {

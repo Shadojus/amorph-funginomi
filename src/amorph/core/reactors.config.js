@@ -25,11 +25,28 @@ export const ReactorsConfig = {
     morphTypes: ['*']  // Wirkt auf alle Morph-Typen
   },
   
-  search: {
-    name: 'Search Reactor',
-    description: 'Filtert & sortiert Morphs mit weighted Scoring',
+  // NEW: Convex-based search (2025-11-19)
+  'convex-search': {
+    name: 'Convex Search Reactor',
+    description: 'Server-side search using Convex database - FAST & SCALABLE',
     category: 'filter',
     enabled: false,
+    defaultConfig: {
+      debounce: 300,
+      minQueryLength: 2,
+      apiEndpoint: '/api/search',
+      highlightResults: true
+    },
+    morphTypes: ['*']
+  },
+  
+  // LEGACY: Client-side search (deprecated)
+  search: {
+    name: 'Search Reactor (LEGACY)',
+    description: '[DEPRECATED] Client-side search through Shadow DOM',
+    category: 'filter',
+    enabled: false,
+    deprecated: true,
     defaultConfig: {
       query: '',
       fuzzy: true,
@@ -45,9 +62,10 @@ export const ReactorsConfig = {
   },
   
   astroDataSearch: {
-    name: 'Astro Data Search Reactor',
-    description: 'Durchsucht Rohdaten aus Astro-Seiten (fungus-data Attribute)',
+    name: 'Astro Data Search Reactor (LEGACY)',
+    description: '[DEPRECATED] Client-side search through JSON attributes',
     category: 'filter',
+    deprecated: true,
     enabled: false,
     defaultConfig: {
       minScore: 0,
