@@ -1,6 +1,6 @@
 ---
-import BaseLayout from '@/amorph/arch/layouts/BaseLayout.astro';
-import { fetchFungus } from '@/amorph/arch/convex';
+import BaseLayout from '@/amorph/core/layouts/BaseLayout.astro';
+import { fetchFungus } from '@/amorph/core/convex';
 
 const { slug } = Astro.params;
 const fungus = await fetchFungus(slug!);
@@ -52,4 +52,4 @@ const perspectives = [
 </div>
 </BaseLayout>
 <style>.fungus-detail{max-width:1400px;margin:0 auto;padding:2rem}.hero{margin-bottom:3rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem}.hero-image{border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.2)}.hero-content{display:flex;flex-direction:column;gap:1.5rem}.morph-wrapper{background:rgba(255,255,255,.03);padding:1.5rem;border-radius:8px;border:1px solid rgba(255,255,255,.1);margin-bottom:1rem}.morph-label{display:block;font-size:.875rem;font-weight:600;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem}.tags-container{display:flex;flex-wrap:wrap;gap:.5rem}.nested-section{margin-bottom:1.5rem;padding-left:1rem;border-left:3px solid rgba(255,255,255,.2)}.nested-title{font-size:1.125rem;font-weight:600;color:rgba(255,255,255,.9);margin-bottom:1rem;text-transform:capitalize}@media (max-width:768px){.fungus-detail{padding:1rem}.hero{grid-template-columns:1fr}}</style>
-<script>import '@/amorph/hosts/PerspectiveHost.js';const d=['taxonomy','ecologyAndHabitat','culinaryAndNutritional','safetyAndIdentification'];window.addEventListener('DOMContentLoaded',()=>{window.dispatchEvent(new CustomEvent('perspective-changed',{detail:{perspectives:d}}));console.log('[Detail] Init:',d);});</script>
+<script>import '@/amorph/features/perspective-system/PerspectiveHost.js';const d=['taxonomy','ecologyAndHabitat','culinaryAndNutritional','safetyAndIdentification'];window.addEventListener('DOMContentLoaded',()=>{window.dispatchEvent(new CustomEvent('perspective-changed',{detail:{perspectives:d}}));console.log('[Detail] Init:',d);});</script>

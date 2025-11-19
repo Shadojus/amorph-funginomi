@@ -1,0 +1,625 @@
+# 🎯 AMORPH Core - System Kern
+
+## Übersicht
+
+Der `core/` Ordner enthält die Kern-Komponenten des AMORPH Systems:
+
+1. **AmorphSystem.js** - Das Gehirn des Systems
+2. **RedisEventBridge.js** - Event Bus mit Redis Streams & Consumer Groups
+3. **RedisEventBus.js** - Legacy Event Bus
+4. **PixieRenderer.js** - Canvas Renderer
+5. **convex.ts** - Convex Client für SSR Data Fetching
+6. **init.js** - System Initialization
+7. **layouts/** - Astro Layout Components
+8. **Config Files** - amorph.config.js, reactors.config.js, morphs.config.js
+
+## 🔗 Related Components
+
+**Uses:**
+- `../shared/observers/` - Stream-based State Management (BaseObserver, MorphObserver, etc.)
+- `../shared/reactors/` - Universal Reactors (GlowReactor, HoverReactor, etc.)
+- `../shared/morphs/` - Alle Data Morphs für Registration
+
+**Used by:**
+- `../features/bubble-view/` - BubbleView Canvas System
+- `../features/grid-view/` - GridView Layout
+- `../features/perspective-system/` - Perspektiven-Management
+- `../features/search-system/` - Dual Search System
+
+**Design System:** `../shared/styles/tokens.js` - CSS Custom Properties für alle Morphs
+
+## AmorphSystem.js
+
+### Verantwortlichkeiten
+
+Zentrale Registry die ALLES verwaltet:
+- ✅ Reactor-Management (register, enable, disable, toggle)
+- ✅ Morph-Discovery & Registration
+- ✅ Event-System über Redis Event Bridge
+- ✅ Multi-Perspektiven State
+- ✅ Search State mit Weighted Scoring
+- ✅ Pixie Renderer Integration
+- ✅ Canvas Reactor Coordination (2025-11-18)
+
+### Canvas System Integration (2025-11-18)
+
+**AmorphSystem koordiniert Canvas Reactors** aus `../features/bubble-view/reactors/`:
+- ✅ **CanvasConnectionReactor** - Weight badges, type-spezifische Farben
+- ✅ **CanvasPhysicsReactor** - Spring forces, damping: 0.98
+- ✅ **CanvasUserNodeReactor** - User node rendering, size/3
+
+**Event Flow:**
+```javascript
+// Perspective Change → Recalculate Weights → Redraw Canvas
+amorph.on('perspective-changed', ({ perspectives }) => {
+  // 1. DOM-Morphs werden gefiltert (PerspectiveHost)
+  // 2. BubbleView recalculiert connection weights
+  // 3. Canvas Reactors zeichnen neu
+});
+```
+
+**Wichtig:** Canvas Reactors arbeiten **unabhängig** von DOM-Morphs!
+- ❌ **KEINE BubbleMorph Elements** - Nur Canvas-Rendering
+- ✅ **Hybrid Architecture** - DOM für Morphs, Canvas für Visualization
+
+### Architektur
+
+```javascript
+export class AmorphSystem {
+  constructor(config = {}) {
+    // Merge Configs
+    this.config = { ...AmorphConfig, ...config };
+    
+    // State
+    this.state = {
+      activePerspectives: ['culinaryAndNutritional'],
+      selectedTags: new Set(),
+      searchQuery: '',
+      searchScores: new Map(),
+      enabledReactors: new Set()
+    };
+    
+    // Registries
+    this.reactors = new Map();        // name → Reactor Class
+    this.activeReactors = new Map();  // name → Reactor Instance
+    this.morphs = new Set();          // Alle registrierten Morphs
+    this.listeners = new Map();       // Event Listeners
+    
+    // Services
+    this.eventBridge = null;          // Redis Event Bridge
+    this.pixieRenderer = null;        // Pixie Renderer
+    this.performanceObserver = null;  // Performance Monitoring
+  }
+}
+```
+
+### Reactor Management
+
+```javascript
+// Reactor registrieren (passiert automatisch beim Import)
+registerReactor(name, ReactorClass) {
+  this.reactors.set(name, ReactorClass);
+  this.log(`✅ Reactor registered: ${name}`);
+}
+
+// Reactor aktivieren
+enableReactor(name, config = {}) {
+  const ReactorClass = this.reactors.get(name);
+  const instance = new ReactorClass(this, config);
+  this.activeReactors.set(name, instance);
+  
+  // Apply zu allen kompatiblen Morphs
+  const morphs = this.getMorphsByType(instance.morphTypes);
+  instance.apply(morphs);
+  
+  this.emit('reactor:enabled', { name, config, morphs: morphs.length });
+}
+
+// Reactor deaktivieren
+disableReactor(name) {
+  const instance = this.activeReactors.get(name);
+  const morphs = this.getAllMorphs();
+  instance.cleanup(morphs);
+  this.activeReactors.delete(name);
+  
+  this.emit('reactor:disabled', { name, morphs: morphs.length });
+}
+
+// Reactor togglen
+toggleReactor(name, config = {}) {
+  if (this.activeReactors.has(name)) {
+    this.disableReactor(name);
+  } else {
+    this.enableReactor(name, config);
+  }
+}
+```
+
+### Morph Management
+
+```javascript
+// Morph registrieren (passiert automatisch bei connectedCallback)
+registerMorph(element) {
+  this.morphs.add(element);
+  
+  // Apply alle aktiven Reactors
+  this.activeReactors.forEach((reactor) => {
+    if (this.reactorSupportsType(reactor.morphTypes, element.dataset.morphType)) {
+      reactor.apply([element]);
+    }
+  });
+  
+  this.emit('morph:registered', { element });
+}
+
+// Morph deregistrieren
+unregisterMorph(element) {
+  this.morphs.delete(element);
+  this.emit('morph:unregistered', { element });
+}
+
+// Alle Morphs holen
+getAllMorphs() {
+  return Array.from(document.querySelectorAll('[data-morph]'));
+}
+
+// Morphs nach Type filtern
+getMorphsByType(types) {
+  if (types.includes('*')) return this.getAllMorphs();
+  return this.getAllMorphs().filter(m => 
+    types.includes(m.dataset.morphType)
+  );
+}
+```
+
+### State Management
+
+```javascript
+// Aktive Perspektiven setzen (Multi-Select bis zu 4)
+setActivePerspectives(perspectives) {
+  // Validierung
+  if (perspectives.length > this.config.multiPerspective.maxSelection) {
+    this.warn('Too many perspectives selected');
+    return false;
+  }
+  
+  this.state.activePerspectives = perspectives;
+  this.emit('perspectives:changed', { perspectives });
+  return true;
+}
+
+// Selektierte Tags setzen
+setSelectedTags(tags) {
+  this.state.selectedTags = new Set(tags);
+  this.emit('tags:changed', { tags });
+}
+
+// Search Query setzen
+setSearchQuery(query) {
+  this.state.searchQuery = query;
+  this.emit('search:query', { query });
+}
+```
+
+### Event System ✨ **[UPDATED 2025-11-17]**
+
+**CRITICAL FIX:** Event namespace now consistent! 
+
+**Event Name Convention:**
+- ✅ **WITHOUT prefix** when calling `.on()` or `.emit()` → System adds `amorph:` internally
+- ✅ Example: `amorph.on('search:completed', callback)` ← NO `amorph:` prefix!
+- ✅ Example: `amorph.emit('search:completed', data)` ← NO `amorph:` prefix!
+- ❌ NEVER use: `amorph.on('amorph:search:completed', callback)` ← WRONG!
+
+```javascript
+// NEW: Stream Event Publishing (RECOMMENDED)
+async streamPublish(eventName, data) {
+  if (!this.eventBridge.isConnected()) {
+    // Fallback zu lokalem emit()
+    // IMPORTANT: Strip 'amorph:' prefix if present (emit() adds it)
+    const strippedEventName = eventName.replace(/^amorph:/, '');
+    this.emit(strippedEventName, data);
+    return false;
+  }
+  
+  return await this.eventBridge.streamPublish(eventName, data);
+}
+
+// Event emittieren (lokal + Redis Pub/Sub)
+emit(eventName, data) {
+  const fullEventName = `amorph:${eventName}`; // Adds prefix here!
+  
+  // Trigger lokale Listener (using eventName WITHOUT prefix)
+  const listeners = this.listeners.get(eventName) || [];
+  listeners.forEach(callback => {
+    try {
+      callback(data);
+    } catch (err) {
+      this.error(`Error in event listener for "${eventName}":`, err);
+    }
+  });
+  
+  // CustomEvent dispatchen (Browser) - uses fullEventName WITH prefix
+  if (typeof document !== 'undefined') {
+    const event = new CustomEvent(fullEventName, {
+      detail: data,
+      bubbles: true,
+      composed: true
+    });
+    document.dispatchEvent(event);
+  }
+  
+  this.log(`📡 Local Event: ${fullEventName}`, data);
+}
+
+// Subscribe zu Event (WITHOUT prefix!)
+on(eventName, callback) {
+  if (!this.listeners.has(eventName)) {
+    this.listeners.set(eventName, []);
+  }
+  
+  this.listeners.get(eventName).push(callback);
+  
+  // Return unsubscribe function
+  return () => {
+    const listeners = this.listeners.get(eventName);
+    const index = listeners.indexOf(callback);
+    if (index > -1) {
+      listeners.splice(index, 1);
+    }
+  };
+}
+
+// Unsubscribe von Event (WITHOUT prefix!)
+off(eventName, callback) {
+  const listeners = this.listeners.get(eventName);
+  if (listeners) {
+    const index = listeners.indexOf(callback);
+    if (index > -1) {
+      listeners.splice(index, 1);
+    }
+  }
+}
+```
+
+**Example Usage:**
+```javascript
+// ✅ CORRECT: Register listener without prefix
+amorph.on('search:completed', (data) => {
+  console.log('Search completed!', data);
+});
+
+// ✅ CORRECT: Publish event without prefix
+amorph.streamPublish('search:completed', {
+  query: 'peptide',
+  totalResults: 1,
+  matchedPerspectives: ['chemicalAndProperties']
+});
+
+// ✅ CORRECT: Emit event without prefix
+amorph.emit('search:completed', { query: 'test' });
+
+// ❌ WRONG: Don't use 'amorph:' prefix!
+amorph.on('amorph:search:completed', callback); // Will NOT work!
+```
+
+**Key Events:**
+- `search:input` - Search query changed
+- `search:completed` - Search finished, includes matchedPerspectives array
+- `reactor:enabled` - Reactor was enabled
+- `reactor:disabled` - Reactor was disabled
+- `morph:created` - New morph registered
+- `perspective:changed` - Active perspectives changed
+
+// Event subscriben (Legacy)
+on(eventName, callback) {
+  if (!this.listeners.has(eventName)) {
+    this.listeners.set(eventName, new Set());
+  }
+  this.listeners.get(eventName).add(callback);
+}
+
+// NEW: Observers Property
+this.observers = {
+  morph: MorphObserver,
+  reactor: ReactorObserver,
+  host: HostObserver,
+  global: GlobalObserver,
+  arch: ArchObserver,
+  layout: LayoutObserver
+}
+
+// NEW: Observer Management
+async initStreamObservers() {
+  // Create all 6 observers
+  // Start all observers
+  // Auto-start nach Redis Connection
+}
+
+async stopStreamObservers() {
+  // Stop all observers
+}
+```
+
+### Singleton Instance
+
+```javascript
+// Singleton Export
+export const amorph = new AmorphSystem();
+
+// Global verfügbar machen
+if (typeof window !== 'undefined') {
+  window.amorph = amorph;
+}
+```
+
+## RedisEventBridge.js **[UPDATED 2025-11-15]**
+
+### Verantwortlichkeiten
+
+Verbindet das AMORPH System mit Redis als Event Bus:
+- ✅ Redis Pub/Sub Connection Management (Legacy)
+- ✅ **Redis Streams** mit Consumer Groups (NEW)
+- ✅ Event Broadcasting über Redis
+- ✅ Event Receiving und Distribution
+- ✅ Reconnection Logic
+- ✅ Fallback auf localStorage (wenn Redis nicht verfügbar)
+
+**NEU: Redis Streams Support**
+- `streamPublish()` - XADD zu Redis Stream
+- `createConsumerGroup()` - Consumer Groups für Observers
+- `streamRead()` - XREADGROUP für Observer Polling
+- `streamAck()` - Message Acknowledgement
+- `streamInfo()` - Stream Statistics
+
+### Architektur
+
+```javascript
+export class RedisEventBridge {
+  constructor(config = {}) {
+    this.config = {
+      url: 'redis://localhost:6379',
+      channel: 'amorph:events',
+      streamName: 'amorph:stream',        // NEW
+      streamMaxLen: 10000,                // NEW
+      reconnectDelay: 1000,
+      maxRetries: 5,
+      enableLogging: true,
+      ...config
+    };
+    
+    this.publisher = null;
+    this.subscriber = null;
+    this.streamClient = null;            // NEW
+    this.connected = false;
+    this.listeners = new Map();
+  }
+  
+  async connect() {
+    // Connect Publisher, Subscriber, StreamClient
+    // Falls fehlschlägt: Fallback auf localStorage
+  }
+  
+  // Legacy Pub/Sub (DEPRECATED)
+  async publish(eventName, data) {
+    // Publish Event zu Redis Channel
+  }
+  
+  // NEW: Redis Streams
+  async streamPublish(eventName, data) {
+    // XADD amorph:stream * event "..." data "..." timestamp "..."
+    // Returns: Stream Entry ID
+  }
+  
+  async createConsumerGroup(groupName, startId = '$') {
+    // XGROUP CREATE amorph:stream groupName $
+  }
+  
+  async streamRead(groupName, consumerName, options = {}) {
+    // XREADGROUP GROUP groupName consumerName STREAMS amorph:stream >
+    // Returns: Array of { id, event, data, timestamp, source }
+  }
+  
+  async streamAck(groupName, messageId) {
+    // XACK amorph:stream groupName messageId
+  }
+  
+  async streamInfo() {
+    // XINFO STREAM amorph:stream
+  }
+  
+  on(eventName, callback) {
+    // Subscribe zu Event (Legacy)
+  }
+}
+```
+
+### Browser Fallback
+
+Da Redis im Browser nicht direkt läuft:
+- ✅ Verwendet `localStorage` als Event Bus im Browser
+- ✅ Verwendet `storage` Event für Cross-Tab Communication
+- ✅ Server-Side: Echtes Redis für Multi-User Sync
+
+## PixieRenderer.js
+
+### Verantwortlichkeiten
+
+Verwendet Pixi.js für performante Node-Darstellung:
+- ✅ Canvas-basiertes Rendering mit Pixi.js
+- ✅ Node Rendering (Bubbles)
+- ✅ Connection Rendering (Linien zwischen Nodes)
+- ✅ Particle Rendering (Flow auf Connections)
+- ✅ Performante Updates (requestAnimationFrame)
+
+### Architektur
+
+```javascript
+export class PixieRenderer {
+  constructor(config = {}) {
+    this.config = {
+      antialias: true,
+      backgroundColor: 0x000000,
+      resolution: window.devicePixelRatio || 1,
+      autoDensity: true,
+      width: 800,
+      height: 600,
+      autoResize: true,
+      ...config
+    };
+    
+    this.app = null;              // Pixi Application
+    this.container = null;        // Root Container
+    this.nodes = new Map();       // id → PIXI.Graphics (Nodes)
+    this.connections = new Map(); // id → PIXI.Graphics (Lines)
+    this.particles = new Map();   // id → PIXI.Graphics (Particles)
+  }
+  
+  async init(containerElement) {
+    // Erstelle Pixi App
+    this.app = new Application({...this.config});
+    containerElement.appendChild(this.app.view);
+    
+    // Setup Container
+    this.container = new Container();
+    this.app.stage.addChild(this.container);
+  }
+  
+  renderNode(id, options = {}) {
+    // Rendere Circle mit Pixi Graphics
+  }
+  
+  renderConnection(id, options = {}) {
+    // Rendere Linie zwischen zwei Nodes
+  }
+  
+  renderParticle(id, options = {}) {
+    // Rendere kleiner Kreis für Flow-Effekt
+  }
+}
+```
+
+### Verwendung
+
+```javascript
+// In BubbleView
+const pixie = await amorph.initPixieRenderer(containerElement);
+
+// Nodes rendern
+morphs.forEach((morph, index) => {
+  pixie.renderNode(`node-${index}`, {
+    x: bubble.x,
+    y: bubble.y,
+    radius: bubble.size,
+    color: perspectiveColor
+  });
+});
+
+// Connections rendern
+connections.forEach((connection, index) => {
+  pixie.renderConnection(`conn-${index}`, {
+    x1: bubble1.x,
+    y1: bubble1.y,
+    x2: bubble2.x,
+    y2: bubble2.y,
+    width: 2,
+    color: 0xffffff
+  });
+});
+```
+
+## Integration
+
+Alle drei Core-Komponenten arbeiten zusammen:
+
+```javascript
+// 1. AmorphSystem wird initialisiert
+export const amorph = new AmorphSystem();
+
+// 2. Redis Event Bridge wird connected
+await amorph.initEventBridge();
+
+// 3. Pixie Renderer wird bei Bedarf initialisiert
+const pixie = await amorph.initPixieRenderer(container);
+
+// 4. System ist bereit!
+console.log('🔮 AMORPH System Ready!', amorph.getSystemInfo());
+```
+
+---
+
+## styles/tokens.js - Global Design System
+
+### Funktion
+
+Globale Design Tokens als CSS Custom Properties für alle Morphs:
+- ✅ Funktioniert in Shadow DOM (Lit Components)
+- ✅ 12 Perspektiven-Farben
+- ✅ Spacing, Typography, Shadows, Transitions
+- ✅ Dark Mode Support
+- ✅ Utility Classes
+
+### Verwendung in Morphs
+
+```javascript
+import { LitElement, html, css } from 'lit';
+import { globalStyles } from '../../arch/styles/tokens.js';
+
+export class MyMorph extends LitElement {
+  static styles = [
+    globalStyles,  // ← Global Tokens
+    css`
+      .my-element {
+        padding: var(--space-md);
+        border-radius: var(--radius-md);
+        color: var(--color-text-light);
+        font-family: var(--font-sans);
+        transition: var(--transition-base);
+      }
+    `
+  ];
+}
+```
+
+### Verfügbare Tokens
+
+**Colors:**
+- `--color-culinary` → `#22c55e`
+- `--color-medicinal` → `#ef4444`
+- `--color-cultivation` → `#f59e0b`
+- etc. (alle 12 Perspektiven)
+
+**Spacing:**
+- `--space-xs` → `4px`
+- `--space-sm` → `8px`
+- `--space-md` → `16px`
+- `--space-lg` → `24px`
+
+**Typography:**
+- `--font-sans` → System Font Stack
+- `--font-size-sm` → `14px`
+- `--font-weight-semibold` → `600`
+
+**Shadows:**
+- `--shadow-sm`, `--shadow-md`, `--shadow-lg`
+
+**Transitions:**
+- `--transition-fast` → `150ms ease`
+- `--transition-base` → `250ms ease`
+
+---
+
+## Status: ✅ KOMPLETT IMPLEMENTIERT
+
+Alle Core-Komponenten sind fertig und produktionsbereit.
+
+**Latest Updates (2025-11-15):**
+- ✅ RedisEventBridge erweitert mit Redis Streams
+- ✅ AmorphSystem mit streamPublish() und Observer Management
+- ✅ 6 Stream Observers implementiert und integriert
+- ✅ Event Migration zu streamPublish() in AmorphSystem
+- ✅ **Global Design System** in `arch/styles/tokens.js`
+- ✅ **Alle Morphs** nutzen globalStyles
+- ✅ **Konsistentes Styling** über alle Komponenten
+
+Siehe: `STREAM_OBSERVER_SYSTEM.md` für vollständige Dokumentation

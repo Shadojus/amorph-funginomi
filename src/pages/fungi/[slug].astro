@@ -1,6 +1,6 @@
 ---
-import BaseLayout from '@/amorph/arch/layouts/BaseLayout.astro';
-import { fetchFungus } from '@/amorph/arch/convex';
+import BaseLayout from '@/amorph/core/layouts/BaseLayout.astro';
+import { fetchFungus } from '@/amorph/core/convex';
 
 const { slug } = Astro.params;
 const fungus = await fetchFungus(slug!);
@@ -262,7 +262,7 @@ const perspectives = [
 </style>
 
 <script>
-  import '@/amorph/hosts/PerspectiveHost.js';
+  import '@/amorph/features/perspective-system/PerspectiveHost.js';
 
   const defaultPerspectives = ['taxonomy', 'ecologyAndHabitat', 'culinaryAndNutritional', 'safetyAndIdentification'];
   

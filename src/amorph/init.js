@@ -1,7 +1,7 @@
 /**
  * 🚀 AMORPH SYSTEM INITIALIZATION
  * 
- * Re-export from arch/init.js for convenience
+ * Re-export from core/init.js for convenience
  * 
  * Usage:
  * import '/src/amorph/init.js';
@@ -9,5 +9,5 @@
  * import { amorph } from '/src/amorph/init.js';
  */
 
-export * from './arch/init.js';
-export { amorph } from './arch/init.js';
+export * from './core/init.js';
+export { amorph } from './core/init.js';

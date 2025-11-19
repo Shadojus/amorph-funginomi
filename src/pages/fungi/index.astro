@@ -7,8 +7,8 @@
  * Loads real data from Convex
  */
 
-import BaseLayout from '@/amorph/arch/layouts/BaseLayout.astro';
-import { fetchFungi } from '@/amorph/arch/convex';
+import BaseLayout from '@/amorph/core/layouts/BaseLayout.astro';
+import { fetchFungi } from '@/amorph/core/convex';
 
 // Fetch fungi data from Convex
 const fungi = await fetchFungi();
@@ -579,7 +579,7 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
 
     // Initialize AstroDataSearchReactor for raw data searching
     try {
-      const { AstroDataSearchReactor } = await import('/src/amorph/reactors/AstroDataSearchReactor.js');
+      const { AstroDataSearchReactor } = await import('/src/amorph/features/search-system/reactors/AstroDataSearchReactor.js');
       const astroDataSearchReactor = new AstroDataSearchReactor();
       
       // Get all fungus cards as search containers
