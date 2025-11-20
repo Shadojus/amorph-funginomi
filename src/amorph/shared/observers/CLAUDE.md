@@ -1,16 +1,33 @@
 # 👁️ Shared Observers - Stream-based State Management
 
+**Last Updated:** 19. November 2025
+
 ## Übersicht
 
 **Redis Stream Observer Pattern** für Event Processing:
-- ✅ BaseObserver - Abstract Base Class
-- ✅ MorphObserver - Verwaltet morph:* Events
-- ✅ ReactorObserver - Verwaltet reactor:* Events
-- ✅ HostObserver - Verwaltet host:* Events
-- ✅ GlobalObserver - Verwaltet global:* Events
-- ✅ ArchObserver - Verwaltet arch:* Events
-- ✅ LayoutObserver - Verwaltet layout:* Events
-- ✅ PerformanceObserver - Legacy Performance Monitoring
+- ✅ **BaseObserver.js** - Abstract Base Class
+- ✅ **MorphObserver.js** - Verwaltet morph:* Events
+- ✅ **ReactorObserver.js** - Verwaltet reactor:* Events
+- ✅ **HostObserver.js** - Verwaltet host:* Events
+- ✅ **GlobalObserver.js** - Verwaltet global:* Events
+- ✅ **ArchObserver.js** - Verwaltet arch:* Events
+- ✅ **LayoutObserver.js** - Verwaltet layout:* Events
+- ✅ **PerformanceObserver.js** - Legacy Performance Monitoring
+
+## Structure
+
+```
+shared/observers/
+├── BaseObserver.js           # Abstract base with Redis Stream integration
+├── ArchObserver.js           # arch:* events (architecture changes)
+├── GlobalObserver.js         # global:* events (system-wide)
+├── HostObserver.js           # host:* events (view containers)
+├── LayoutObserver.js         # layout:* events (layout changes)
+├── MorphObserver.js          # morph:* events (component lifecycle)
+├── PerformanceObserver.js    # Legacy performance monitoring
+├── ReactorObserver.js        # reactor:* events (effect lifecycle)
+└── CLAUDE.md                 # This file
+```
 
 ---
 

@@ -229,7 +229,7 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
           </div>
 
           <a href={`/fungi/${fungus.slug}`} class="card-link">
-            Details ansehen →
+            view fully →
           </a>
         </div>
       ))
@@ -597,20 +597,8 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
       }
     }, 1000);
 
-    // Initialize AstroDataSearchReactor for raw data searching
-    try {
-      const { AstroDataSearchReactor } = await import('/src/amorph/features/search-system/reactors/AstroDataSearchReactor.js');
-      const astroDataSearchReactor = new AstroDataSearchReactor();
-      
-      // Get all fungus cards as search containers
-      const fungusCards = document.querySelectorAll('.fungus-card');
-      if (fungusCards.length > 0) {
-        astroDataSearchReactor.apply(Array.from(fungusCards));
-        console.log(`✅ AstroDataSearchReactor applied to ${fungusCards.length} containers`);
-      }
-    } catch (error) {
-      console.error('❌ Failed to load AstroDataSearchReactor:', error);
-    }
+    // REMOVED: AstroDataSearchReactor - Replaced by SearchFilterController (see line 787-792)
+    // SearchFilterController provides better performance and cleaner implementation
 
     // MorphHeader will initialize with 4 default perspectives automatically
     console.log('✅ Perspectives will be initialized by MorphHeader');
@@ -698,7 +686,7 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
           gridHost.style.display = 'grid';
           bubbleHost.style.display = 'none';
           
-          // Grid View: Enable AstroDataSearchReactor (already enabled)
+          // Grid View: SearchFilterController handles search (already initialized)
           // Perspectives and search state are already shared via events
           
           console.log('📊 Switched to Grid View');
@@ -729,6 +717,36 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
             console.log('   • Search query preserved:', amorph.state.searchQuery || 'none');
             console.log('   • Perspectives preserved via MorphHeader');
             console.log('   • Similarity matrix will update with current perspectives');
+          }
+          
+          // Enable BubbleView-specific reactors
+          if (window.amorph) {
+            window.amorph.enableReactor('bubbleDetail');
+            window.amorph.enableReactor('bubbleSearch');
+            console.log('✅ BubbleDetail and BubbleSearch reactors enabled');
+            
+            // Trigger perspective update on all bubble morphs
+            const bubbles = bubbleHost.shadowRoot?.querySelectorAll('bubble-morph') || [];
+            bubbles.forEach(bubble => {
+              if (window.amorph.state?.activePerspectives) {
+                bubble.activePerspectives = window.amorph.state.activePerspectives;
+                bubble.requestUpdate();
+              }
+            });
+            console.log(`✅ Updated ${bubbles.length} bubbles with current perspectives`);
+            
+            // If there's an active search, trigger search highlighting
+            const searchQuery = window.amorph.state?.searchQuery;
+            if (searchQuery && searchQuery.trim() !== '') {
+              console.log('🔍 Applying active search to Bubble View:', searchQuery);
+              // Trigger a fake search event to highlight bubbles
+              window.dispatchEvent(new CustomEvent('convex-search:completed', {
+                detail: {
+                  query: searchQuery,
+                  results: window.amorph.state?.searchResults || []
+                }
+              }));
+            }
           }
         }
         

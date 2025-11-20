@@ -8,9 +8,10 @@ Multi-perspective display system with FIFO queue (max 4 active).
 
 ```
 features/perspective-system/
-├── PerspectiveHost.js      # Container for single perspective
 ├── PerspectiveCard.js      # Card display component
+├── PerspectiveHost.js      # Container for single perspective
 ├── PerspectiveReactor.js   # Filters/highlights morphs by perspective
+├── reactors/               # Perspective-specific reactors (currently empty)
 └── CLAUDE.md               # This file
 ```
 

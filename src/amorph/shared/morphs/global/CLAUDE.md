@@ -1,9 +1,19 @@
 # 🌍 AMORPH Global Components
 
+**Last Updated:** 19. November 2025
+
+## Structure
+
+```
+shared/morphs/global/
+├── MorphHeader.js       # Main header with search & perspective controls
+└── CLAUDE.md            # This file
+```
+
 ## Übersicht
 
 Globale Components für die gesamte App:
-- ✅ **MorphHeader**: Globaler Header mit Branding, Suche & 12 Perspektiven-Buttons
+- ✅ **MorphHeader.js**: Globaler Header mit Branding, Suche & 12 Perspektiven-Buttons
 
 ## 🔗 Related Components
 

@@ -7,6 +7,21 @@
 Alle Astro Pages der Funginomi AMORPH App:
 - ✅ **fungi/index.astro**: Hauptseite mit Grid & Bubble View
 - ✅ **fungi/[slug].astro**: Detail-Seite für einzelnen Pilz
+- ✅ **[slug].astro**: Top-level slug route
+- ✅ **api/search.ts**: Server-side search API endpoint
+
+## Structure
+
+```
+pages/
+├── [slug].astro              # Top-level dynamic route
+├── api/
+│   └── search.ts             # POST /api/search - Convex search endpoint
+├── fungi/
+│   ├── index.astro           # Main fungi listing page
+│   └── [slug].astro          # Individual fungus detail page
+└── CLAUDE.md                 # This file
+```
 
 **✨ NEW (2025-11-19) - Visual Design:**
 - 🪵 **Wood floor background** - Natural texture on all cards

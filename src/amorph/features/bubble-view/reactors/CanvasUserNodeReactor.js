@@ -200,10 +200,8 @@ export class CanvasUserNodeReactor extends CanvasReactor {
       
       ctx.restore();
       
-      // Draw score badge at midpoint
-      if (conn.score > 0.7) { // Only for high scores
-        this.drawScoreBadge(ctx, userNode, targetBubble, conn.score);
-      }
+      // ALWAYS draw score badge to show connection weight
+      this.drawScoreBadge(ctx, userNode, targetBubble, conn.score);
     });
   }
   
@@ -351,11 +349,12 @@ export class CanvasUserNodeReactor extends CanvasReactor {
   }
   
   /**
-   * Render stats overlay
+   * Render stats overlay - ALWAYS positioned relative to user node
    */
   renderStats(ctx, userNode) {
+    // Position BELOW user node, offset by its size
     const x = userNode.x;
-    const y = userNode.y + userNode.size / 2 + 20;
+    const y = userNode.y + userNode.size / 2 + 30;
     
     const stats = [
       `${userNode.interactions.length} interactions`,
@@ -363,12 +362,23 @@ export class CanvasUserNodeReactor extends CanvasReactor {
       `Threshold: ${Math.round(this.config.scoreThreshold * 100)}%`
     ];
     
+    // Background box for better readability
+    const padding = 8;
+    const lineHeight = 14;
+    const boxWidth = 140;
+    const boxHeight = stats.length * lineHeight + padding * 2;
+    
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(x - boxWidth / 2, y - padding, boxWidth, boxHeight);
+    
+    // Text
     ctx.font = '11px sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
     
     stats.forEach((stat, i) => {
-      ctx.fillText(stat, x, y + i * 14);
+      ctx.fillText(stat, x, y + i * lineHeight);
     });
   }
   

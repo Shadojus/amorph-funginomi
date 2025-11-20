@@ -1,11 +1,36 @@
 # 🗄️ CONVEX - Database & Backend
 
+**Last Updated:** 19. November 2025
+
+## Structure
+
+```
+convex/
+├── fungi.ts                      # Fungi queries & mutations
+├── schema.ts                     # Database schema definition
+├── seed.ts                       # Main seed orchestrator
+├── seed_beauveria_bassiana.ts    # Beauveria bassiana data
+├── seed_cordyceps_militaris.ts   # Cordyceps militaris data
+├── seed_fomitopsis_betulina.ts   # Fomitopsis betulina data
+├── seed_hericium_erinaceus.ts    # Hericium erinaceus data
+├── seed_hypsizygus_tessellatus.ts # Hypsizygus tessellatus data
+├── seed_pholiota_adiposa.ts      # Pholiota adiposa data
+├── tsconfig.json                 # TypeScript config
+├── _generated/                   # Auto-generated Convex files
+│   ├── api.d.ts
+│   ├── api.js
+│   ├── dataModel.d.ts
+│   ├── server.d.ts
+│   └── server.js
+└── CLAUDE.md                     # This file
+```
+
 ## Übersicht
 
 Convex Backend für Funginomi AMORPH:
 - ✅ **Schema**: Vollständiges Pilz-Datenmodell (1155 Zeilen!)
 - ✅ **Queries**: fungi.ts mit allen Abfrage-Funktionen
-- ✅ **Seed Scripts**: 3 Beispiel-Pilze (Beauveria, Hypsizygus, Pholiota)
+- ✅ **Seed Scripts**: 6 Beispiel-Pilze (Beauveria, Cordyceps, Fomitopsis, Hericium, Hypsizygus, Pholiota)
 - ✅ **Local Backend**: Läuft lokal mit `npx convex dev`
 
 ---

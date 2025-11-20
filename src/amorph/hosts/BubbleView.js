@@ -6,7 +6,6 @@
  */
 
 import { LitElement, html, css } from 'lit';
-import { HilbertSpaceSimilarity } from './services/HilbertSpaceSimilarity.js';
 
 export class BubbleView extends LitElement {
   static properties = {
@@ -250,11 +249,6 @@ export class BubbleView extends LitElement {
     fungiData.forEach(fungus => {
       if (fungus.slug) {
         this.cachedFungusData.set(fungus.slug, fungus);
-        console.log('[BubbleView] 📦 Caching fungus:', {
-          slug: fungus.slug,
-          commonName: fungus.commonName,
-          scientificName: fungus.scientificName
-        });
       }
     });
     console.log('[BubbleView] 📦 Cached', this.cachedFungusData.size, 'fungi for dynamic bubble creation');
@@ -309,18 +303,9 @@ export class BubbleView extends LitElement {
     
     console.log('[BubbleView] ✅ Created Canvas data for', this.bubbles.size, 'bubbles');
     
-    // 🔍 DIAGNOSTIC: Verify state before updateUserNodeConnections
-    console.log('[BubbleView] 🔍 Pre-update state:', {
-      bubblesCount: this.bubbles.size,
-      hasUserNodeData: !!this.userNodeData,
-      userNodeConnectionsSize: this.userNodeData?.connections?.size || 0,
-      bubbleKeys: Array.from(this.bubbles.keys())
-    });
-    
-    // Update connections and sizes
+    // Update connections
     this.updateUserNodeConnections();
     this.updateSimilarityMatrix();
-    // Note: updateBubbleSizes() is called in updateUserNodeConnections()
   }
   
   /**
@@ -412,27 +397,15 @@ export class BubbleView extends LitElement {
   }
 
   updateUserNodeConnections() {
-    // 🔍 DIAGNOSTIC: Method entry confirmation
-    console.log('[BubbleView] ⚡ METHOD ENTERED: updateUserNodeConnections()');
-    console.log('[BubbleView] ⚡ State check:', {
-      hasUserNodeData: !!this.userNodeData,
-      bubblesSize: this.bubbles.size,
-      userNodeDataType: this.userNodeData?.constructor?.name
-    });
-    
     if (!this.userNodeData) {
-      console.warn('[BubbleView] ⚠️ GUARD CLAUSE 1: No userNodeData available');
-      console.log('[BubbleView] ⚠️ userNodeData value:', this.userNodeData);
+      console.warn('[BubbleView] No userNodeData available');
       return;
     }
     
     if (this.bubbles.size === 0) {
-      console.warn('[BubbleView] ⚠️ GUARD CLAUSE 2: No bubbles available to connect');
-      console.log('[BubbleView] ⚠️ bubbles.size:', this.bubbles.size);
+      console.warn('[BubbleView] No bubbles available to connect');
       return;
     }
-    
-    console.log('[BubbleView] ✅ Guard clauses passed, proceeding with connection updates');
     
     this.userNodeData.connections.clear();
     
@@ -524,47 +497,6 @@ export class BubbleView extends LitElement {
     // Log all connection weights for debugging
     Array.from(this.userNodeData.connections.entries()).forEach(([targetId, weight]) => {
       console.log(`  → ${targetId}: ${weight.toFixed(3)}`);
-    });
-    
-    // UPDATE BUBBLE SIZES based on weights (visualize importance)
-    this.updateBubbleSizes();
-  }
-
-  /**
-   * Update bubble sizes based on weights (search scores + user connections)
-   */
-  updateBubbleSizes() {
-    const minSize = 60;   // Minimum bubble size
-    const maxSize = 140;  // Maximum bubble size
-    const defaultSize = 80; // Default size when no weights
-    
-    console.log(`[BubbleView] 📏 Updating bubble sizes for ${this.bubbles.size} bubbles`);
-    console.log(`[BubbleView] 📏 User node connections:`, Array.from(this.userNodeData.connections.entries()));
-    
-    this.bubbles.forEach((bubble, slug) => {
-      let weight = 0;
-      
-      // Get weight from user node connections (includes search score)
-      if (this.userNodeData.connections.has(slug)) {
-        weight = this.userNodeData.connections.get(slug);
-      }
-      
-      // Calculate size: higher weight = larger bubble
-      let newSize = minSize + (maxSize - minSize) * weight;
-      
-      // Clamp to min/max
-      newSize = Math.max(minSize, Math.min(maxSize, newSize));
-      
-      // Update canvas bubble data
-      bubble.size = newSize;
-      
-      // Update BubbleMorph (if exists)
-      if (bubble.morph) {
-        bubble.morph.size = newSize;
-        bubble.morph.requestUpdate();
-      }
-      
-      console.log(`[BubbleView] 📏 ${slug}: size ${newSize.toFixed(0)}px (weight: ${weight.toFixed(2)})`);
     });
   }
 
@@ -703,9 +635,8 @@ export class BubbleView extends LitElement {
       console.log('[BubbleView] Search cleared');
     }
     
-    // Update connections and sizes immediately
+    // Update connections immediately
     this.updateUserNodeConnections();
-    // Note: updateBubbleSizes() is called in updateUserNodeConnections()
   }
 
   /**
@@ -795,13 +726,6 @@ export class BubbleView extends LitElement {
       
       bubble.x += bubble.vx;
       bubble.y += bubble.vy;
-      
-      // CRITICAL FIX: Synchronize BubbleMorph position with canvas data
-      if (bubble.morph) {
-        bubble.morph.x = bubble.x;
-        bubble.morph.y = bubble.y;
-        bubble.morph.requestUpdate();
-      }
     });
   }
 

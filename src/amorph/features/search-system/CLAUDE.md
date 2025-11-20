@@ -14,13 +14,15 @@
 
 ```
 features/search-system/
+├── SearchFilterController.js      # Client-side card filtering & highlighting
 ├── reactors/
-│   ├── ConvexSearchReactor.js     # ⭐ NEW: Server-side search via Convex
-│   ├── SearchReactor.js           # LEGACY: Client-side morph search
-│   └── AstroDataSearchReactor.js  # LEGACY: Client-side data search
-├── SearchFilterController.js      # ⭐ NEW: Filters static cards
+│   └── ConvexSearchReactor.js     # Server-side search via Convex
 └── CLAUDE.md                      # This file
 ```
+
+**REMOVED (2025-11-19):**
+- ❌ `AstroDataSearchReactor.js` - Replaced by SearchFilterController
+- ❌ `SearchReactor.js` - Replaced by SearchFilterController
 
 ## Architecture
 

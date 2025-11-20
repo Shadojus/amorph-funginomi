@@ -1,5 +1,7 @@
 # ⚡ Shared Reactors - Universal Effects
 
+**Last Updated:** 19. November 2025
+
 ## Übersicht
 
 Diese Reactors funktionieren mit **ALLEN Views** (Grid, Bubble, Perspective):
@@ -7,6 +9,19 @@ Diese Reactors funktionieren mit **ALLEN Views** (Grid, Bubble, Perspective):
 - ✅ Enable/Disable zur Laufzeit
 - ✅ Konfigurierbar
 - ✅ Wirken auf alle Morph-Typen
+
+## Structure
+
+```
+shared/reactors/
+├── AnimationReactor.js       # Animation effects
+├── FilterReactor.js          # Filtering logic
+├── GlowReactor.js            # Glow effects
+├── HoverReactor.js           # Hover interactions
+├── PulseReactor.js           # Pulse animations
+├── SortReactor.js            # Sorting logic
+└── CLAUDE.md                 # This file
+```
 
 ---
 

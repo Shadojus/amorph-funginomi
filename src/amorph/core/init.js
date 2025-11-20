@@ -38,6 +38,8 @@ import { PerspectiveReactor } from '../features/perspective-system/PerspectiveRe
 import { CanvasUserNodeReactor } from '../features/bubble-view/reactors/CanvasUserNodeReactor.js';
 import { CanvasPhysicsReactor } from '../features/bubble-view/reactors/CanvasPhysicsReactor.js';
 import { CanvasConnectionReactor } from '../features/bubble-view/reactors/CanvasConnectionReactor.js';
+import { BubbleDetailReactor } from '../features/bubble-view/reactors/BubbleDetailReactor.js';
+import { BubbleSearchReactor } from '../features/bubble-view/reactors/BubbleSearchReactor.js';
 
 // Register Shared Reactors
 amorph.registerReactor('glow', GlowReactor);
@@ -58,6 +60,8 @@ amorph.registerReactor('perspective', PerspectiveReactor);
 amorph.registerReactor('canvasUserNode', CanvasUserNodeReactor);
 amorph.registerReactor('canvasPhysics', CanvasPhysicsReactor);
 amorph.registerReactor('canvasConnection', CanvasConnectionReactor);
+amorph.registerReactor('bubbleDetail', BubbleDetailReactor);
+amorph.registerReactor('bubbleSearch', BubbleSearchReactor);
 
 // Import Shared Morphs
 import '../shared/morphs/data/NameMorph.js';

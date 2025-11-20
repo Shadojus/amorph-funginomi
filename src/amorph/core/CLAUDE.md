@@ -1,16 +1,36 @@
 # 🎯 AMORPH Core - System Kern
 
+**Last Updated:** 19. November 2025
+
+## Structure
+
+```
+core/
+├── amorph.config.js         # System configuration
+├── AmorphSystem.js          # Central registry & coordination
+├── convex.ts                # Convex client for SSR data fetching
+├── init.js                  # System initialization
+├── morphs.config.js         # Morph type configurations
+├── PixieRenderer.js         # Canvas renderer
+├── reactors.config.js       # Reactor configurations
+├── RedisEventBridge.js      # Event bus with Redis Streams
+├── RedisEventBus.js         # Legacy event bus
+├── layouts/
+│   └── BaseLayout.astro     # Base Astro layout
+└── CLAUDE.md                # This file
+```
+
 ## Übersicht
 
 Der `core/` Ordner enthält die Kern-Komponenten des AMORPH Systems:
 
-1. **AmorphSystem.js** - Das Gehirn des Systems
+1. **AmorphSystem.js** - Das Gehirn des Systems (Registry, Events, State)
 2. **RedisEventBridge.js** - Event Bus mit Redis Streams & Consumer Groups
 3. **RedisEventBus.js** - Legacy Event Bus
-4. **PixieRenderer.js** - Canvas Renderer
+4. **PixieRenderer.js** - Canvas Renderer für Bubble View
 5. **convex.ts** - Convex Client für SSR Data Fetching
-6. **init.js** - System Initialization
-7. **layouts/** - Astro Layout Components
+6. **init.js** - System Initialization & Bootstrap
+7. **layouts/** - Astro Layout Components (BaseLayout.astro)
 8. **Config Files** - amorph.config.js, reactors.config.js, morphs.config.js
 
 ## 🔗 Related Components

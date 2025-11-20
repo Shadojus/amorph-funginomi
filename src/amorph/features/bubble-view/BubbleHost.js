@@ -58,7 +58,8 @@ class BubbleHost extends LitElement {
   constructor() {
     super();
     this.height = '600px';
-    this.data = [];
+    this.data = []; // Cached data for dynamic morph creation
+    this.activeBubbles = new Map(); // slug -> bubble-morph element
     this.amorph = null;
     this.bubbleView = null;
   }
@@ -69,9 +70,36 @@ class BubbleHost extends LitElement {
     // Get AMORPH instance
     if (typeof window !== 'undefined' && window.amorph) {
       this.amorph = window.amorph;
+      
+      // Listen to perspective changes - update visible data in bubbles
+      this.amorph.on('perspective-changed', this.handlePerspectiveChanged.bind(this));
     }
 
-    console.log('[BubbleHost] Connected');
+    // Listen to convex-search:completed (has results array with full fungus objects)
+    // This is dispatched directly to window, not through AMORPH event system
+    this.boundHandleSearchCompleted = this.handleSearchCompleted.bind(this);
+    window.addEventListener('convex-search:completed', this.boundHandleSearchCompleted);
+    
+    // Also listen to Astro search as fallback
+    if (this.amorph) {
+      this.amorph.on('amorph:astro-search:completed', this.handleAstroSearchCompleted.bind(this));
+    }
+
+    console.log('[BubbleHost] 🫧 Connected - USER NODE only mode, waiting for search/perspective events');
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    
+    // Remove window event listener
+    if (this.boundHandleSearchCompleted) {
+      window.removeEventListener('convex-search:completed', this.boundHandleSearchCompleted);
+    }
+    
+    if (this.amorph) {
+      this.amorph.off('amorph:astro-search:completed', this.handleAstroSearchCompleted.bind(this));
+      this.amorph.off('perspective-changed', this.handlePerspectiveChanged.bind(this));
+    }
   }
 
   firstUpdated() {
@@ -86,21 +114,30 @@ class BubbleHost extends LitElement {
 
   /**
    * Set data (Fungi objects from Convex)
-   * This is DATENGETRIEBEN - data drives morph creation
+   * Only CACHES data - does NOT create bubbles automatically!
+   * Bubbles are created dynamically via search/perspective events
    */
   setData(data) {
-    this.data = Array.isArray(data) ? data : [data];
-    console.log(`[BubbleHost] Data set: ${this.data.length} items`);
+    // Normalize data structure: flatten names.common/scientific to commonName/scientificName
+    const normalizeData = (fungi) => {
+      return fungi.map(fungus => ({
+        ...fungus,
+        commonName: fungus.names?.common || fungus.commonName,
+        scientificName: fungus.names?.scientific || fungus.scientificName
+      }));
+    };
     
-    // Wait for bubbleView to be ready
+    this.data = normalizeData(Array.isArray(data) ? data : [data]);
+    console.log(`[BubbleHost] 📦 Data cached: ${this.data.length} fungi available for dynamic creation`);
+    
+    // Pass to BubbleView for similarity calculations
     const waitForBubbleView = () => {
       this.bubbleView = this.shadowRoot?.querySelector('bubble-view');
       
       if (this.bubbleView) {
-        console.log('[BubbleHost] BubbleView found, creating morphs...');
-        this.createMorphsFromData();
+        this.bubbleView.setCachedData(this.data);
+        console.log('[BubbleHost] ✅ Data passed to BubbleView');
       } else {
-        console.log('[BubbleHost] Waiting for BubbleView...');
         setTimeout(waitForBubbleView, 50);
       }
     };
@@ -109,123 +146,217 @@ class BubbleHost extends LitElement {
   }
 
   /**
-   * Create morphs from data objects
-   * Each fungus becomes a collection of morphs
+   * Handle search completed - create bubbles for matched fungi
    */
-  createMorphsFromData() {
+  handleSearchCompleted(event) {
+    console.log('[BubbleHost] 🔍 Search completed:', event);
+    
+    const detail = event.detail || {};
+    
+    // Extract slugs and scores from results (ConvexSearchReactor provides comprehensive data)
+    let matchedSlugs = [];
+    const rawScores = detail.scores || {}; // _id → numeric score from Convex
+    const rawMatchedFields = detail.matchedFields || {}; // _id → array of matched field paths
+    
+    // Map scores from Convex _id to slug
+    const scores = {};
+    const matchedFields = {};
+    
+    if (detail.results && Array.isArray(detail.results)) {
+      detail.results.forEach(fungus => {
+        if (fungus.slug && fungus._id) {
+          matchedSlugs.push(fungus.slug);
+          scores[fungus.slug] = rawScores[fungus._id] || 0;
+          matchedFields[fungus.slug] = rawMatchedFields[fungus._id] || [];
+        }
+      });
+      console.log('[BubbleHost] Extracted slugs from results:', matchedSlugs);
+      console.log('[BubbleHost] Mapped scores to slugs:', scores);
+    } else if (detail.matchedSlugs && Array.isArray(detail.matchedSlugs)) {
+      // Fallback for other reactors that might emit slugs directly
+      matchedSlugs = detail.matchedSlugs;
+    }
+    
+    if (!matchedSlugs || matchedSlugs.length === 0) {
+      console.log('[BubbleHost] No matches, clearing all bubbles');
+      this.clearAllBubbles();
+      return;
+    }
+    
+    console.log('[BubbleHost] Creating bubbles for slugs:', matchedSlugs);
+    this.createBubblesForSlugs(matchedSlugs, scores, matchedFields);
+  }
+
+  /**
+   * Handle Astro search completed (alternative event)
+   */
+  handleAstroSearchCompleted(event) {
+    console.log('[BubbleHost] 🔍 Astro search completed:', event);
+    
+    const detail = event.detail || {};
+    
+    // Extract slugs from matched containers (AstroDataSearchReactor doesn't provide results)
+    // We need to get slugs from visible containers or let regular search:completed handle it
+    let matchedSlugs = detail.matchedSlugs || [];
+    
+    if (!matchedSlugs || matchedSlugs.length === 0) {
+      return; // Let regular search:completed handle it
+    }
+    
+    console.log('[BubbleHost] Creating bubbles for astro search slugs:', matchedSlugs);
+    this.createBubblesForSlugs(matchedSlugs);
+  }
+
+  /**
+   * Handle perspective changed - update visible fields in existing bubbles
+   */
+  handlePerspectiveChanged(event) {
+    console.log('[BubbleHost] 🎨 Perspective changed:', event);
+    
+    const { perspectives } = event.detail || {};
+    if (!perspectives) return;
+    
+    // Update all active bubbles with new perspectives
+    this.activeBubbles.forEach((bubbleMorph, slug) => {
+      bubbleMorph.activePerspectives = perspectives;
+    });
+    
+    console.log(`[BubbleHost] Updated ${this.activeBubbles.size} bubbles with new perspectives`);
+  }
+
+  /**
+   * Create bubbles for specific slugs (from search results)
+   */
+  createBubblesForSlugs(slugs, scores = {}, matchedFields = {}) {
     if (!this.data || this.data.length === 0) {
-      console.warn('[BubbleHost] No data to create morphs from');
+      console.warn('[BubbleHost] ⚠️ No cached data to create bubbles from');
       return;
     }
 
-    // Clear any existing container
+    // Import BubbleMorph if needed
+    if (!customElements.get('bubble-morph')) {
+      import('./morphs/BubbleMorph.js').then(() => {
+        this.createBubbleMorphsForSlugs(slugs, scores, matchedFields);
+      });
+    } else {
+      this.createBubbleMorphsForSlugs(slugs, scores, matchedFields);
+    }
+  }
+
+  /**
+   * Clear all active bubbles
+   */
+  clearAllBubbles() {
+    const container = this.shadowRoot.querySelector('.morphs-container');
+    if (container) {
+      container.innerHTML = '';
+    }
+    
+    this.activeBubbles.clear();
+    console.log('[BubbleHost] 🧹 Cleared all bubbles');
+  }
+
+  /**
+   * Create BubbleMorph ONLY for matched slugs (from search)
+   */
+  createBubbleMorphsForSlugs(slugs, scores = {}, matchedFields = {}) {
+    const slugSet = new Set(slugs);
+    
+    // Get or create container
     let container = this.shadowRoot.querySelector('.morphs-container');
     if (!container) {
       container = document.createElement('div');
       container.className = 'morphs-container';
-      container.style.display = 'none'; // Hidden - only for DOM registration
       this.shadowRoot.appendChild(container);
-    } else {
-      container.innerHTML = ''; // Clear existing
     }
 
-    const allMorphs = [];
+    // Clear existing bubbles
+    container.innerHTML = '';
+    this.activeBubbles.clear();
 
-    // Create morphs for each fungus
-    this.data.forEach((fungus, index) => {
-      // Create name morphs
-      if (fungus.names?.common) {
-        const nameMorph = this.createNameMorph(fungus.names.common, 'culinary', `fungus-${index}`);
-        container.appendChild(nameMorph); // Add to DOM first!
-        allMorphs.push(nameMorph);
+    const viewWidth = this.bubbleView?.offsetWidth || 800;
+    const viewHeight = this.bubbleView?.offsetHeight || 600;
+    
+    // Get active perspectives from AMORPH state
+    const activePerspectives = window.amorph?.state?.activePerspectives || 
+      ['cultivationAndProcessing', 'chemicalAndProperties', 'medicinalAndHealth'];
+
+    // Filter data to ONLY matched slugs
+    const matchedFungi = this.data.filter(fungus => slugSet.has(fungus.slug));
+    
+    console.log(`[BubbleHost] 🎯 Creating ${matchedFungi.length} bubbles for matched slugs:`, Array.from(slugSet));
+
+    // Map scores from Convex IDs to slugs (scores are keyed by _id, need to map to slug)
+    const slugScores = {};
+    const slugMatchedFields = {};
+    
+    matchedFungi.forEach(fungus => {
+      // Scores are keyed by _id in ConvexSearchReactor
+      const convexId = fungus._id;
+      if (scores[convexId] !== undefined) {
+        slugScores[fungus.slug] = scores[convexId];
       }
-
-      if (fungus.names?.scientific) {
-        const nameMorph = this.createNameMorph(fungus.names.scientific, 'scientific', `fungus-${index}`);
-        container.appendChild(nameMorph);
-        allMorphs.push(nameMorph);
-      }
-
-      // Create image morph
-      if (fungus.images?.[0]) {
-        const imageMorph = this.createImageMorph(fungus.images[0].url, fungus.names?.common, `fungus-${index}`);
-        container.appendChild(imageMorph);
-        allMorphs.push(imageMorph);
-      }
-
-      // Create text morph for description
-      if (fungus.description) {
-        const textMorph = this.createTextMorph(fungus.description, 'culinary', `fungus-${index}`);
-        container.appendChild(textMorph);
-        allMorphs.push(textMorph);
-      }
-
-      // Create tag morphs
-      if (fungus.tags) {
-        fungus.tags.forEach(tag => {
-          const tagMorph = this.createTagMorph(tag, `fungus-${index}`);
-          container.appendChild(tagMorph);
-          allMorphs.push(tagMorph);
-        });
+      if (matchedFields[convexId]) {
+        slugMatchedFields[fungus.slug] = matchedFields[convexId];
       }
     });
+    
+    // Normalize scores to 0-1 range for sizing
+    const maxScore = Math.max(...Object.values(slugScores), 1);
+    
+    // Create BubbleMorph ONLY for matched fungi
+    matchedFungi.forEach((fungus, index) => {
+      // Calculate position (circular layout around user node)
+      const angle = (index / matchedFungi.length) * Math.PI * 2;
+      const radius = Math.min(viewWidth, viewHeight) * 0.3;
+      const x = viewWidth / 2 + Math.cos(angle) * radius;
+      const y = viewHeight / 2 + Math.sin(angle) * radius;
 
-    console.log(`[BubbleHost] Created ${allMorphs.length} morphs from ${this.data.length} items`);
-
-    // Wait for morphs to be registered in AMORPH, then pass to BubbleView
-    setTimeout(() => {
-      if (this.bubbleView && allMorphs.length > 0) {
-        this.bubbleView.setMorphs(allMorphs);
-        this.bubbleView.setFungiData(this.data); // Pass fungi data for similarity
-        console.log(`[BubbleHost] Passed ${allMorphs.length} morphs and ${this.data.length} fungi to BubbleView`);
+      // Calculate size based on search score (80-200px range)
+      const rawScore = slugScores[fungus.slug] || maxScore * 0.1; // Default to 10% if no score
+      const normalizedScore = maxScore > 0 ? rawScore / maxScore : 0.5;
+      const size = 80 + (normalizedScore * 120); // 80-200px range
+      
+      // Calculate color based on number of matched fields
+      const fieldsCount = slugMatchedFields[fungus.slug]?.length || 0;
+      let color = '#90CAF9'; // Default blue
+      if (fieldsCount >= 4) {
+        color = '#4CAF50'; // Green - excellent match (4+ fields)
+      } else if (fieldsCount >= 2) {
+        color = '#FFC107'; // Amber - good match (2-3 fields)
+      } else if (fieldsCount >= 1) {
+        color = '#FF9800'; // Orange - fair match (1 field)
       }
-    }, 500);
-  }
 
-  /**
-   * Create a name-morph element
-   */
-  createNameMorph(value, perspective, group) {
-    const morph = document.createElement('name-morph');
-    morph.setAttribute('value', value);
-    morph.setAttribute('perspective', perspective);
-    morph.setAttribute('lang', perspective === 'scientific' ? 'la' : 'de');
-    morph.dataset.group = group;
-    return morph;
-  }
+      // Create bubble morph
+      const bubbleMorph = document.createElement('bubble-morph');
+      bubbleMorph.fungusData = fungus;
+      bubbleMorph.x = x;
+      bubbleMorph.y = y;
+      bubbleMorph.size = size; // Score-based sizing
+      bubbleMorph.color = color; // Match-quality coloring
+      bubbleMorph.searchScore = normalizedScore;
+      bubbleMorph.matchedFields = slugMatchedFields[fungus.slug] || []; // Pass matched fields!
+      bubbleMorph.setAttribute('data-slug', fungus.slug);
+      bubbleMorph.activePerspectives = activePerspectives;
+      
+      console.log(`[BubbleHost] 📊 Bubble ${fungus.slug}: size=${size.toFixed(0)}px, score=${normalizedScore.toFixed(3)}, fields=${fieldsCount}, color=${color}`);
+      
+      container.appendChild(bubbleMorph);
+      this.activeBubbles.set(fungus.slug, bubbleMorph);
+    });
 
-  /**
-   * Create an image-morph element
-   */
-  createImageMorph(src, alt, group) {
-    const morph = document.createElement('image-morph');
-    morph.setAttribute('src', src);
-    morph.setAttribute('alt', alt || '');
-    morph.dataset.group = group;
-    return morph;
-  }
+    console.log(`[BubbleHost] ✅ Created ${this.activeBubbles.size} BubbleMorphs with weighted sizes and colors`);
 
-  /**
-   * Create a text-morph element
-   */
-  createTextMorph(value, perspective, group) {
-    const morph = document.createElement('text-morph');
-    morph.setAttribute('value', value);
-    morph.setAttribute('perspective', perspective);
-    morph.setAttribute('maxlines', '3');
-    morph.dataset.group = group;
-    return morph;
-  }
-
-  /**
-   * Create a tag-morph element
-   */
-  createTagMorph(tag, group) {
-    const morph = document.createElement('tag-morph');
-    morph.setAttribute('tag', tag);
-    morph.setAttribute('color', 'auto');
-    morph.dataset.group = group;
-    return morph;
+    // Notify BubbleView about active bubbles for similarity calculations
+    // Pass slug-mapped scores and fields for connection weighting
+    if (this.bubbleView) {
+      this.bubbleView.setActiveBubbles(
+        Array.from(this.activeBubbles.values()),
+        slugScores,
+        slugMatchedFields
+      );
+    }
   }
 
   /**
@@ -250,12 +381,6 @@ class BubbleHost extends LitElement {
   }
 }
 
-// Register custom element
 customElements.define('bubble-host', BubbleHost);
 
-// Auto-register with AMORPH system
-if (typeof window !== 'undefined' && window.amorph) {
-  console.log('[BubbleHost] Registered');
-}
-
-export default BubbleHost;
+export { BubbleHost };

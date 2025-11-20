@@ -1,49 +1,74 @@
 # 🫧 BUBBLE VIEW FEATURE
 
+**Last Updated:** 19. November 2025
+
 ## Overview
 
-Complete BubbleView visualization system with Canvas rendering.
+Complete BubbleView visualization system with Canvas rendering, physics simulation, and user node connections.
 
 ## Structure
 
 ```
 features/bubble-view/
-├── BubbleView.js           # Main visualization component
+├── BubbleView.js           # Main visualization component (913 lines)
 ├── BubbleHost.js           # Data host for bubbles
+├── morphs/                 # Bubble-specific morphs
+│   └── BubbleMorph.js      # Individual bubble component
 ├── reactors/               # BubbleView-specific reactors
-│   ├── CanvasConnectionReactor.js
-│   ├── CanvasPhysicsReactor.js
-│   ├── CanvasUserNodeReactor.js
-│   └── CanvasReactor.js
-├── controllers/            # Interaction controllers
-│   ├── DragController.js
-│   └── ZoomPanController.js
+│   ├── BubbleDetailReactor.js       # Detail view handling
+│   ├── BubbleSearchReactor.js       # Search interaction
+│   ├── CanvasConnectionReactor.js   # Connection line rendering
+│   ├── CanvasPhysicsReactor.js      # Physics simulation
+│   ├── CanvasReactor.js             # Base canvas reactor
+│   ├── CanvasUserNodeReactor.js     # User node rendering
+│   └── index.js                     # Reactor exports
 ├── services/               # Helper services
-│   ├── HilbertSpaceSimilarity.js
-│   ├── CollisionDetector.js
-│   ├── ForceDirectedLayout.js
-│   └── ConnectionRenderer.js
+│   └── HilbertSpaceSimilarity.js    # Similarity calculations
 └── CLAUDE.md              # This file
 ```
 
 ## Components
 
-### BubbleView.js
-Main Canvas-based visualization. Renders fungus data as interactive bubbles with physics simulation.
+### BubbleView.js (913 lines)
+Main Canvas-based visualization component. Key features:
+- **Canvas rendering** with Pixi.js integration
+- **User node system** with weighted connections (lines 406-514)
+- **Size update pipeline** based on connection weights (lines 516-548)
+- **Search integration** via 'amorph:astro-search:completed' event (lines 631-695)
+- **Similarity matrix** calculations (HilbertSpaceSimilarity)
+- **Physics simulation** with spring forces and collision detection
+- **Connection weight calculation** (Search 70%, Perspective 20%, Interaction 10%, Base 0.1)
+- **Size range** 60-140px based on normalized weights
 
 ### BubbleHost.js
-Data provider for BubbleView. Creates morphs from Convex data.
+Data provider for BubbleView. Creates morphs from Convex data and manages bubble lifecycle.
+
+### BubbleMorph.js
+Individual bubble component with:
+- Reactive size property (Lit Web Component)
+- Perspective-aware styling
+- Hover and interaction states
+- Integration with BubbleView canvas system
 
 ## Reactors
 
-### CanvasConnectionReactor
-Draws connection lines with weight badges between bubbles.
+### BubbleDetailReactor.js
+Handles bubble detail view interactions and transitions.
 
-### CanvasPhysicsReactor
-Physics simulation with spring forces and collision detection.
+### BubbleSearchReactor.js
+Manages search-related bubble highlighting and filtering.
 
-### CanvasUserNodeReactor
-Renders central user node with weighted connections.
+### CanvasConnectionReactor.js
+Draws Bezier curve connection lines with weight badges between bubbles. Type-specific colors.
+
+### CanvasPhysicsReactor.js
+Physics simulation with spring forces (damping: 0.98) and collision detection.
+
+### CanvasReactor.js
+Base canvas reactor providing core rendering functionality.
+
+### CanvasUserNodeReactor.js
+Renders central user node at (400, 300) with size 160px and weighted connections to all bubbles.
 
 ## 🔗 Related Components
 
@@ -62,27 +87,18 @@ Renders central user node with weighted connections.
 
 ---
 
-## Controllers
-
-### DragController
-Handles bubble dragging interaction.
-
-### ZoomPanController
-Handles zoom and pan gestures.
-
 ## Services
 
-### HilbertSpaceSimilarity
-Calculates similarity between fungi for connection weights.
+### HilbertSpaceSimilarity.js
+Calculates similarity between fungi using Hilbert space transformations. Used for:
+- Connection weight calculation
+- Bubble positioning
+- Similarity matrix updates
 
-### CollisionDetector
-Prevents bubble overlap.
-
-### ForceDirectedLayout
-Physics-based layout algorithm.
-
-### ConnectionRenderer
-Renders bezier curve connections.
+**Features:**
+- Perspective-aware similarity scoring
+- Characteristic property weighting
+- Multi-dimensional fungus comparison
 
 ## Usage
 

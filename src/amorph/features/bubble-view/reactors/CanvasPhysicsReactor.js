@@ -34,13 +34,13 @@ export class CanvasPhysicsReactor extends CanvasReactor {
   constructor(config = {}) {
     super({
       priority: 50, // Update before rendering
-      springStrength: 0.005,
-      damping: 0.98,
-      collisionStrength: 0.1,
+      springStrength: 0.001,        // Reduced from 0.005 - gentler attraction
+      damping: 0.92,                 // Reduced from 0.98 - more friction
+      collisionStrength: 0.05,       // Reduced from 0.1 - softer collisions
       boundaryMargin: 100,
-      boundaryAttraction: 0.002,
-      repulsionDistance: 400,
-      repulsionStrength: 0.0001,
+      boundaryAttraction: 0.0005,    // Reduced from 0.002 - subtle boundary pull
+      repulsionDistance: 300,        // Reduced from 400 - smaller repulsion zone
+      repulsionStrength: 0.00005,    // Reduced from 0.0001 - gentler repulsion
       ...config
     });
   }
@@ -98,6 +98,13 @@ export class CanvasPhysicsReactor extends CanvasReactor {
       const [id1, node1] = allNodes[i];
       if (node1.isDragging) continue;
       
+      // CRITICAL: Sync BubbleMorph position from node data
+      if (node1.morph && (node1.morph.x !== node1.x || node1.morph.y !== node1.y)) {
+        node1.morph.x = node1.x;
+        node1.morph.y = node1.y;
+        node1.morph.requestUpdate();
+      }
+      
       for (let j = i + 1; j < allNodes.length; j++) {
         const [id2, node2] = allNodes[j];
         
@@ -121,17 +128,17 @@ export class CanvasPhysicsReactor extends CanvasReactor {
         let totalForce = 0;
         
         if (distance < minDistance) {
-          // Strong repulsion when too close
-          const repulsion = (minDistance - distance) * 0.02;
+          // Gentle repulsion when too close
+          const repulsion = (minDistance - distance) * 0.008;  // Reduced from 0.02
           totalForce = -repulsion;
         } else if (hasConnection) {
           // Spring force for connected nodes
-          const targetDistance = 150 + (1 - connectionWeight) * 200;
+          const targetDistance = 120 + (1 - connectionWeight) * 150;  // Shorter distances
           const distanceError = distance - targetDistance;
-          const springStrength = this.config.springStrength * connectionWeight;
+          const springStrength = this.config.springStrength * connectionWeight * 0.5;  // Reduced strength
           totalForce = distanceError * springStrength;
         } else {
-          // Gentle repulsion for unconnected nodes
+          // Very gentle repulsion for unconnected nodes
           if (distance < this.config.repulsionDistance) {
             const repulsion = (this.config.repulsionDistance - distance) * this.config.repulsionStrength;
             totalForce = -repulsion;
@@ -175,13 +182,13 @@ export class CanvasPhysicsReactor extends CanvasReactor {
     allNodes.forEach(([id, node]) => {
       if (node.isDragging) return;
       
-      // User node: Strong center force
+      // User node: Gentle center force
       if (id === 'user-central') {
         const centerX = width / 2;
         const centerY = height / 2;
         const dx = centerX - node.x;
         const dy = centerY - node.y;
-        const centerAttraction = 0.05;
+        const centerAttraction = 0.01;  // Reduced from 0.05 - much gentler
         
         node.vx += dx * centerAttraction;
         node.vy += dy * centerAttraction;
@@ -221,6 +228,13 @@ export class CanvasPhysicsReactor extends CanvasReactor {
       const padding = node.size / 2;
       node.x = Math.max(padding, Math.min(width - padding, node.x));
       node.y = Math.max(padding, Math.min(height - padding, node.y));
+      
+      // CRITICAL: Sync BubbleMorph position (keeps connections attached!)
+      if (node.morph) {
+        node.morph.x = node.x;
+        node.morph.y = node.y;
+        node.morph.requestUpdate();
+      }
     });
   }
   
