@@ -149,9 +149,8 @@ class BubbleHost extends LitElement {
    * Handle search completed - create bubbles for matched fungi
    */
   handleSearchCompleted(event) {
-    console.log('[BubbleHost] 🔍 Search completed:', event);
-    
     const detail = event.detail || {};
+    const query = detail.query || '';
     
     // Extract slugs and scores from results (ConvexSearchReactor provides comprehensive data)
     let matchedSlugs = [];
@@ -170,20 +169,18 @@ class BubbleHost extends LitElement {
           matchedFields[fungus.slug] = rawMatchedFields[fungus._id] || [];
         }
       });
-      console.log('[BubbleHost] Extracted slugs from results:', matchedSlugs);
-      console.log('[BubbleHost] Mapped scores to slugs:', scores);
     } else if (detail.matchedSlugs && Array.isArray(detail.matchedSlugs)) {
       // Fallback for other reactors that might emit slugs directly
       matchedSlugs = detail.matchedSlugs;
     }
     
     if (!matchedSlugs || matchedSlugs.length === 0) {
-      console.log('[BubbleHost] No matches, clearing all bubbles');
+      console.log(`[BubbleHost] 🔍 Search "${query}" → 0 matches, clearing bubbles`);
       this.clearAllBubbles();
       return;
     }
     
-    console.log('[BubbleHost] Creating bubbles for slugs:', matchedSlugs);
+    console.log(`[BubbleHost] 🔍 Search "${query}" → ${matchedSlugs.length} matches: ${matchedSlugs.join(', ')}`);
     this.createBubblesForSlugs(matchedSlugs, scores, matchedFields);
   }
 
@@ -277,6 +274,26 @@ class BubbleHost extends LitElement {
     const viewWidth = this.bubbleView?.offsetWidth || 800;
     const viewHeight = this.bubbleView?.offsetHeight || 600;
     
+    // RESPONSIVE: Adjust layout based on viewport size
+    const isSmallScreen = viewWidth < 600;
+    const isMediumScreen = viewWidth >= 600 && viewWidth < 1024;
+    
+    let radiusMultiplier = 0.3;
+    let minSize = 80;
+    let maxSize = 200;
+    
+    if (isSmallScreen) {
+      radiusMultiplier = 0.25;  // Tighter circle
+      minSize = 60;             // Smaller minimum
+      maxSize = 120;            // Smaller maximum
+    } else if (isMediumScreen) {
+      radiusMultiplier = 0.28;
+      minSize = 70;
+      maxSize = 150;
+    }
+    
+    console.log(`[BubbleHost] 📱 Viewport: ${viewWidth}x${viewHeight}, using size range ${minSize}-${maxSize}px`);
+    
     // Get active perspectives from AMORPH state
     const activePerspectives = window.amorph?.state?.activePerspectives || 
       ['cultivationAndProcessing', 'chemicalAndProperties', 'medicinalAndHealth'];
@@ -306,16 +323,16 @@ class BubbleHost extends LitElement {
     
     // Create BubbleMorph ONLY for matched fungi
     matchedFungi.forEach((fungus, index) => {
-      // Calculate position (circular layout around user node)
+      // Calculate position (circular layout around user node) - RESPONSIVE
       const angle = (index / matchedFungi.length) * Math.PI * 2;
-      const radius = Math.min(viewWidth, viewHeight) * 0.3;
+      const radius = Math.min(viewWidth, viewHeight) * radiusMultiplier;
       const x = viewWidth / 2 + Math.cos(angle) * radius;
       const y = viewHeight / 2 + Math.sin(angle) * radius;
 
-      // Calculate size based on search score (80-200px range)
+      // Calculate size based on search score - RESPONSIVE RANGE
       const rawScore = slugScores[fungus.slug] || maxScore * 0.1; // Default to 10% if no score
       const normalizedScore = maxScore > 0 ? rawScore / maxScore : 0.5;
-      const size = 80 + (normalizedScore * 120); // 80-200px range
+      const size = minSize + (normalizedScore * (maxSize - minSize)); // Responsive range
       
       // Calculate color based on number of matched fields
       const fieldsCount = slugMatchedFields[fungus.slug]?.length || 0;

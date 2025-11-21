@@ -94,7 +94,13 @@ export class CanvasUserNodeReactor extends CanvasReactor {
     
     this.activeConnections = connections;
     
-    console.log(`[CanvasUserNodeReactor] Active connections: ${this.activeConnections.length}/${userNode.connections.size} (threshold: ${this.config.scoreThreshold})`);
+    // Only log every 60 updates (~1s at 60fps) to avoid spam
+    if (!this.updateCount) this.updateCount = 0;
+    this.updateCount++;
+    if (this.updateCount % 60 === 0) {
+      const threshold = (this.config.scoreThreshold * 100).toFixed(0);
+      console.log(`[CanvasUserNodeReactor] 🔗 Connections: ${this.activeConnections.length}/${userNode.connections.size} active (threshold: ${threshold}%)`);
+    }
   }
   
   /**
@@ -131,18 +137,14 @@ export class CanvasUserNodeReactor extends CanvasReactor {
     
     const userNode = this.getUserNode();
     if (!userNode) {
-      console.warn('[CanvasUserNodeReactor] No user node data available');
+      console.warn('[CanvasUserNodeReactor] ⚠️ No user node data available');
       return;
     }
     
-    // Only log every 60 frames to reduce console spam
-    if (this.renderCount % 60 === 0) {
-      console.log('[CanvasUserNodeReactor] 🎨 Rendering...', {
-        x: userNode.x,
-        y: userNode.y,
-        connections: this.activeConnections.length,
-        renderCount: this.renderCount
-      });
+    // Only log every 120 frames (~2s at 60fps) to reduce console spam
+    if (this.renderCount % 120 === 0) {
+      const pos = `(${Math.round(userNode.x)}, ${Math.round(userNode.y)})`;
+      console.log(`[CanvasUserNodeReactor] 🎨 Render #${this.renderCount}: ${this.activeConnections.length} connections at ${pos}`);
     }
     
     // 1. Render Connections FIRST (behind node)
@@ -314,18 +316,6 @@ export class CanvasUserNodeReactor extends CanvasReactor {
     ctx.strokeStyle = 'rgba(99, 102, 241, 1.0)';
     ctx.lineWidth = borderWidth;
     ctx.stroke();
-    
-    // Icon
-    ctx.font = '48px sans-serif';
-    ctx.fillStyle = 'white';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('👤', x, y - 15);
-    
-    // Label
-    ctx.font = 'bold 16px sans-serif';
-    ctx.fillStyle = 'white';
-    ctx.fillText('YOU', x, y + 25);
     
     // Connection count badge
     if (connectionCount > 0) {

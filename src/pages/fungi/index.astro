@@ -14,6 +14,73 @@ import { fetchFungi } from '@/amorph/core/convex';
 const fungi = await fetchFungi();
 
 console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
+
+/**
+ * Extract relevant fields from fungus data dynamically
+ * Only returns fields that actually exist in the data
+ */
+function getRelevantFields(fungus: any): string[] {
+  const fieldPriority = [
+    // Safety & Identification (highest priority)
+    'edibility',
+    'toxicityLevel',
+    
+    // Taxonomy (important for identification)
+    'taxonomy.family',
+    'taxonomy.genus',
+    'taxonomy.order',
+    
+    // Culinary & Nutritional
+    'culinaryAndNutritional.flavorProfile',
+    'culinaryAndNutritional.preparationMethods',
+    
+    // Cultivation & Processing
+    'cultivationAndProcessing.cultivationDifficulty',
+    'cultivationAndProcessing.cultivationMethods',
+    
+    // Medicinal & Health
+    'medicinalAndHealth.medicinalProperties',
+    'medicinalAndHealth.activeCompounds',
+    
+    // Ecology & Habitat
+    'ecologyAndHabitat.seasonality.primarySeason',
+    'ecologyAndHabitat.substrate',
+    
+    // Physical Characteristics
+    'physicalCharacteristics.capColor',
+    'physicalCharacteristics.sporePrintColor',
+    
+    // Chemical & Properties
+    'primaryCompounds',
+    'secondaryMetabolites',
+    
+    // Commercial & Market
+    'commercialAndMarket.commercialValue',
+    'commercialAndMarket.marketSegments',
+    
+    // Research & Innovation
+    'researchAndInnovation.researchInterest',
+    'activeResearchAreas'
+  ];
+
+  // Helper to get nested value
+  const getNestedValue = (obj: any, path: string): any => {
+    return path.split('.').reduce((current, key) => current?.[key], obj);
+  };
+
+  // Filter to only fields that exist and have values
+  const existingFields = fieldPriority.filter(field => {
+    const value = getNestedValue(fungus, field);
+    // Include if value exists and is not empty
+    return value !== null && 
+           value !== undefined && 
+           value !== '' && 
+           !(Array.isArray(value) && value.length === 0);
+  });
+
+  // Return max 8-10 fields to prevent overcrowding
+  return existingFields.slice(0, 10);
+}
 ---
 
 <BaseLayout 
@@ -75,157 +142,13 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
           
 
           <div class="card-data">
-            <!-- Safety & Identification -->
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="edibility"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="toxicityLevel"
-            ></data-morph>
-
-            <!-- Ecology & Habitat -->
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="ecologyAndHabitat.seasonality.primarySeason"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="ecologyAndHabitat.substrate"
-            ></data-morph>
-
-            <!-- Physical Characteristics -->
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="physicalCharacteristics.capColor"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="physicalCharacteristics.sporePrintColor"
-            ></data-morph>
-
-            <!-- Culinary & Nutritional -->
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="culinaryAndNutritional.flavorProfile"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="culinaryAndNutritional.preparationMethods"
-            ></data-morph>
-
-            <!-- Medicinal & Health -->
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="medicinalAndHealth.medicinalProperties"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="medicinalAndHealth.activeCompounds"
-            ></data-morph>
-
-            <!-- Cultivation & Processing -->
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="cultivationAndProcessing.cultivationDifficulty"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="cultivationAndProcessing.cultivationMethods"
-            ></data-morph>
-
-            <!-- Cultural & Historical -->
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="culturalAndHistorical.historicalSignificance"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="culturalAndHistorical.firstDocumented"
-            ></data-morph>
-
-            <!-- Commercial & Market -->
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="commercialAndMarket.commercialValue"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="commercialAndMarket.marketSegments"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="commercialAndMarket.commercialProducts"
-            ></data-morph>
-
-            <!-- Environmental & Conservation -->
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="environmentalAndConservation.ecologicalRole"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="environmentalAndConservation.ecosystemServices"
-            ></data-morph>
-
-            <!-- Research & Innovation -->
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="researchAndInnovation.researchInterest"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="activeResearchAreas"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="innovativeApplications"
-            ></data-morph>
-
-            <!-- Chemical & Properties -->
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="primaryCompounds"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="secondaryMetabolites"
-            ></data-morph>
-
-            <!-- Taxonomy -->
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="kingdom"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="phylum"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="class"
-            ></data-morph>
-
-            <data-morph
-              fungus-data={JSON.stringify(fungus)}
-              field="order"
-            ></data-morph>
+            <!-- Dynamically render only fields that exist -->
+            {getRelevantFields(fungus).map((field) => (
+              <data-morph
+                fungus-data={JSON.stringify(fungus)}
+                field={field}
+              ></data-morph>
+            ))}
           </div>
 
           <a href={`/fungi/${fungus.slug}`} class="card-link">
@@ -268,7 +191,7 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.65));
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.64));
     pointer-events: none;
     z-index: 1;
     transition: background 0.4s ease;
@@ -683,15 +606,18 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
         // Toggle views and activate appropriate reactors
         if (view === 'grid') {
           // Show Grid, Hide Bubble
-          gridHost.style.display = 'grid';
           bubbleHost.style.display = 'none';
+          gridHost.style.display = 'grid'; // Must be 'grid' not 'block'
+          
+          // Force reflow to ensure cards are visible
+          void gridHost.offsetHeight;
           
           // Grid View: SearchFilterController handles search (already initialized)
           // Perspectives and search state are already shared via events
           
-          console.log('📊 Switched to Grid View');
-          console.log('   • Search query preserved:', amorph.state.searchQuery || 'none');
-          console.log('   • Perspectives preserved via MorphHeader');
+          const searchQuery = amorph.state.searchQuery || 'none';
+          const perspectiveCount = amorph.state?.activePerspectives?.length || 0;
+          console.log(`[ViewToggle] 📊 Grid View | Search: "${searchQuery}" | Perspectives: ${perspectiveCount} active`);
           
         } else {
           // Show Bubble, Hide Grid
@@ -712,18 +638,16 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
             // Trigger similarity recalculation with current perspectives
             bubbleView.updateSimilarityMatrix();
             
-            console.log('🫧 Switched to Bubble View');
-            console.log('   • Connections enabled for relationship visualization');
-            console.log('   • Search query preserved:', amorph.state.searchQuery || 'none');
-            console.log('   • Perspectives preserved via MorphHeader');
-            console.log('   • Similarity matrix will update with current perspectives');
+            const searchQuery = amorph.state.searchQuery || 'none';
+            const perspectiveCount = amorph.state?.activePerspectives?.length || 0;
+            console.log(`[ViewToggle] 🪷 Bubble View | Search: "${searchQuery}" | Perspectives: ${perspectiveCount} active | Connections: enabled`);
           }
           
           // Enable BubbleView-specific reactors
           if (window.amorph) {
             window.amorph.enableReactor('bubbleDetail');
             window.amorph.enableReactor('bubbleSearch');
-            console.log('✅ BubbleDetail and BubbleSearch reactors enabled');
+            console.log('[ViewToggle] ✅ Bubble reactors enabled (BubbleDetail, BubbleSearch)');
             
             // Trigger perspective update on all bubble morphs
             const bubbles = bubbleHost.shadowRoot?.querySelectorAll('bubble-morph') || [];
@@ -733,19 +657,23 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
                 bubble.requestUpdate();
               }
             });
-            console.log(`✅ Updated ${bubbles.length} bubbles with current perspectives`);
+            if (bubbles.length > 0) {
+              console.log(`[ViewToggle] 🔄 Updated ${bubbles.length} bubbles with active perspectives`);
+            }
             
-            // If there's an active search, trigger search highlighting
+            // If there's an active search with cached results, apply to Bubble View
             const searchQuery = window.amorph.state?.searchQuery;
-            if (searchQuery && searchQuery.trim() !== '') {
-              console.log('🔍 Applying active search to Bubble View:', searchQuery);
-              // Trigger a fake search event to highlight bubbles
+            const cachedResults = window.amorph.state?.searchResults;
+            if (searchQuery && searchQuery.trim() !== '' && cachedResults && cachedResults.length > 0) {
+              console.log('🔍 [ViewToggle] Applying cached search to Bubble View:', searchQuery, `(${cachedResults.length} results)`);
               window.dispatchEvent(new CustomEvent('convex-search:completed', {
                 detail: {
                   query: searchQuery,
-                  results: window.amorph.state?.searchResults || []
+                  results: cachedResults
                 }
               }));
+            } else if (searchQuery && searchQuery.trim() !== '') {
+              console.log('⚠️ [ViewToggle] Search query exists but no cached results - skipping bubble creation');
             }
           }
         }
@@ -778,7 +706,206 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
   const searchFilter = new SearchFilterController('.fungi-grid', '.fungus-card');
   
   console.log('🔍 SearchFilterController initialized for Grid View');
+</script>
+
+<!-- Dynamic DataMorph Mode Switcher -->
+<script type="module">
+  /**
+   * 🔄 DYNAMIC DATAMORPH MODE SWITCHER
+   * ==================================
+   * 
+   * Switches data-morph display modes based on user interaction:
+   * - Initial load: mode="simple" with relevant fields (10 fields max)
+   * - After search: mode="deep" showing ALL matched data
+   * - After perspective change: mode="deep" showing ALL perspective data
+   * 
+   * This gives users full context when searching/filtering while keeping
+   * initial load clean and performant.
+   */
   
+  class DataMorphModeSwitcher {
+    constructor() {
+      this.isSearchActive = false;
+      this.isPerspectiveActive = false;
+      this.currentQuery = '';
+      this.matchedFields = {};
+      this.activePerspectives = [];
+      
+      this.init();
+    }
+    
+    init() {
+      // Wait for DOM
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => this.setup());
+      } else {
+        this.setup();
+      }
+    }
+    
+    setup() {
+      console.log('[DataMorphModeSwitcher] 🎬 Initializing...');
+      
+      // Store original field values in dataset for restoration
+      const dataMorphs = document.querySelectorAll('.card-data data-morph[field]');
+      dataMorphs.forEach(morph => {
+        const field = morph.getAttribute('field');
+        if (field) {
+          morph.dataset.originalField = field;
+        }
+      });
+      
+      // Listen for search events
+      window.addEventListener('convex-search:completed', (event) => {
+        this.handleSearchCompleted(event.detail);
+      });
+      
+      window.addEventListener('convex-search:reset', () => {
+        this.handleSearchReset();
+      });
+      
+      // Listen for perspective changes
+      if (typeof amorph !== 'undefined') {
+        amorph.on('perspectives:changed', (data) => {
+          this.handlePerspectiveChange(data);
+        });
+      }
+      
+      console.log('[DataMorphModeSwitcher] ✅ Ready - Listening for search and perspective events');
+    }
+    
+    /**
+     * Handle search completed - switch to deep mode
+     */
+    handleSearchCompleted(searchData) {
+      const { query, results, matchedFields } = searchData;
+      
+      const fieldCount = matchedFields ? Object.keys(matchedFields).length : 0;
+      console.log(`[DataMorphModeSwitcher] 🔍 Search "${query}" → ${results?.length || 0} results (${fieldCount} with matched fields)`);
+      
+      // Update state
+      this.isSearchActive = !!(query && query.trim().length >= 2);
+      this.currentQuery = query || '';
+      this.matchedFields = matchedFields || {};
+      
+      if (this.isSearchActive) {
+        this.switchToDeepMode('search');
+      } else {
+        this.switchToSimpleMode();
+      }
+    }
+    
+    /**
+     * Handle search reset - switch back to simple mode
+     */
+    handleSearchReset() {
+      console.log('[DataMorphModeSwitcher] 🔄 Search reset');
+      
+      this.isSearchActive = false;
+      this.currentQuery = '';
+      this.matchedFields = {};
+      
+      // Only switch back to simple if no perspective is active
+      if (!this.isPerspectiveActive) {
+        this.switchToSimpleMode();
+      }
+    }
+    
+    /**
+     * Handle perspective change - switch to deep mode
+     */
+    handlePerspectiveChange(data) {
+      const { perspectives } = data || {};
+      
+      const perspectiveStr = perspectives?.join(', ') || 'none';
+      console.log(`[DataMorphModeSwitcher] 🎭 Perspectives: ${perspectiveStr}`);
+      
+      this.isPerspectiveActive = !!(perspectives && perspectives.length > 0);
+      this.activePerspectives = perspectives || [];
+      
+      if (this.isPerspectiveActive) {
+        this.switchToDeepMode('perspective');
+      } else if (!this.isSearchActive) {
+        // Only switch back to simple if search is also inactive
+        this.switchToSimpleMode();
+      }
+    }
+    
+    /**
+     * Switch all visible cards to deep mode
+     */
+    switchToDeepMode(reason = 'unknown') {
+      // Get all visible cards (not hidden by search filter)
+      const cards = document.querySelectorAll('.fungus-card');
+      let updatedCount = 0;
+      
+      cards.forEach(card => {
+        // Skip hidden cards
+        if (card.style.display === 'none') return;
+        
+        // Get all data-morphs in this card
+        const dataMorphs = card.querySelectorAll('.card-data data-morph');
+        
+        dataMorphs.forEach((morph, index) => {
+          if (index === 0) {
+            // First morph: switch to deep mode (will render ALL perspectives)
+            morph.setAttribute('mode', 'deep');
+            morph.removeAttribute('field');
+            morph.style.display = '';
+            updatedCount++;
+          } else {
+            // Other morphs: hide them to prevent duplication
+            morph.style.display = 'none';
+          }
+        });
+      });
+      
+      console.log(`[DataMorphModeSwitcher] ✅ Updated ${updatedCount} cards to deep mode (hidden duplicates)`);
+    }
+    
+    /**
+     * Switch all cards back to simple mode with relevant fields
+     */
+    switchToSimpleMode() {
+      console.log('[DataMorphModeSwitcher] 📄 Switching to SIMPLE mode (relevant fields)');
+      
+      // Get all cards
+      const cards = document.querySelectorAll('.fungus-card');
+      let updatedCount = 0;
+      
+      cards.forEach(card => {
+        // Get all data-morphs in this card
+        const dataMorphs = card.querySelectorAll('.card-data data-morph');
+        
+        dataMorphs.forEach((morph, index) => {
+          // Show all morphs again (they were hidden in deep mode)
+          morph.style.display = '';
+          
+          // Remove deep mode
+          if (morph.hasAttribute('mode')) {
+            morph.removeAttribute('mode');
+          }
+          
+          // Restore field attribute from original field (stored in dataset)
+          const originalField = morph.dataset.originalField;
+          if (originalField) {
+            morph.setAttribute('field', originalField);
+          }
+          
+          updatedCount++;
+        });
+      });
+      
+      console.log(`[DataMorphModeSwitcher] ✅ Updated ${updatedCount} data-morphs to simple mode`);
+    }
+  }
+  
+  // Initialize
+  new DataMorphModeSwitcher();
+</script>
+
+<!-- Touch Hover Effects -->
+<script type="module">
   // Touch-friendly hover effects for mobile scrolling
   function initTouchHover() {
     const cards = document.querySelectorAll('.fungus-card');

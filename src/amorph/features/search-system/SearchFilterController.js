@@ -87,6 +87,17 @@ export class SearchFilterController {
       this.showAllCards();
     });
     
+    // Listen for deep mode rendering completion
+    window.addEventListener('data-morph:deep-mode-ready', (event) => {
+      const { query } = event.detail || {};
+      console.log('[SearchFilterController] 🎨 Deep mode ready, starting highlighting immediately');
+      
+      // Re-apply highlighting now that deep mode is rendered
+      if (this.currentQuery) {
+        this.highlightMatches();
+      }
+    });
+    
     console.log('[SearchFilterController] ✅ Listening for search events');
   }
   
@@ -96,7 +107,7 @@ export class SearchFilterController {
   handleSearchResults(searchData) {
     const { results, query, totalResults, matchedFields, scores } = searchData;
     
-    console.log(`[SearchFilterController] Filtering ${this.allCards.length} cards to ${totalResults} results`);
+    console.log(`[SearchFilterController] 🔍 Filtering: "${query}" → ${totalResults || 0} matches from ${this.allCards.length} cards`);
     
     // Store current query and matched fields
     this.currentQuery = query || '';
@@ -117,10 +128,9 @@ export class SearchFilterController {
     // Filter cards
     this.filterCards();
     
-    // Highlight matched morphs
-    if (this.currentQuery) {
-      this.highlightMatches();
-    }
+    // NOTE: Don't highlight immediately - wait for data-morph:deep-mode-ready event
+    // This ensures DataMorphs have finished rendering deep mode content
+    console.log('[SearchFilterController] ⏱️ Waiting for deep mode rendering before highlighting...');
     
     // Update BubbleView if it exists
     this.updateBubbleView(results);
@@ -148,7 +158,7 @@ export class SearchFilterController {
    * Show all cards (reset filter)
    */
   showAllCards() {
-    console.log('[SearchFilterController] Showing all cards');
+    console.log(`[SearchFilterController] 📄 Showing all ${this.allCards.length} cards (filter cleared)`);
     this.isFiltering = false;
     this.filteredSlugs.clear();
     this.currentQuery = '';
@@ -273,17 +283,25 @@ export class SearchFilterController {
     
     this.styleElement = document.createElement('style');
     this.styleElement.textContent = `
-      /* Set CSS variable for highlighted morphs - DataMorph will use this */
-      .search-highlight-morph {
-        --search-highlight: 1;
+      /* Text-level search highlighting */
+      .search-highlight-text {
+        background: linear-gradient(90deg, rgba(250, 204, 21, 0.4), rgba(251, 191, 36, 0.5));
+        color: rgba(255, 255, 255, 0.95);
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-weight: 600;
+        box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.3);
+        animation: search-text-pulse 2s ease-in-out infinite;
       }
       
-      @keyframes search-highlight-pulse {
+      @keyframes search-text-pulse {
         0%, 100% {
-          opacity: 0.7;
+          background: linear-gradient(90deg, rgba(250, 204, 21, 0.35), rgba(251, 191, 36, 0.45));
+          box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.2);
         }
         50% {
-          opacity: 1;
+          background: linear-gradient(90deg, rgba(250, 204, 21, 0.5), rgba(251, 191, 36, 0.6));
+          box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.4), 0 0 8px rgba(250, 204, 21, 0.3);
         }
       }
     `;
@@ -298,73 +316,143 @@ export class SearchFilterController {
     if (!this.currentQuery) return;
     
     const query = this.currentQuery.toLowerCase().trim();
-    console.log(`[SearchFilterController] 🎨 Highlighting morphs containing: "${query}"`);
+    console.log(`[SearchFilterController] 🎨 Highlighting text containing: "${query}"`);
     
     // Clear previous highlights first
     this.clearHighlights();
     
-    let firstHighlightedMorph = null;
+    let totalHighlights = 0;
+    const highlightedMorphs = []; // Track all morphs with highlights for scrolling
     
     this.allCards.forEach(card => {
       const slug = card.dataset.slug;
       if (!slug || !this.filteredSlugs.has(slug)) return;
       
+      let cardHasHighlight = false;
+      
       // Find all data-morphs in this card
       const morphs = card.querySelectorAll('data-morph[data-morph="true"]');
       
-      let cardHasMatches = false;
-      
       morphs.forEach(morph => {
-        // Get fungus data from the morph (it stores the full fungus object)
-        const fungusDataAttr = morph.getAttribute('fungus-data');
-        const field = morph.getAttribute('field');
+        // Skip hidden morphs
+        if (morph.style.display === 'none') return;
         
-        if (!fungusDataAttr || !field) return;
+        // Highlight text within this morph's shadow DOM or regular DOM
+        const highlightedCount = this.highlightTextInElement(morph, query);
         
-        try {
-          // Parse the fungus data JSON
-          const fungusData = JSON.parse(fungusDataAttr);
+        if (highlightedCount > 0) {
+          totalHighlights += highlightedCount;
           
-          // Get value from the field path (e.g., "edibility" or "ecologyAndHabitat.seasonality.primarySeason")
-          const fieldValue = this.getNestedValue(fungusData, field);
-          
-          // Convert value to searchable string
-          const valueStr = this.valueToString(fieldValue).toLowerCase();
-          
-          // Check if value contains the search query
-          if (valueStr.includes(query)) {
-            morph.classList.add('search-highlight-morph');
-            cardHasMatches = true;
-            
-            // Store first highlighted morph for scrolling
-            if (!firstHighlightedMorph) {
-              firstHighlightedMorph = morph;
-            }
-            
-            console.log(`[SearchFilterController] ✨ Highlighted field "${field}" in ${slug}:`, valueStr.substring(0, 50));
+          // Track first highlighted morph per card
+          if (!cardHasHighlight) {
+            highlightedMorphs.push(morph);
+            cardHasHighlight = true;
           }
-        } catch (e) {
-          console.warn(`[SearchFilterController] Failed to parse morph data:`, e);
         }
       });
+    });
+    
+    console.log(`[SearchFilterController] ✨ Highlighted ${totalHighlights} text matches in ${highlightedMorphs.length} cards`);
+    
+    // Simple scroll: just scroll each morph to top of its card-data container
+    if (highlightedMorphs.length > 0) {
+      setTimeout(() => {
+        highlightedMorphs.forEach(morph => {
+          const cardData = morph.closest('.card-data');
+          if (cardData) {
+            // Simple: scroll to top of card-data
+            cardData.scrollTop = 0;
+          }
+        });
+        console.log(`[SearchFilterController] 📍 Scrolled ${highlightedMorphs.length} cards to top`);
+      }, 150);
+    }
+  }
+  
+  /**
+   * Highlight matching text within an element (works with Shadow DOM)
+   */
+  highlightTextInElement(element, query) {
+    let highlightCount = 0;
+    
+    // Check if element uses Shadow DOM
+    const root = element.shadowRoot || element;
+    
+    // Find all text nodes that might contain the query
+    const walker = document.createTreeWalker(
+      root,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: (node) => {
+          // Skip script and style tags
+          const parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          
+          const tagName = parent.tagName.toLowerCase();
+          if (tagName === 'script' || tagName === 'style') {
+            return NodeFilter.FILTER_REJECT;
+          }
+          
+          // Only accept nodes with actual text content
+          const text = node.textContent.trim();
+          if (!text) return NodeFilter.FILTER_REJECT;
+          
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+    
+    const textNodes = [];
+    let node;
+    while (node = walker.nextNode()) {
+      textNodes.push(node);
+    }
+    
+    // Highlight matching text in each text node
+    textNodes.forEach(textNode => {
+      const text = textNode.textContent;
+      const lowerText = text.toLowerCase();
       
-      // Only highlight card if we found matching morphs
-      if (cardHasMatches) {
-        card.classList.add('search-highlight-card');
+      if (!lowerText.includes(query)) return;
+      
+      // Create a temporary container to build highlighted HTML
+      const parent = textNode.parentElement;
+      if (!parent) return;
+      
+      // Split text and wrap matches in span
+      const parts = [];
+      let lastIndex = 0;
+      let searchIndex = 0;
+      
+      while ((searchIndex = lowerText.indexOf(query, lastIndex)) !== -1) {
+        // Add text before match
+        if (searchIndex > lastIndex) {
+          parts.push(document.createTextNode(text.substring(lastIndex, searchIndex)));
+        }
+        
+        // Add highlighted match
+        const matchSpan = document.createElement('span');
+        matchSpan.className = 'search-highlight-text';
+        matchSpan.textContent = text.substring(searchIndex, searchIndex + query.length);
+        parts.push(matchSpan);
+        
+        highlightCount++;
+        lastIndex = searchIndex + query.length;
+      }
+      
+      // Add remaining text
+      if (lastIndex < text.length) {
+        parts.push(document.createTextNode(text.substring(lastIndex)));
+      }
+      
+      // Replace original text node with highlighted parts
+      if (parts.length > 0) {
+        parts.forEach(part => parent.insertBefore(part, textNode));
+        parent.removeChild(textNode);
       }
     });
     
-    // Scroll first highlighted morph into view
-    if (firstHighlightedMorph) {
-      setTimeout(() => {
-        firstHighlightedMorph.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'nearest'
-        });
-        console.log('[SearchFilterController] 📍 Scrolled to first match');
-      }, 300); // Wait for card animations to complete
-    }
+    return highlightCount;
   }
   
   /**
@@ -375,15 +463,33 @@ export class SearchFilterController {
   }
   
   /**
-   * Convert any value to searchable string
+   * Convert any value to searchable string - DEEP RECURSIVE
    */
-  valueToString(value) {
+  valueToString(value, depth = 0) {
     if (value === null || value === undefined) return '';
+    if (depth > 5) return ''; // Prevent infinite recursion
+    
     if (typeof value === 'string') return value;
     if (typeof value === 'number') return value.toString();
     if (typeof value === 'boolean') return value ? 'yes' : 'no';
-    if (Array.isArray(value)) return value.map(v => this.valueToString(v)).join(' ');
-    if (typeof value === 'object') return JSON.stringify(value);
+    
+    // Array → recursively convert each item
+    if (Array.isArray(value)) {
+      return value.map(v => this.valueToString(v, depth + 1)).join(' ');
+    }
+    
+    // Object → recursively extract all string values
+    if (typeof value === 'object') {
+      const allValues = [];
+      for (const key in value) {
+        if (value.hasOwnProperty(key)) {
+          const nestedValue = this.valueToString(value[key], depth + 1);
+          if (nestedValue) allValues.push(nestedValue);
+        }
+      }
+      return allValues.join(' ');
+    }
+    
     return String(value);
   }
   
@@ -391,12 +497,37 @@ export class SearchFilterController {
    * Clear all highlights
    */
   clearHighlights() {
+    // Remove old-style morph highlights (if any)
     document.querySelectorAll('.search-highlight-morph').forEach(el => {
       el.classList.remove('search-highlight-morph');
     });
     
     document.querySelectorAll('.search-highlight-card').forEach(el => {
       el.classList.remove('search-highlight-card');
+    });
+    
+    // Remove text-level highlights from regular DOM
+    document.querySelectorAll('.search-highlight-text').forEach(span => {
+      const parent = span.parentNode;
+      if (parent) {
+        // Replace span with its text content
+        parent.replaceChild(document.createTextNode(span.textContent), span);
+        // Normalize to merge adjacent text nodes
+        parent.normalize();
+      }
+    });
+    
+    // Remove text-level highlights from Shadow DOM (data-morphs)
+    document.querySelectorAll('data-morph').forEach(morph => {
+      if (morph.shadowRoot) {
+        morph.shadowRoot.querySelectorAll('.search-highlight-text').forEach(span => {
+          const parent = span.parentNode;
+          if (parent) {
+            parent.replaceChild(document.createTextNode(span.textContent), span);
+            parent.normalize();
+          }
+        });
+      }
     });
   }
 }

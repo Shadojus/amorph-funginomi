@@ -419,12 +419,8 @@ export class UserNode extends LitElement {
         ` : null}
 
         <div class="user-content">
-          <div class="user-icon">👤</div>
-          <div class="user-label">YOU</div>
           <div class="user-stats">
-            ${interactionCount} interactions<br>
-            ${this.searchQueries.length} searches<br>
-            ${this.activePerspectives.length} perspectives
+            Threshold: ${(this.activityLevel * 100).toFixed(0)}%
           </div>
         </div>
 

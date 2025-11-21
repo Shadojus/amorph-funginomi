@@ -71,23 +71,20 @@ export class CanvasPhysicsReactor extends CanvasReactor {
   }
   
   /**
-   * Get all nodes (bubbles + queries + user node)
+   * Get all nodes for physics simulation
+   * CRITICAL: UserNode is NEVER included - it stays fixed at canvas center
+   * 
+   * Returns: Array of [id, nodeData] pairs for bubbles and query nodes only
    */
   getAllNodes() {
     const bubbles = this.getBubbles();
     const queryNodes = this.getQueryNodes();
-    const userNode = this.getUserNode();
     
-    const nodes = [
-      ...Array.from(bubbles.entries()),
-      ...Array.from(queryNodes.entries())
-    ];
+    // Combine bubbles and query nodes (UserNode NOT included)
+    const combined = new Map([...bubbles, ...queryNodes]);
     
-    if (userNode) {
-      nodes.push(['user-central', userNode]);
-    }
-    
-    return nodes;
+    // Return as array of [id, node] entries
+    return Array.from(combined.entries());
   }
   
   /**
@@ -99,10 +96,11 @@ export class CanvasPhysicsReactor extends CanvasReactor {
       if (node1.isDragging) continue;
       
       // CRITICAL: Sync BubbleMorph position from node data
+      // CSS transitions handle smooth animation, no need for requestUpdate()
       if (node1.morph && (node1.morph.x !== node1.x || node1.morph.y !== node1.y)) {
         node1.morph.x = node1.x;
         node1.morph.y = node1.y;
-        node1.morph.requestUpdate();
+        // Don't call requestUpdate() - CSS transitions handle it
       }
       
       for (let j = i + 1; j < allNodes.length; j++) {
@@ -177,25 +175,16 @@ export class CanvasPhysicsReactor extends CanvasReactor {
   
   /**
    * Apply boundary forces to keep nodes in view
+   * UserNode is NOT in allNodes, so no boundary forces applied to it
    */
   applyBoundaryForces(allNodes, width, height, margin) {
     allNodes.forEach(([id, node]) => {
       if (node.isDragging) return;
       
-      // User node: Gentle center force
-      if (id === 'user-central') {
-        const centerX = width / 2;
-        const centerY = height / 2;
-        const dx = centerX - node.x;
-        const dy = centerY - node.y;
-        const centerAttraction = 0.01;  // Reduced from 0.05 - much gentler
-        
-        node.vx += dx * centerAttraction;
-        node.vy += dy * centerAttraction;
-        return;
-      }
+      // UserNode is NOT in allNodes - it's completely excluded from physics
+      // All nodes here are bubbles or query nodes that should respect boundaries
       
-      // Other nodes: Boundary attraction only if outside
+      // Boundary attraction only if outside
       if (node.x < margin || node.x > width - margin || 
           node.y < margin || node.y > height - margin) {
         const centerX = width / 2;
@@ -211,6 +200,7 @@ export class CanvasPhysicsReactor extends CanvasReactor {
   
   /**
    * Update positions with damping
+   * UserNode is NOT in allNodes, so its position remains fixed
    */
   updatePositions(allNodes, width, height) {
     allNodes.forEach(([id, node]) => {
@@ -230,16 +220,18 @@ export class CanvasPhysicsReactor extends CanvasReactor {
       node.y = Math.max(padding, Math.min(height - padding, node.y));
       
       // CRITICAL: Sync BubbleMorph position (keeps connections attached!)
+      // CSS transitions handle smooth animation automatically
       if (node.morph) {
         node.morph.x = node.x;
         node.morph.y = node.y;
-        node.morph.requestUpdate();
+        // Don't call requestUpdate() - let CSS transitions work
       }
     });
   }
   
   /**
    * Resolve collisions between nodes
+   * UserNode is NOT in allNodes, so no collision checks needed
    */
   resolveCollisions(allNodes) {
     for (let i = 0; i < allNodes.length; i++) {

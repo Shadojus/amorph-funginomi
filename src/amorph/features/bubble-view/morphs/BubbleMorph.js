@@ -34,7 +34,12 @@ export class BubbleMorph extends LitElement {
       display: block;
       position: absolute;
       pointer-events: all;
-      transition: all 0.3s ease;
+      /* Fast linear transitions for smooth physics simulation */
+      transition: 
+        left 0s linear,
+        top 0s linear,
+        width 0.3s ease,
+        height 0.3s ease;
     }
 
     .bubble-container {
@@ -213,7 +218,7 @@ export class BubbleMorph extends LitElement {
 
   handlePerspectiveChange(event) {
     const newPerspectives = event.detail.perspectives || [];
-    console.log('[BubbleMorph]', this.fungusData?.slug, 'Perspective changed:', newPerspectives);
+    // Log only once per perspective change, not per bubble
     this.activePerspectives = newPerspectives;
     
     // Force re-render to show new data
@@ -251,12 +256,25 @@ export class BubbleMorph extends LitElement {
   updated(changedProperties) {
     super.updated(changedProperties);
     
-    // Update position when x/y changes
+    // Update position and size when x/y/size changes
+    // CSS transitions handle smooth animation automatically
     if (changedProperties.has('x') || changedProperties.has('y') || changedProperties.has('size')) {
-      this.style.left = `${this.x - this.size / 2}px`;
-      this.style.top = `${this.y - this.size / 2}px`;
-      this.style.width = `${this.size}px`;
-      this.style.height = `${this.size}px`;
+      // Use requestAnimationFrame for smoother updates synchronized with browser rendering
+      requestAnimationFrame(() => {
+        this.style.left = `${this.x - this.size / 2}px`;
+        this.style.top = `${this.y - this.size / 2}px`;
+        this.style.width = `${this.size}px`;
+        this.style.height = `${this.size}px`;
+      });
+      
+      // Log significant size changes only
+      if (changedProperties.has('size')) {
+        const oldSize = changedProperties.get('size');
+        const sizeDiff = Math.abs((oldSize || 0) - this.size);
+        if (sizeDiff > 5 || oldSize === undefined) {
+          console.log(`[BubbleMorph] 📊 ${this.fungusData?.slug}: ${oldSize || 'initial'} → ${this.size}px`);
+        }
+      }
     }
   }
 
@@ -369,12 +387,7 @@ export class BubbleMorph extends LitElement {
         .join(' ');
     }
     
-    console.log('[BubbleMorph] Rendering:', name, 'from data:', {
-      commonName: this.fungusData.commonName,
-      scientificName: this.fungusData.scientificName,
-      slug: this.fungusData.slug,
-      matchedFields: this.matchedFields?.length || 0
-    });
+    // Render log removed - use browser DevTools for render tracking
 
     // Image path (same as Grid View)
     const imagePath = `/images/fungi/${this.fungusData.slug}.jpg`;

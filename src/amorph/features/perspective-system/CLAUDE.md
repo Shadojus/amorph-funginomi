@@ -1,8 +1,10 @@
 # 👁️ PERSPECTIVE SYSTEM FEATURE
 
+**Last Updated:** 21. November 2025
+
 ## Overview
 
-Multi-perspective display system with FIFO queue (max 4 active).
+Multi-perspective display system with FIFO queue (max 4 active). Integrates with BubbleView for weighted connections.
 
 ## Structure
 

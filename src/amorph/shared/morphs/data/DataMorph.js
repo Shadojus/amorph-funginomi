@@ -24,6 +24,7 @@ export class DataMorph extends LitElement {
   static properties = {
     fungusData: { type: Object },
     field: { type: String },
+    mode: { type: String }, // 'simple' (default) or 'deep' (recursive rendering)
     activePerspectives: { type: Array },
     currentData: { type: Object }
   };
@@ -149,6 +150,88 @@ export class DataMorph extends LitElement {
       border-radius: 4px;
     }
 
+    /* Nested rendering styles */
+    .nested-field {
+      margin-bottom: 0.75rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .nested-field:last-child {
+      border-bottom: none;
+    }
+
+    .nested-label {
+      display: block;
+      font-size: 0.5625rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .nested-section {
+      margin: 0.75rem 0;
+      padding: 0.75rem;
+      border-left: 2px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+    }
+
+    .section-title {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8);
+      text-transform: capitalize;
+      margin: 0 0 0.5rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 0.375rem;
+    }
+
+    .nested-array {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .array-item {
+      padding: 0.5rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .array-item-label {
+      display: block;
+      font-size: 0.5rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.375rem;
+    }
+
+    .nested-object {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    /* Deep mode styles */
+    .deep-mode {
+      padding: 0;
+      border-left: none;
+    }
+
+    .deep-mode .perspective-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .deep-mode .perspective-section:last-child {
+      margin-bottom: 0;
+    }
+
     .perspective-header {
       display: flex;
       align-items: center;
@@ -162,12 +245,35 @@ export class DataMorph extends LitElement {
       color: rgba(255, 255, 255, 0.4);
       font-style: italic;
     }
+
+    /* Search highlighting styles */
+    .search-highlight-text {
+      background: linear-gradient(90deg, rgba(250, 204, 21, 0.4), rgba(251, 191, 36, 0.5));
+      color: rgba(255, 255, 255, 0.95);
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-weight: 600;
+      box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.3);
+      animation: search-text-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes search-text-pulse {
+      0%, 100% {
+        background: linear-gradient(90deg, rgba(250, 204, 21, 0.3), rgba(251, 191, 36, 0.4));
+        box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.2);
+      }
+      50% {
+        background: linear-gradient(90deg, rgba(250, 204, 21, 0.5), rgba(251, 191, 36, 0.6));
+        box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.5);
+      }
+    }
   `;
 
   constructor() {
     super();
-    this.fungusData = {};
-    this.field = '';
+    this.fungusData = null;
+    this.field = null;
+    this.mode = 'simple'; // 'simple' or 'deep'
     this.activePerspectives = [];
     this.currentData = {};
   }
@@ -175,8 +281,8 @@ export class DataMorph extends LitElement {
   updated(changedProperties) {
     super.updated(changedProperties);
     
-    // Re-extract data when fungusData changes
-    if (changedProperties.has('fungusData')) {
+    // Re-extract data when fungusData or mode changes
+    if (changedProperties.has('fungusData') || changedProperties.has('mode')) {
       this.extractData();
     }
   }
@@ -257,9 +363,12 @@ export class DataMorph extends LitElement {
   /**
    * Extract field data from all active perspectives
    * Searches deep in nested objects for the field
+   * SIMPLIFIED: Works with complete Convex data
+   * 
+   * DEEP MODE: If mode='deep' and no field specified, extracts ALL perspectives
    */
   extractData() {
-    if (!this.fungusData || !this.field) {
+    if (!this.fungusData) {
       this.currentData = {};
       return;
     }
@@ -279,42 +388,88 @@ export class DataMorph extends LitElement {
       'researchAndInnovation'
     ];
 
-    const extracted = {};
-
-    // If no perspectives active, search in ALL perspectives to find the field
-    const searchPerspectives = this.activePerspectives.length > 0 
-      ? this.activePerspectives 
-      : allPerspectives;
-
-    // Perspectives are direct properties on fungusData (matches schema structure)
-    for (const perspectiveName of searchPerspectives) {
-      const perspectiveData = this.fungusData[perspectiveName];
-      if (!perspectiveData) {
-        continue;
-      }
-
-      // Check if field uses dot notation (e.g., "ecologyAndHabitat.seasonality.primarySeason")
-      const fieldParts = this.field.split('.');
+    // DEEP MODE WITHOUT FIELD: Extract ALL perspectives
+    if (this.mode === 'deep' && !this.field) {
+      const extracted = {};
+      const searchPerspectives = this.activePerspectives.length > 0 
+        ? this.activePerspectives 
+        : allPerspectives;
       
-      // If first part matches perspective name, use remaining path
-      if (fieldParts.length > 1 && fieldParts[0] === perspectiveName) {
-        const remainingPath = fieldParts.slice(1);
-        const value = this.getNestedValue(perspectiveData, remainingPath);
-        if (value !== null && value !== undefined) {
-          extracted[perspectiveName] = value;
-          continue;
+      for (const perspectiveName of searchPerspectives) {
+        const perspectiveData = this.fungusData[perspectiveName];
+        if (perspectiveData && Object.keys(perspectiveData).length > 0) {
+          extracted[perspectiveName] = perspectiveData;
         }
       }
+      
+      this.currentData = extracted;
+      return;
+    }
 
-      // Direct field access (no dots)
-      if (this.field in perspectiveData) {
-        extracted[perspectiveName] = perspectiveData[this.field];
+    // SIMPLE MODE or DEEP MODE WITH FIELD: Extract specific field
+    if (!this.field) {
+      this.currentData = {};
+      return;
+    }
+
+    const extracted = {};
+    const fieldParts = this.field.split('.');
+
+    // STRATEGY 1: Direct field access (e.g., "edibility", "kingdom")
+    // Try top-level and all perspectives
+    if (fieldParts.length === 1) {
+      const fieldName = fieldParts[0];
+      
+      // Check top-level first
+      if (fieldName in this.fungusData && this.fungusData[fieldName] !== null && this.fungusData[fieldName] !== undefined) {
+        extracted['root'] = this.fungusData[fieldName];
       }
-      // Deep search in nested objects
-      else {
-        const value = this.deepSearch(perspectiveData, this.field);
-        if (value !== null) {
-          extracted[perspectiveName] = value;
+      
+      // Also check all perspectives (if perspectives are active)
+      const searchPerspectives = this.activePerspectives.length > 0 
+        ? this.activePerspectives 
+        : allPerspectives;
+      
+      for (const perspectiveName of searchPerspectives) {
+        const perspectiveData = this.fungusData[perspectiveName];
+        if (!perspectiveData) continue;
+        
+        if (fieldName in perspectiveData && perspectiveData[fieldName] !== null && perspectiveData[fieldName] !== undefined) {
+          extracted[perspectiveName] = perspectiveData[fieldName];
+        }
+      }
+    }
+    
+    // STRATEGY 2: Nested field access (e.g., "taxonomy.family", "ecologyAndHabitat.substrate")
+    else {
+      const firstPart = fieldParts[0];
+      
+      // Check if first part is a perspective name
+      if (allPerspectives.includes(firstPart)) {
+        // Field explicitly references a perspective (e.g., "taxonomy.family")
+        const perspectiveData = this.fungusData[firstPart];
+        if (perspectiveData) {
+          const remainingPath = fieldParts.slice(1);
+          const value = this.getNestedValue(perspectiveData, remainingPath);
+          if (value !== null && value !== undefined) {
+            extracted[firstPart] = value;
+          }
+        }
+      } else {
+        // Field doesn't start with perspective name - search in active perspectives
+        const searchPerspectives = this.activePerspectives.length > 0 
+          ? this.activePerspectives 
+          : allPerspectives;
+        
+        for (const perspectiveName of searchPerspectives) {
+          const perspectiveData = this.fungusData[perspectiveName];
+          if (!perspectiveData) continue;
+          
+          // Try direct nested access
+          const value = this.getNestedValue(perspectiveData, fieldParts);
+          if (value !== null && value !== undefined) {
+            extracted[perspectiveName] = value;
+          }
         }
       }
     }
@@ -368,6 +523,7 @@ export class DataMorph extends LitElement {
    */
   getPerspectiveColor(perspectiveName) {
     const colors = {
+      root: '#90CAF9',  // Default blue for top-level fields
       taxonomy: '#ef4444',
       physicalCharacteristics: '#f97316',
       ecologyAndHabitat: '#eab308',
@@ -410,6 +566,7 @@ export class DataMorph extends LitElement {
    */
   getPerspectiveIcon(perspectiveName) {
     const icons = {
+      root: '📊',  // Default icon for top-level fields
       taxonomy: '🧬',
       physicalCharacteristics: '👁️',
       ecologyAndHabitat: '🌍',
@@ -437,34 +594,41 @@ export class DataMorph extends LitElement {
   }
 
   /**
-   * Render value based on type
+   * Render value based on type - ENHANCED with Deep Recursive Rendering
    */
-  renderValue(value, perspectiveName) {
+  renderValue(value, perspectiveName, depth = 0) {
     // Array of strings → tags
     if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
+      // Filter empty strings
+      const validStrings = value.filter(s => s && s.trim().length > 0);
+      if (validStrings.length === 0) return html``;
+      
       return html`
         <div class="data-value tags">
-          ${value.map(tag => html`<span class="tag">${tag}</span>`)}
+          ${validStrings.map(tag => html`<span class="tag">${tag}</span>`)}
         </div>
       `;
     }
 
-    // Array of objects → extract name or compound property
+    // Array of objects → render each as nested section
     if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
-      const labels = value.map(obj => {
-        // Try common properties for compound objects
-        return obj.name || obj.compound || obj.label || obj.title || JSON.stringify(obj);
-      }).filter(Boolean);
-      
       return html`
-        <div class="data-value tags">
-          ${labels.map(label => html`<span class="tag">${label}</span>`)}
+        <div class="nested-array" style="margin-left: ${depth * 0.5}rem">
+          ${value.map((item, idx) => {
+            const itemFields = this.flattenObjectForRender(item, '', 3, 0);
+            return html`
+              <div class="array-item">
+                <span class="array-item-label">Item ${idx + 1}</span>
+                ${itemFields.map(field => this.renderNestedField(field, depth + 1))}
+              </div>
+            `;
+          })}
         </div>
       `;
     }
 
     // Object with min/max/unit → range
-    if (typeof value === 'object' && !Array.isArray(value) && value.min !== undefined && value.max !== undefined) {
+    if (typeof value === 'object' && !Array.isArray(value) && value !== null && value.min !== undefined && value.max !== undefined) {
       return html`
         <div class="data-value text">
           ${value.min}-${value.max} ${value.unit || ''}
@@ -472,24 +636,129 @@ export class DataMorph extends LitElement {
       `;
     }
 
-    // Single object → try to extract readable value
+    // Plain object → render as nested structure
     if (typeof value === 'object' && !Array.isArray(value) && value !== null) {
-      const readable = value.name || value.value || value.label || value.description;
-      if (readable) {
-        return html`
-          <div class="data-value text">
-            ${String(readable)}
-          </div>
-        `;
-      }
+      const fields = this.flattenObjectForRender(value, '', 3, 0);
+      if (fields.length === 0) return html``;
+      
+      return html`
+        <div class="nested-object" style="margin-left: ${depth * 0.5}rem">
+          ${fields.map(field => this.renderNestedField(field, depth + 1))}
+        </div>
+      `;
     }
 
     // Plain string/number/boolean
+    const strValue = String(value).trim();
+    if (strValue.length === 0) return html``;
+    
     return html`
       <div class="data-value text">
-        ${String(value)}
+        ${strValue}
       </div>
     `;
+  }
+
+  /**
+   * Flatten object for rendering (similar to detail page)
+   */
+  flattenObjectForRender(obj, prefix = '', maxDepth = 3, currentDepth = 0) {
+    if (!obj || currentDepth >= maxDepth) return [];
+    const results = [];
+    
+    for (const [key, value] of Object.entries(obj)) {
+      if (value === null || value === undefined) continue;
+      
+      const fullKey = prefix ? `${prefix}.${key}` : key;
+      const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+      
+      // Array of strings → tags
+      if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
+        const validStrings = value.filter(s => s && s.trim().length > 0);
+        if (validStrings.length > 0) {
+          results.push({ type: 'tags', label, key: fullKey, values: validStrings });
+        }
+        continue;
+      }
+      
+      // Array of objects → recurse each
+      if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+        value.forEach((item, idx) => {
+          const subItems = this.flattenObjectForRender(item, `${fullKey}[${idx}]`, maxDepth, currentDepth + 1);
+          results.push(...subItems);
+        });
+        continue;
+      }
+      
+      // Object with min/max/unit → range
+      if (typeof value === 'object' && !Array.isArray(value) && value.min !== undefined && value.max !== undefined) {
+        results.push({ 
+          type: 'text', 
+          label, 
+          key: fullKey, 
+          value: `${value.min}-${value.max} ${value.unit || ''}`.trim() 
+        });
+        continue;
+      }
+      
+      // Plain object → recurse
+      if (typeof value === 'object' && !Array.isArray(value)) {
+        const nested = this.flattenObjectForRender(value, fullKey, maxDepth, currentDepth + 1);
+        if (nested.length > 0) {
+          results.push({ type: 'section', label, key: fullKey, children: nested });
+        }
+        continue;
+      }
+      
+      // Primitive values
+      if (typeof value === 'string') {
+        if (value.trim().length > 0) {
+          results.push({ type: 'text', label, key: fullKey, value: value.trim() });
+        }
+      } else if (typeof value === 'number' || typeof value === 'boolean') {
+        results.push({ type: 'text', label, key: fullKey, value: String(value) });
+      }
+    }
+    
+    return results;
+  }
+
+  /**
+   * Render a nested field (tags, text, or section)
+   */
+  renderNestedField(field, depth = 0) {
+    const marginStyle = `margin-left: ${depth * 0.5}rem`;
+    
+    if (field.type === 'tags') {
+      return html`
+        <div class="nested-field" style="${marginStyle}">
+          <label class="nested-label">${field.label}</label>
+          <div class="data-value tags">
+            ${field.values.map(tag => html`<span class="tag">${tag}</span>`)}
+          </div>
+        </div>
+      `;
+    }
+    
+    if (field.type === 'text') {
+      return html`
+        <div class="nested-field" style="${marginStyle}">
+          <label class="nested-label">${field.label}</label>
+          <div class="data-value text">${field.value}</div>
+        </div>
+      `;
+    }
+    
+    if (field.type === 'section') {
+      return html`
+        <div class="nested-section" style="${marginStyle}">
+          <h5 class="section-title">${field.label}</h5>
+          ${field.children.map(child => this.renderNestedField(child, depth + 1))}
+        </div>
+      `;
+    }
+    
+    return html``;
   }
 
   render() {
@@ -505,9 +774,27 @@ export class DataMorph extends LitElement {
     const color = this.getPerspectiveColor(firstPerspective);
     const icon = this.getPerspectiveIcon(firstPerspective);
 
+    // DEEP MODE: Render all nested data recursively
+    if (this.mode === 'deep') {
+      return this.renderDeepMode(dataEntries, color, icon);
+    }
+
+    // SIMPLE MODE: Original behavior (single field display)
     // Single perspective - clean display
     if (dataEntries.length === 1) {
       const [perspectiveName, value] = dataEntries[0];
+
+      // Special case: 'root' perspective means top-level field (no badge needed)
+      if (perspectiveName === 'root') {
+        return html`
+          <div class="data-container" style="--perspective-color: ${color}">
+            <div class="data-label">
+              ${this.formatFieldName(this.field)}
+            </div>
+            ${this.renderValue(value, perspectiveName)}
+          </div>
+        `;
+      }
 
       return html`
         <div class="data-container" style="--perspective-color: ${color}">
@@ -530,6 +817,15 @@ export class DataMorph extends LitElement {
         </div>
         <div class="multi-perspective">
           ${dataEntries.map(([perspectiveName, value]) => {
+            // Skip 'root' in multi-perspective display (shouldn't happen often)
+            if (perspectiveName === 'root') {
+              return html`
+                <div style="margin-bottom: 0.75rem;">
+                  ${this.renderValue(value, perspectiveName)}
+                </div>
+              `;
+            }
+            
             const pColor = this.getPerspectiveColor(perspectiveName);
             const pIcon = this.getPerspectiveIcon(perspectiveName);
             return html`
@@ -542,6 +838,39 @@ export class DataMorph extends LitElement {
             `;
           })}
         </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render in DEEP mode - shows all nested data recursively
+   */
+  renderDeepMode(dataEntries, color, icon) {
+    // Reverse order so newest perspective is on top
+    const reversedEntries = [...dataEntries].reverse();
+    
+    return html`
+      <div class="data-container deep-mode" style="--perspective-color: ${color}">
+        ${reversedEntries.map(([perspectiveName, value]) => {
+          const pColor = this.getPerspectiveColor(perspectiveName);
+          const pIcon = this.getPerspectiveIcon(perspectiveName);
+          
+          // Flatten the entire value recursively
+          const fields = this.flattenObjectForRender(value, '', 4, 0);
+          
+          if (fields.length === 0) return html``;
+          
+          return html`
+            <div class="perspective-section" style="--perspective-color: ${pColor}">
+              <div class="data-label">
+                <span class="perspective-badge" style="--perspective-color: ${pColor}">
+                  ${pIcon} ${this.formatPerspectiveName(perspectiveName)}
+                </span>
+              </div>
+              ${fields.map(field => this.renderNestedField(field, 0))}
+            </div>
+          `;
+        })}
       </div>
     `;
   }

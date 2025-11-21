@@ -813,17 +813,6 @@ export class BubbleView extends LitElement {
       ctx.lineWidth = 4;
       ctx.stroke();
       
-      // Icon
-      ctx.font = '48px sans-serif';
-      ctx.fillStyle = 'white';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('👤', x, y - 15);
-      
-      // Label
-      ctx.font = 'bold 16px sans-serif';
-      ctx.fillText('YOU', x, y + 25);
-      
       ctx.restore();
       
       // Draw user node connections

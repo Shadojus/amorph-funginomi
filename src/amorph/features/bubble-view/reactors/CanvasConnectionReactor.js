@@ -59,8 +59,11 @@ export class CanvasConnectionReactor extends CanvasReactor {
     const queryNodes = this.getQueryNodes();
     const userNode = this.getUserNode();
     
-    if (connections.size > 0) {
-      console.log('[CanvasConnectionReactor] Rendering', connections.size, 'connections');
+    // Log only significant changes in connection count
+    if (!this.lastConnectionCount) this.lastConnectionCount = 0;
+    if (connections.size !== this.lastConnectionCount) {
+      console.log(`[CanvasConnectionReactor] 🔗 ${connections.size} bubble-to-bubble connections`);
+      this.lastConnectionCount = connections.size;
     }
     
     // Combine all nodes

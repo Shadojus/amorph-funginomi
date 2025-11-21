@@ -1,6 +1,6 @@
 # 📝 AMORPH Funginomi - Project Documentation
 
-**Last Updated:** 19. November 2025
+**Last Updated:** 21. November 2025
 
 ## 🎯 Ziel
 
@@ -9,9 +9,79 @@ Alle CLAUDE.md Dateien auf dem neuesten Stand:
 - ✅ **Vollständig** - Keine Details der Implementierung verloren
 - ✅ **Akkurat** - Exakte Schema-Feldnamen dokumentiert
 
+## 📊 Aktueller System-Stand (21. November 2025)
+
+**Core Features:**
+- ✅ **BubbleView** - Canvas-based visualization mit UserNode connections (Native Canvas 2D, kein Pixi.js)
+- ✅ **GridView** - Responsive Karten-Layout mit wood floor background
+- ✅ **Perspective System** - 12 Perspektiven mit FIFO queue (max 4 aktiv)
+- ✅ **Convex Search** - Server-side search mit auto-perspective switching
+- ✅ **BubbleDetailReactor** - Relationship-focused dialog statt data dump
+
+**Recent Fixes:**
+- ✅ Canvas responsive ohne horizontal scroll
+- ✅ BubbleDetailReactor connection strength korrekt (Mittel ≥ 30%)
+- ✅ CanvasPhysicsReactor getAllNodes() method wiederhergestellt
+- ✅ UserNode bleibt fixed im Canvas-Center
+
+**Architecture:**
+- Feature-based structure (bubble-view, grid-view, search-system, perspective-system)
+- Shared components (reactors, morphs, observers, styles)
+- Event-driven coordination via window.dispatchEvent und CustomEvents
+- No Redis in browser (events via emit/on)
+
 ---
 
-## 🔥 Latest Changes (2025-11-19)
+## 🔥 Latest Changes (2025-11-21)
+
+### 0. 🫧 Bubble View Detail Dialog & Canvas Optimization
+
+**BubbleDetailReactor - Relationship-Focused Dialog:**
+- ✅ **Window-level event handling** - Listens to `window.addEventListener('bubble:clicked')`
+- ✅ **Connection strength display** - Shows UserNode similarity with classification:
+  - Stark: > 50%
+  - Mittel: ≥ 30% (FIXED: was > 30%, causing 30% to show as "Schwach")
+  - Schwach: < 30%
+- ✅ **Connected bubbles list** - Shows bubble-to-bubble similarity scores
+- ✅ **Key facts extraction** - 5 properties from active perspectives:
+  - 🍄 Edibility (always shown if available)
+  - 🌱 Cultivation difficulty
+  - ⚕️ Health benefits (medicinalAndHealth perspective)
+  - 🍳 Flavor profile (culinaryAndNutritional perspective)
+  - 🧪 Chemical compounds (chemicalAndProperties perspective)
+- ✅ **Wood floor background** with dark gradient overlay
+- ✅ **Link to full detail page** - `/fungi/[slug]` for comprehensive data
+- ✅ **Design Philosophy** - Shows WHY bubbles are connected (relationships), NOT comprehensive data (that's GridView)
+
+**Canvas Fixes:**
+- ❌ **REMOVED** - 2x width canvas on small screens (caused horizontal scroll)
+- ✅ **Canvas fills container** - No more auto-scroll or viewport issues
+- ✅ **Fixed UserNode position** - Always at canvas center (containerWidth/2, containerHeight/2)
+- ✅ **BubbleHost overflow: hidden** - No horizontal scroll anymore
+
+**CanvasPhysicsReactor Critical Fix:**
+- ✅ **getAllNodes() method restored** - Was accidentally removed during refactoring
+- ✅ **UserNode EXCLUDED from physics** - Stays fixed at center, only bubbles + query nodes move
+- ✅ **Method signature:**
+  ```javascript
+  getAllNodes() {
+    const bubbles = this.getBubbles();
+    const queryNodes = this.getQueryNodes();
+    const combined = new Map([...bubbles, ...queryNodes]);
+    return Array.from(combined.entries());
+  }
+  ```
+
+**Bug Fixes:**
+- 🐛 **FIXED** - BubbleDetailReactor showing "Schwach" for all connections
+  - Root cause: `score > 0.3` should be `score >= 0.3` for 30% threshold
+  - Root cause: Template literal had `${strength}e Verbindung` adding unwanted "e"
+- 🐛 **FIXED** - TypeError in CanvasPhysicsReactor due to missing getAllNodes()
+- 🐛 **FIXED** - Canvas horizontal scroll on mobile devices
+
+---
+
+## 🔥 Previous Changes (2025-11-19)
 
 ### 0. 🎨 UI/UX Overhaul - Wood Floor Design & Touch Optimization
 
@@ -526,3 +596,141 @@ convex/CLAUDE.md
 ```
 
 ---
+# 🔮 AMORPH System - Feature-Based Architecture
+
+## Neue Struktur (November 2025)
+
+Das AMORPH System wurde von einer **technischen Trennung** zu einer **feature-basierten Struktur** umgebaut.
+
+## Ordnerstruktur
+
+```
+src/amorph/
+├── core/                           # Kern-System
+│   ├── AmorphSystem.js            # Zentrale Registry
+│   ├── RedisEventBridge.js        # Event Bus
+│   ├── PixieRenderer.js           # Canvas Renderer
+│   ├── convex.ts                  # Convex Client
+│   ├── init.js                    # System Initialization
+│   └── layouts/                   # Astro Layouts
+│
+├── features/                       # Feature-Module
+│   ├── bubble-view/               # BubbleView Visualization
+│   │   ├── BubbleView.js
+│   │   ├── BubbleHost.js
+│   │   ├── reactors/              # Canvas Reactors
+│   │   ├── controllers/           # Drag & Zoom
+│   │   └── services/              # Similarity, Collision, etc.
+│   │
+│   ├── grid-view/                 # Grid Layout
+│   │   └── GridHost.js
+│   │
+│   ├── perspective-system/        # Multi-Perspektiven
+│   │   ├── PerspectiveHost.js
+│   │   ├── PerspectiveCard.js
+│   │   └── PerspectiveReactor.js
+│   │
+│   └── search-system/             # Dual Search
+│       └── reactors/
+│           ├── SearchReactor.js
+│           └── AstroDataSearchReactor.js
+│
+└── shared/                        # Gemeinsame Komponenten
+    ├── reactors/                  # Universelle Reactors
+    │   ├── GlowReactor.js
+    │   ├── AnimationReactor.js
+    │   ├── PulseReactor.js
+    │   ├── HoverReactor.js
+    │   ├── SortReactor.js
+    │   └── FilterReactor.js
+    │
+    ├── morphs/                    # Basis-Morphs
+    │   ├── data/                  # Daten-Morphs
+    │   └── global/                # Globale UI
+    │
+    ├── observers/                 # Stream Observers
+    └── styles/                    # Design Tokens
+```
+
+## Vorteile der neuen Struktur
+
+### ✅ Feature-Isolation
+Jedes Feature hat ALLE seine Komponenten in einem Ordner:
+- BubbleView: View + Host + Reactors + Controllers + Services
+- GridView: View + Host
+- PerspectiveSystem: Host + Card + Reactor
+- SearchSystem: 2 Reactors
+
+### ✅ Klare Abhängigkeiten
+- **core/** - Von allen genutzt
+- **shared/** - Von allen Features genutzt
+- **features/** - Feature-spezifisch, klar getrennt
+
+### ✅ Einfaches Onboarding
+Entwickler können sich auf ein Feature fokussieren ohne das gesamte System zu verstehen.
+
+### ✅ Bessere Wartbarkeit
+- Feature-Code ist lokal
+- Änderungen am BubbleView betreffen nur `features/bubble-view/`
+- Keine Vermischung zwischen Features
+
+## Migration
+
+### Alt (technische Trennung):
+```
+src/amorph/
+├── arch/          # ALLE System-Komponenten
+├── hosts/         # ALLE Hosts vermischt
+├── reactors/      # ALLE Reactors vermischt
+├── morphs/        # ALLE Morphs
+└── observers/     # ALLE Observers
+```
+
+### Neu (feature-basiert):
+```
+src/amorph/
+├── core/          # Nur Kern-System
+├── features/      # Nach Feature gruppiert
+└── shared/        # Wirklich gemeinsam
+```
+
+## Import-Pfade aktualisieren
+
+**Alt:**
+```javascript
+import { BubbleView } from '../hosts/BubbleView.js';
+import { CanvasPhysicsReactor } from '../reactors/canvas/CanvasPhysicsReactor.js';
+```
+
+**Neu:**
+```javascript
+import { BubbleView } from '../features/bubble-view/BubbleView.js';
+import { CanvasPhysicsReactor } from '../features/bubble-view/reactors/CanvasPhysicsReactor.js';
+```
+
+## Entry Point
+
+Bleibt gleich:
+```javascript
+import '/src/amorph/init.js';
+// oder
+import '/src/amorph/core/init.js';
+```
+
+Beide funktionieren - `init.js` im Root re-exportiert `core/init.js`.
+
+## Dokumentation
+
+Jedes Feature hat eine `CLAUDE.md` mit:
+- Übersicht
+- Struktur
+- Komponenten-Details
+- Usage-Beispiele
+- Abhängigkeiten
+
+## Status
+
+✅ Struktur erstellt
+✅ Dateien verschoben
+✅ init.js aktualisiert
+⏳ Import-Pfade in Komponenten aktualisieren (nächster Schritt)

@@ -28,18 +28,20 @@ export class BubbleDetailReactor {
     this.amorph = amorph;
     console.log('[BubbleDetailReactor] Applying...');
 
-    // Listen for bubble clicks
-    this.amorph.on('bubble:clicked', this.handleBubbleClick.bind(this));
+    // Listen for bubble clicks via window (CustomEvent from BubbleMorph)
+    this.boundHandleBubbleClick = this.handleBubbleClick.bind(this);
+    window.addEventListener('bubble:clicked', this.boundHandleBubbleClick);
 
     // Create detail panel
     this.createDetailPanel();
 
     // Listen for ESC key
-    document.addEventListener('keydown', (e) => {
+    this.boundHandleEscape = (e) => {
       if (e.key === 'Escape' && this.detailPanel.classList.contains('visible')) {
         this.hideDetailPanel();
       }
-    });
+    };
+    document.addEventListener('keydown', this.boundHandleEscape);
 
     console.log('[BubbleDetailReactor] ✅ Applied');
   }
@@ -220,30 +222,58 @@ export class BubbleDetailReactor {
   /**
    * Handle bubble click
    */
-  handleBubbleClick(data) {
+  handleBubbleClick(event) {
+    const data = event.detail;
     console.log('[BubbleDetailReactor] Bubble clicked:', data.fungusData.slug);
     this.selectedBubble = data.morph;
-    this.showDetailPanel(data.fungusData);
+    this.showDetailPanel(data.fungusData, data.morph);
   }
 
   /**
-   * Show detail panel with fungus data
+   * Show detail panel with connection & relationship info
    */
-  showDetailPanel(fungusData) {
+  showDetailPanel(fungusData, bubbleMorph) {
     const content = this.detailPanel.querySelector('.detail-content');
     
-    // Get active perspectives from AMORPH or use defaults
-    const activePerspectives = this.amorph?.state?.activePerspectives || 
-      ['cultivationAndProcessing', 'chemicalAndProperties', 'medicinalAndHealth'];
-
+    // Get BubbleView to access connections data
+    const bubbleView = document.querySelector('bubble-view');
+    const userNodeConnections = bubbleView?.userNodeData?.connections || new Map();
+    const bubbleConnections = bubbleView?.connections || new Map();
+    
+    // Get connection info for this bubble
+    const userNodeConnection = userNodeConnections.get(fungusData.slug);
+    const connectionScore = userNodeConnection ? userNodeConnection[1] : 0;
+    
+    // Get connected bubbles (bubble-to-bubble connections)
+    const connectedBubbles = this.getConnectedBubbles(fungusData.slug, bubbleConnections, bubbleView);
+    
+    // Get active perspectives
+    const activePerspectives = bubbleView?.activePerspectives || [];
+    
+    // Get key facts
+    const keyFacts = this.extractKeyFacts(fungusData, activePerspectives);
+    
     // Generate content
     content.innerHTML = `
       <div class="detail-header">
         <div class="detail-name">${fungusData.commonName || 'Unknown'}</div>
         <div class="detail-scientific">${fungusData.scientificName || ''}</div>
       </div>
-      <div class="detail-data-grid">
-        ${this.renderDataMorphs(fungusData, activePerspectives)}
+
+      ${this.renderConnectionInfo(connectionScore, activePerspectives)}
+      
+      ${connectedBubbles.length > 0 ? this.renderConnectedBubbles(connectedBubbles) : ''}
+      
+      ${this.renderKeyFacts(keyFacts)}
+      
+      <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <a href="/fungi/${fungusData.slug}" 
+           style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; 
+                  background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4);
+                  border-radius: 8px; color: white; text-decoration: none; font-weight: 600;
+                  transition: all 0.3s ease;">
+          📖 Alle Details anzeigen
+        </a>
       </div>
     `;
 
@@ -252,73 +282,182 @@ export class BubbleDetailReactor {
   }
 
   /**
-   * Render data morphs based on active perspectives
+   * Get connected bubbles with similarity scores
    */
-  renderDataMorphs(fungusData, activePerspectives) {
-    const perspectiveFieldMap = {
-      'cultivationAndProcessing': [
-        'cultivationDifficulty',
-        'cultivationMethods',
-        'substrate'
-      ],
-      'chemicalAndProperties': [
-        'primaryCompounds',
-        'secondaryMetabolites'
-      ],
-      'medicinalAndHealth': [
-        'medicinalProperties',
-        'activeCompounds'
-      ],
-      'culinaryAndNutritional': [
-        'flavorProfile',
-        'preparationMethods'
-      ],
-      'ecologyAndHabitat': [
-        'ecologyAndHabitat.substrate',
-        'ecologyAndHabitat.seasonality.primarySeason'
-      ],
-      'safetyAndIdentification': [
-        'edibility',
-        'toxicityLevel'
-      ]
-    };
-
-    let html = '';
-
-    // Render fields for each active perspective
-    for (const perspective of activePerspectives) {
-      const fields = perspectiveFieldMap[perspective] || [];
+  getConnectedBubbles(slug, connections, bubbleView) {
+    const connected = [];
+    const bubbles = bubbleView?.bubbles || new Map();
+    
+    // Find all connections involving this bubble
+    connections.forEach((connection, key) => {
+      const [id1, id2] = key.split('-');
+      const otherSlug = id1 === slug ? id2 : (id2 === slug ? id1 : null);
       
-      for (const field of fields) {
-        const value = this.getNestedValue(fungusData, field);
-        if (value !== null && value !== undefined) {
-          html += `
-            <data-morph
-              fungus-data='${JSON.stringify(fungusData)}'
-              field="${field}"
-            ></data-morph>
-          `;
+      if (otherSlug && otherSlug !== 'user-central') {
+        const otherBubble = bubbles.get(otherSlug);
+        if (otherBubble) {
+          connected.push({
+            slug: otherSlug,
+            name: otherBubble.commonName || otherBubble.scientificName,
+            score: connection.similarity
+          });
         }
       }
-    }
-
-    return html || '<p style="color: rgba(255, 255, 255, 0.5);">No data available for selected perspectives.</p>';
+    });
+    
+    // Sort by similarity score
+    return connected.sort((a, b) => b.score - a.score);
   }
 
   /**
-   * Get nested value from object
+   * Extract key facts from fungus data
    */
-  getNestedValue(obj, path) {
-    const keys = path.split('.');
-    let value = obj;
-    for (const key of keys) {
-      if (value && typeof value === 'object') {
-        value = value[key];
-      } else {
-        return null;
+  extractKeyFacts(fungusData, activePerspectives) {
+    const facts = [];
+    
+    // Edibility (always show if available)
+    if (fungusData.edibility) {
+      facts.push({ label: 'Essbarkeit', value: fungusData.edibility, icon: '🍄' });
+    }
+    
+    // From active perspectives
+    if (activePerspectives.includes('cultivationAndProcessing')) {
+      const cultivation = fungusData.cultivationAndProcessing;
+      if (cultivation?.cultivationDifficulty) {
+        facts.push({ 
+          label: 'Anbau-Schwierigkeit', 
+          value: cultivation.cultivationDifficulty, 
+          icon: '🌱' 
+        });
       }
     }
-    return value;
+    
+    if (activePerspectives.includes('medicinalAndHealth')) {
+      const medicinal = fungusData.medicinalAndHealth;
+      if (medicinal?.primaryHealthBenefits?.length > 0) {
+        facts.push({ 
+          label: 'Gesundheitliche Vorteile', 
+          value: medicinal.primaryHealthBenefits.slice(0, 3).join(', '), 
+          icon: '⚕️' 
+        });
+      }
+    }
+    
+    if (activePerspectives.includes('culinaryAndNutritional')) {
+      const culinary = fungusData.culinaryAndNutritional;
+      if (culinary?.flavorProfile) {
+        facts.push({ 
+          label: 'Geschmacksprofil', 
+          value: culinary.flavorProfile, 
+          icon: '🍳' 
+        });
+      }
+    }
+    
+    if (activePerspectives.includes('chemicalAndProperties')) {
+      const chemical = fungusData.chemicalAndProperties;
+      if (chemical?.primaryCompounds?.length > 0) {
+        facts.push({ 
+          label: 'Hauptinhaltsstoffe', 
+          value: chemical.primaryCompounds.slice(0, 2).join(', '), 
+          icon: '🧪' 
+        });
+      }
+    }
+    
+    // Limit to 5 facts
+    return facts.slice(0, 5);
+  }
+
+  /**
+   * Render connection info (why this bubble is here)
+   */
+  renderConnectionInfo(score, perspectives) {
+    const percentage = Math.round(score * 100);
+    const strength = score > 0.5 ? 'Stark' : score >= 0.3 ? 'Mittel' : 'Schwach';
+    
+    return `
+      <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); 
+                  border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+        <div style="font-size: 0.75rem; font-weight: 600; color: rgba(255, 255, 255, 0.6); 
+                    text-transform: uppercase; margin-bottom: 0.5rem;">
+          🔗 Verbindung zum User Node
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <div style="font-size: 2rem; font-weight: 700; color: rgba(59, 130, 246, 1);">
+            ${percentage}%
+          </div>
+          <div>
+            <div style="color: white; font-weight: 600;">${strength}</div>
+            <div style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.7);">
+              ${perspectives.length > 0 
+                ? `Durch ${perspectives.length} aktive Perspektive${perspectives.length > 1 ? 'n' : ''}`
+                : 'Durch Suche'}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render connected bubbles
+   */
+  renderConnectedBubbles(connected) {
+    return `
+      <div style="margin-bottom: 1rem;">
+        <div style="font-size: 0.75rem; font-weight: 600; color: rgba(255, 255, 255, 0.6); 
+                    text-transform: uppercase; margin-bottom: 0.75rem;">
+          🫧 Verbundene Pilze (${connected.length})
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          ${connected.map(bubble => `
+            <a href="/fungi/${bubble.slug}" 
+               style="display: flex; justify-content: space-between; align-items: center; 
+                      padding: 0.75rem; background: rgba(255, 255, 255, 0.05); 
+                      border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px;
+                      color: white; text-decoration: none; transition: all 0.3s ease;">
+              <span style="font-weight: 500;">${bubble.name}</span>
+              <span style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.6);">
+                ${Math.round(bubble.score * 100)}% ähnlich
+              </span>
+            </a>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Render key facts
+   */
+  renderKeyFacts(facts) {
+    if (facts.length === 0) return '';
+    
+    return `
+      <div style="margin-bottom: 1rem;">
+        <div style="font-size: 0.75rem; font-weight: 600; color: rgba(255, 255, 255, 0.6); 
+                    text-transform: uppercase; margin-bottom: 0.75rem;">
+          ⚡ Wichtigste Eigenschaften
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          ${facts.map(fact => `
+            <div style="display: flex; gap: 0.75rem;">
+              <div style="font-size: 1.5rem; flex-shrink: 0;">${fact.icon}</div>
+              <div style="flex: 1;">
+                <div style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.6); 
+                            text-transform: uppercase; margin-bottom: 0.25rem;">
+                  ${fact.label}
+                </div>
+                <div style="color: white; font-weight: 500; line-height: 1.4;">
+                  ${fact.value}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
   }
 
   /**
@@ -335,6 +474,12 @@ export class BubbleDetailReactor {
   remove() {
     if (this.detailPanel) {
       this.detailPanel.remove();
+    }
+    if (this.boundHandleBubbleClick) {
+      window.removeEventListener('bubble:clicked', this.boundHandleBubbleClick);
+    }
+    if (this.boundHandleEscape) {
+      document.removeEventListener('keydown', this.boundHandleEscape);
     }
     console.log('[BubbleDetailReactor] Removed');
   }

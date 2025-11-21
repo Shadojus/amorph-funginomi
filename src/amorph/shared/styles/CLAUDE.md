@@ -1,5 +1,7 @@
 # 🎨 AMORPH Design System - Global Tokens
 
+**Last Updated:** 21. November 2025
+
 ## Übersicht
 
 **Global Design Tokens** für das gesamte AMORPH System:

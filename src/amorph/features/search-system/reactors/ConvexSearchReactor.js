@@ -185,10 +185,12 @@ export class ConvexSearchReactor {
       // Cache results
       this.lastResults = searchResults;
       
-      console.log(`[ConvexSearchReactor] ✅ Found ${searchResults.totalResults} results in ${duration.toFixed(0)}ms`);
-      console.log('[ConvexSearchReactor] 📊 Matched perspectives:', searchResults.matchedPerspectives);
-      console.log('[ConvexSearchReactor] 🎯 Matched fields:', Object.keys(searchResults.matchedFields || {}).length, 'fungi with field matches');
-      console.log('[ConvexSearchReactor] 📡 Dispatching events: convex-search:completed + search:completed');
+      // matchedPerspectives is an object {perspectiveName: count}, not an array
+      const matchedPerspectivesStr = searchResults.matchedPerspectives 
+        ? Object.keys(searchResults.matchedPerspectives).join(', ')
+        : 'none';
+      const matchedFieldCount = Object.keys(searchResults.matchedFields || {}).length;
+      console.log(`[ConvexSearchReactor] ✅ "${query}" → ${searchResults.totalResults} results in ${duration.toFixed(0)}ms | Perspectives: ${matchedPerspectivesStr} | Fields: ${matchedFieldCount} fungi`);
       
       // Update AmorphSystem state
       if (amorph.state) {
@@ -220,7 +222,7 @@ export class ConvexSearchReactor {
    * Reset search (show all results)
    */
   resetSearch() {
-    console.log('[ConvexSearchReactor] 🔄 Resetting search - showing all fungi');
+    console.log('[ConvexSearchReactor] 🔄 Search reset → showing all fungi');
     
     this.currentQuery = '';
     

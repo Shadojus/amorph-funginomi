@@ -1,10 +1,10 @@
 # 🫧 BUBBLE VIEW FEATURE
 
-**Last Updated:** 19. November 2025
+**Last Updated:** 21. November 2025
 
 ## Overview
 
-Complete BubbleView visualization system with Canvas rendering, physics simulation, and user node connections.
+Complete BubbleView visualization system with Canvas rendering, physics simulation, user node connections, and relationship-focused bubble detail dialog.
 
 ## Structure
 
@@ -29,16 +29,18 @@ features/bubble-view/
 
 ## Components
 
-### BubbleView.js (913 lines)
+### BubbleView.js (~970 lines)
 Main Canvas-based visualization component. Key features:
-- **Canvas rendering** with Pixi.js integration
-- **User node system** with weighted connections (lines 406-514)
-- **Size update pipeline** based on connection weights (lines 516-548)
-- **Search integration** via 'amorph:astro-search:completed' event (lines 631-695)
-- **Similarity matrix** calculations (HilbertSpaceSimilarity)
-- **Physics simulation** with spring forces and collision detection
+- **Canvas rendering** with native Canvas 2D (no Pixi.js)
+- **User node system** with weighted connections at center (400, 300)
+- **Responsive canvas** - fills container width/height
+- **Size update pipeline** based on connection weights (lines 584-639)
+- **Search integration** via ConvexSearchReactor events
+- **Similarity matrix** calculations with HilbertSpaceSimilarity
+- **Physics simulation** via CanvasPhysicsReactor (getAllNodes method)
 - **Connection weight calculation** (Search 70%, Perspective 20%, Interaction 10%, Base 0.1)
-- **Size range** 60-140px based on normalized weights
+- **Size range** 50-100px on mobile (358px), 60-120px on desktop (800px+)
+- **Perspective-aware connections** - updates on perspective changes
 
 ### BubbleHost.js
 Data provider for BubbleView. Creates morphs from Convex data and manages bubble lifecycle.
@@ -52,23 +54,67 @@ Individual bubble component with:
 
 ## Reactors
 
-### BubbleDetailReactor.js
-Handles bubble detail view interactions and transitions.
+### BubbleDetailReactor.js (~487 lines)
+**Relationship-focused bubble detail dialog**. Shows connections and key facts instead of raw data dump.
+
+**Features:**
+- **Window-level event handling** via window.addEventListener('bubble:clicked')
+- **Connection strength display** - Shows UserNode similarity score with classification:
+  - Stark: > 50%
+  - Mittel: ≥ 30%
+  - Schwach: < 30%
+- **Connected bubbles list** - Shows bubble-to-bubble similarity scores
+- **Key facts extraction** - 5 properties from active perspectives with icons:
+  - 🍄 Edibility (always shown if available)
+  - 🌱 Cultivation difficulty
+  - ⚕️ Health benefits
+  - 🍳 Flavor profile
+  - 🧪 Chemical compounds
+- **Wood floor background** with gradient overlay
+- **Link to full detail page** (/fungi/[slug])
+
+**Design Philosophy:**
+BubbleView dialog explains WHY bubbles are connected and shows relationships, NOT comprehensive data (that's GridView's job).
 
 ### BubbleSearchReactor.js
-Manages search-related bubble highlighting and filtering.
+Manages search-related bubble highlighting and filtering via ConvexSearchReactor events.
 
 ### CanvasConnectionReactor.js
-Draws Bezier curve connection lines with weight badges between bubbles. Type-specific colors.
+Draws curved connection lines between bubbles and UserNode. Features:
+- Quadratic curves with control point offset
+- Line width 1-8px based on similarity
+- Opacity 0.2-1.0 based on connection strength
+- Blue connections (#3B82F6) for all types
 
 ### CanvasPhysicsReactor.js
-Physics simulation with spring forces (damping: 0.98) and collision detection.
+**Physics simulation with spring forces and collision detection.**
+
+**Critical Method:**
+```javascript
+getAllNodes() {
+  const bubbles = this.getBubbles();
+  const queryNodes = this.getQueryNodes();
+  const combined = new Map([...bubbles, ...queryNodes]);
+  return Array.from(combined.entries());
+}
+```
+**IMPORTANT:** UserNode is NEVER included in physics simulation - it stays fixed at canvas center.
+
+**Physics Parameters:**
+- Spring strength: 0.005
+- Damping: 0.95
+- Collision strength: 0.1
+- User node gravity: 0.02
 
 ### CanvasReactor.js
-Base canvas reactor providing core rendering functionality.
+Base canvas reactor providing core rendering loop and helper methods.
 
 ### CanvasUserNodeReactor.js
-Renders central user node at (400, 300) with size 160px and weighted connections to all bubbles.
+Renders central user node with weighted connection lines to all bubbles.
+- **Fixed position** at canvas center
+- **Size** 53px fixed
+- **Connection threshold** 0.3 (only shows strong connections)
+- **Max connections** 8 visible lines
 
 ## 🔗 Related Components
 

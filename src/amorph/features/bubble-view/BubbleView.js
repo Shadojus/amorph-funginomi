@@ -60,12 +60,14 @@ export class BubbleView extends LitElement {
     this.currentSearchQuery = '';
     
     // User Node (central point representing user's intent)
+    // FIXED SIZE: 3x smaller than before (160 → 53px)
+    // FIXED POSITION: Excluded from physics simulation
     this.userNodeData = {
       x: 400,
       y: 300,
       vx: 0,
       vy: 0,
-      size: 160,
+      size: 53,  // 3x smaller for subtle central anchor
       isActive: true,
       interactions: [],
       searchQueries: [],
@@ -150,27 +152,29 @@ export class BubbleView extends LitElement {
   handleResize() {
     if (!this.canvas) return;
     
-    const width = this.offsetWidth || 800;
-    const height = this.offsetHeight || 600;
+    const containerWidth = this.offsetWidth || 800;
+    const containerHeight = this.offsetHeight || 600;
     
-    this.canvas.width = width;
-    this.canvas.height = height;
+    this.canvas.width = containerWidth;
+    this.canvas.height = containerHeight;
     
-    // Update user node position to center
+    // Update user node position to center of canvas
     if (this.userNodeData) {
-      this.userNodeData.x = width / 2;
-      this.userNodeData.y = height / 2;
+      this.userNodeData.x = containerWidth / 2;
+      this.userNodeData.y = containerHeight / 2;
     }
     
-    console.log('[BubbleView] Resized:', { width, height });
+    console.log(`[BubbleView] 📐 Canvas resized: ${containerWidth}x${containerHeight}px`, {
+      userNodeCenter: this.userNodeData ? `(${Math.round(this.userNodeData.x)}, ${Math.round(this.userNodeData.y)})` : 'none'
+    });
   }
 
   initializeUserNode() {
-    const width = this.offsetWidth || 800;
-    const height = this.offsetHeight || 600;
+    const containerWidth = this.offsetWidth || 800;
+    const containerHeight = this.offsetHeight || 600;
     
-    this.userNodeData.x = width / 2;
-    this.userNodeData.y = height / 2;
+    this.userNodeData.x = containerWidth / 2;
+    this.userNodeData.y = containerHeight / 2;
     this.userNodeData.activePerspectives = [...this.activePerspectives];
     
     console.log('[BubbleView] User node initialized at center');
@@ -352,17 +356,36 @@ export class BubbleView extends LitElement {
     const width = this.offsetWidth || 800;
     const height = this.offsetHeight || 600;
     
+    // RESPONSIVE: Adjust radius and initial size based on viewport
+    const isSmallScreen = width < 600;
+    const isMediumScreen = width >= 600 && width < 1024;
+    
+    // Smaller radius on small screens to prevent overlap
+    let radiusMultiplier = 0.3;
+    let initialSize = 80;
+    
+    if (isSmallScreen) {
+      radiusMultiplier = 0.25; // Tighter circle
+      initialSize = 60;        // Smaller bubbles
+    } else if (isMediumScreen) {
+      radiusMultiplier = 0.28;
+      initialSize = 70;
+    }
+    
+    const radius = Math.min(width, height) * radiusMultiplier;
+    
+    console.log(`[BubbleView] 📱 Viewport: ${width}x${height}, radius: ${radius.toFixed(0)}px, initial size: ${initialSize}px`);
+    
     // Clear existing bubbles
     this.bubbles.clear();
     
-    // Create bubbles with random positions
+    // Create bubbles with responsive positions
     fungi.forEach((fungus, index) => {
       // Extract slug from different possible locations
       const slug = fungus.slug || fungus._id || fungus.id || `fungus-${index}`;
       const label = fungus.names?.scientific || fungus.scientificName || fungus.names?.common || fungus.commonName || `Fungus ${index + 1}`;
       
       const angle = (index / fungi.length) * Math.PI * 2;
-      const radius = Math.min(width, height) * 0.3;
       
       this.bubbles.set(slug, {
         slug: slug,
@@ -372,7 +395,7 @@ export class BubbleView extends LitElement {
         y: height / 2 + Math.sin(angle) * radius,
         vx: 0,
         vy: 0,
-        size: 80,
+        size: initialSize,  // Responsive initial size
         color: this.getColorForPerspective(fungus),
         isDragging: false
       });
@@ -534,11 +557,23 @@ export class BubbleView extends LitElement {
    * Update bubble sizes based on weights (search scores + user connections)
    */
   updateBubbleSizes() {
-    const minSize = 60;   // Minimum bubble size
-    const maxSize = 140;  // Maximum bubble size
-    const defaultSize = 80; // Default size when no weights
+    // RESPONSIVE: Adjust size ranges based on viewport
+    const width = this.offsetWidth || 800;
+    const isSmallScreen = width < 600;
+    const isMediumScreen = width >= 600 && width < 1024;
     
-    console.log(`[BubbleView] 📏 Updating bubble sizes for ${this.bubbles.size} bubbles`);
+    let minSize = 60;
+    let maxSize = 140;
+    
+    if (isSmallScreen) {
+      minSize = 50;   // Smaller minimum on mobile
+      maxSize = 100;  // Smaller maximum on mobile
+    } else if (isMediumScreen) {
+      minSize = 55;
+      maxSize = 120;
+    }
+    
+    console.log(`[BubbleView] 📏 Updating bubble sizes for ${this.bubbles.size} bubbles (screen: ${width}px, range: ${minSize}-${maxSize}px)`);
     console.log(`[BubbleView] 📏 User node connections:`, Array.from(this.userNodeData.connections.entries()));
     
     this.bubbles.forEach((bubble, slug) => {
@@ -558,9 +593,18 @@ export class BubbleView extends LitElement {
       // Update canvas bubble data
       bubble.size = newSize;
       
-      // Update BubbleMorph (if exists)
+      // Update BubbleMorph element (CRITICAL for visual update)
       if (bubble.morph) {
+        // Set size property (triggers Lit reactivity)
         bubble.morph.size = newSize;
+        
+        // Force immediate style update (bypasses Lit's update cycle)
+        bubble.morph.style.width = `${newSize}px`;
+        bubble.morph.style.height = `${newSize}px`;
+        bubble.morph.style.left = `${bubble.x - newSize / 2}px`;
+        bubble.morph.style.top = `${bubble.y - newSize / 2}px`;
+        
+        // Request Lit update for internal content scaling
         bubble.morph.requestUpdate();
       }
       
@@ -639,7 +683,7 @@ export class BubbleView extends LitElement {
 
   handlePerspectiveChange(event) {
     const perspectives = event.detail?.perspectives || [];
-    console.log('[BubbleView] Perspectives changed:', perspectives);
+    console.log(`[BubbleView] 🎭 Perspective change: ${perspectives.length} active - ${perspectives.join(', ')}`);
     
     this.activePerspectives = perspectives;
     this.userNodeData.activePerspectives = perspectives;
@@ -888,17 +932,6 @@ export class BubbleView extends LitElement {
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
       ctx.lineWidth = 4;
       ctx.stroke();
-      
-      // Icon
-      ctx.font = '48px sans-serif';
-      ctx.fillStyle = 'white';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('👤', x, y - 15);
-      
-      // Label
-      ctx.font = 'bold 16px sans-serif';
-      ctx.fillText('YOU', x, y + 25);
       
       ctx.restore();
       

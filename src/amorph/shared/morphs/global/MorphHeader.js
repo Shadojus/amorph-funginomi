@@ -784,7 +784,7 @@ export class MorphHeader extends LitElement {
       
       if (matchedPerspectiveNames.length > 0) {
         // Debounce: Wait 400ms before auto-switching (user might still be typing)
-        this.autoSwitchTimer = setTimeout(() => {
+        this.autoSwitchTimer = setTimeout(async () => {
           console.log('[MorphHeader] ⏰ Auto-switch timer fired, activating perspectives...');
           matchedPerspectiveNames.forEach(perspectiveName => {
             const perspective = this.perspectives.find(p => p.name === perspectiveName);
@@ -800,7 +800,26 @@ export class MorphHeader extends LitElement {
               this.togglePerspective(perspective);
             }
           });
+          
+          // Wait for perspective changes and deep mode switches to complete
+          // Reduced to 400ms for faster search response
+          await new Promise(resolve => setTimeout(resolve, 400));
+          
+          // NOW trigger highlighting after all perspective switches have completed
+          console.log('[MorphHeader] 🎨 Triggering highlighting after perspective auto-activation');
+          window.dispatchEvent(new CustomEvent('data-morph:deep-mode-ready', {
+            detail: { query: data.query }
+          }));
         }, 400); // 400ms debounce - nearly unnoticeable but prevents accidental switches
+      } else {
+        // No perspectives to activate, trigger highlighting after deep mode completes
+        // Reduced to 200ms for faster response
+        setTimeout(() => {
+          console.log('[MorphHeader] 🎨 Triggering highlighting (no perspective auto-activation)');
+          window.dispatchEvent(new CustomEvent('data-morph:deep-mode-ready', {
+            detail: { query: data.query }
+          }));
+        }, 200);
       }
     };
     

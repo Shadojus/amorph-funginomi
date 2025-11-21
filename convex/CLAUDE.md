@@ -1,6 +1,6 @@
 # 🗄️ CONVEX - Database & Backend
 
-**Last Updated:** 19. November 2025
+**Last Updated:** 21. November 2025
 
 ## Structure
 

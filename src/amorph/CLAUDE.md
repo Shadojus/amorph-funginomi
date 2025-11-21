@@ -1,11 +1,15 @@
 # 🔮 AMORPH System - Root Documentation
 
+**Last Updated:** 21. November 2025
+
 ## Übersicht
 
 Dies ist das Root-Verzeichnis des AMORPH Systems - ein vollständiges morphologisches UI-System für die Funginomi Pilz-Datenbank.
 
 **Philosophie:** Atomic Design - Jedes Datenfeld ist ein eigener Morph  
-**Tech Stack:** Astro + Lit + Vanilla JS Reactors + Convex (Lokal) + Pixie Renderer + Redis Event Bus
+**Tech Stack:** Astro + Lit + Vanilla JS Reactors + Convex (Lokal) + Canvas 2D Renderer + Redis Event Bus
+
+**Latest:** BubbleView mit relationship-focused detail dialog, Canvas ohne Pixi.js, mobile-optimiert ohne horizontal scroll.
 
 ## 🔗 Quick Navigation
 

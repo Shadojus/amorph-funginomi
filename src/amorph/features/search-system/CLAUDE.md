@@ -1,8 +1,15 @@
 # 🔍 SEARCH SYSTEM FEATURE
 
+**Last Updated:** 21. November 2025
+
 ## Overview
 
 **Convex-powered server-side search** with auto-perspective switching and client-side highlighting.
+
+**✨ UPDATED (2025-11-21):**
+- ConvexSearchReactor coordinates with BubbleView for bubble creation
+- SearchFilterController handles Grid View card filtering
+- BubbleDetailReactor provides quick preview dialog
 
 **✨ UPDATED (2025-11-19):** 
 - Server-side search via Convex with deep field matching
