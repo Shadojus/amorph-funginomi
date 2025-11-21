@@ -29,6 +29,7 @@ export class SearchFilterController {
     this.matchedFields = {}; // Store matched fields per fungus
     this.currentQuery = '';
     this.styleElement = null;
+    this.highlightTimer = null; // Debounce timer for highlighting
     
     this.init();
   }
@@ -90,11 +91,11 @@ export class SearchFilterController {
     // Listen for deep mode rendering completion
     window.addEventListener('data-morph:deep-mode-ready', (event) => {
       const { query } = event.detail || {};
-      console.log('[SearchFilterController] 🎨 Deep mode ready, starting highlighting immediately');
+      console.log('[SearchFilterController] 🎨 Deep mode ready, starting highlighting with debounce');
       
-      // Re-apply highlighting now that deep mode is rendered
+      // Re-apply highlighting now that deep mode is rendered (debounced)
       if (this.currentQuery) {
-        this.highlightMatches();
+        this.debouncedHighlight();
       }
     });
     
@@ -113,6 +114,11 @@ export class SearchFilterController {
     this.currentQuery = query || '';
     this.matchedFields = matchedFields || {};
     this.scores = scores || {};
+    
+    // Mark container as search-active to disable PerspectiveReactor highlighting
+    if (this.container) {
+      this.container.dataset.searchActive = query ? 'true' : 'false';
+    }
     
     // If no query or empty results, show all
     if (!query || query.trim().length < 2) {
@@ -152,6 +158,9 @@ export class SearchFilterController {
         this.hideCard(card);
       }
     });
+    
+    // Use debounced highlighting to prevent freezing during typing/deleting
+    this.debouncedHighlight();
   }
   
   /**
@@ -164,6 +173,17 @@ export class SearchFilterController {
     this.currentQuery = '';
     this.matchedFields = {};
     this.scores = {};
+    
+    // Clear any pending highlight timers
+    if (this.highlightTimer) {
+      clearTimeout(this.highlightTimer);
+      this.highlightTimer = null;
+    }
+    
+    // Clear search-active flag to re-enable PerspectiveReactor
+    if (this.container) {
+      this.container.dataset.searchActive = 'false';
+    }
     
     // Clear highlights
     this.clearHighlights();
@@ -310,6 +330,24 @@ export class SearchFilterController {
   }
   
   /**
+   * Debounced highlight - prevents freezing during rapid typing/deleting
+   */
+  debouncedHighlight() {
+    // Clear existing timer
+    if (this.highlightTimer) {
+      clearTimeout(this.highlightTimer);
+    }
+    
+    // Clear old highlights immediately (fast operation)
+    this.clearHighlights();
+    
+    // Schedule new highlighting after 300ms of no typing
+    this.highlightTimer = setTimeout(() => {
+      this.highlightMatches();
+    }, 300);
+  }
+  
+  /**
    * Highlight matched morphs in visible cards
    */
   highlightMatches() {
@@ -317,9 +355,6 @@ export class SearchFilterController {
     
     const query = this.currentQuery.toLowerCase().trim();
     console.log(`[SearchFilterController] 🎨 Highlighting text containing: "${query}"`);
-    
-    // Clear previous highlights first
-    this.clearHighlights();
     
     let totalHighlights = 0;
     const highlightedElements = []; // Track first highlighted element per card for scrolling

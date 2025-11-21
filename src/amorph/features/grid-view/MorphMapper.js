@@ -117,7 +117,7 @@ export class MorphMapper {
         return 'list-morph';
       }
 
-      // Array of objects → List or nested data
+      // Array of objects → List
       if (itemType === 'object' && firstItem !== null) {
         return 'list-morph';
       }
@@ -136,16 +136,6 @@ export class MorphMapper {
       if (('lat' in value && 'lng' in value) || 
           ('latitude' in value && 'longitude' in value)) {
         return 'map-morph';
-      }
-
-      // Range object (has min/max)
-      if ('min' in value && 'max' in value) {
-        return 'number-morph';
-      }
-
-      // Check if it has min/max (range/measurement object)
-      if ('min' in value && 'max' in value) {
-        return 'number-morph';
       }
 
       // Generic object - use DataMorph to recursively render
@@ -204,17 +194,17 @@ export class MorphMapper {
   getFieldPriority(fieldName, morphType) {
     // Base priorities by morph type (what the data IS)
     const basePriorities = {
-      'name-morph': 900,      // Names usually important
-      'image-morph': 850,      // Visual content
-      'tag-morph': 750,        // Categories
-      'text-morph': 700,       // Descriptions
-      'boolean-morph': 600,    // Yes/No facts
-      'number-morph': 650,     // Measurements
-      'list-morph': 550,       // Lists
-      'data-morph': 400,       // Nested objects
-      'timeline-morph': 200,   // Dates (often metadata)
-      'chart-morph': 300,      // Charts
-      'map-morph': 350,        // Maps
+      'name-morph': 900,         // Names usually important
+      'image-morph': 850,         // Visual content
+      'tag-morph': 750,           // Categories
+      'text-morph': 700,          // Descriptions
+      'number-morph': 650,        // Simple numbers
+      'boolean-morph': 600,       // Yes/No facts
+      'list-morph': 550,          // Lists
+      'data-morph': 400,          // Nested objects
+      'map-morph': 350,           // Maps
+      'chart-morph': 300,         // Charts
+      'timeline-morph': 200,      // Dates (often metadata)
     };
 
     let priority = basePriorities[morphType] || 500;
@@ -223,15 +213,48 @@ export class MorphMapper {
     // These are HINTS only - they don't determine morph type!
     const lowerName = fieldName.toLowerCase();
     
+    // CRITICAL SAFETY INFO → Highest priority
+    if (lowerName.includes('edib') || lowerName.includes('toxic') || 
+        lowerName.includes('poison') || lowerName.includes('deadly') ||
+        lowerName.includes('lookalike') || lowerName.includes('danger')) {
+      priority += 300; // Critical for user safety!
+    }
+    
     // Identity terms → boost priority
-    if (lowerName.includes('name') || lowerName.includes('title') || lowerName.includes('id')) {
+    if (lowerName.includes('name') || lowerName.includes('title')) {
       priority += 100;
     }
     
-    // Safety terms → high priority
-    if (lowerName.includes('edib') || lowerName.includes('toxic') || 
-        lowerName.includes('safe') || lowerName.includes('poison')) {
+    // Visual identification → high priority
+    if (lowerName.includes('color') || lowerName.includes('shape') || 
+        lowerName.includes('spore') || lowerName.includes('cap') ||
+        lowerName.includes('stem') || lowerName.includes('gill')) {
       priority += 80;
+    }
+    
+    // Location/Habitat → useful for finding
+    if (lowerName.includes('habitat') || lowerName.includes('season') || 
+        lowerName.includes('location') || lowerName.includes('substrate')) {
+      priority += 70;
+    }
+    
+    // Practical use → medium priority
+    if (lowerName.includes('culinary') || lowerName.includes('medicinal') || 
+        lowerName.includes('cultivation') || lowerName.includes('use')) {
+      priority += 50;
+    }
+    
+    // Technical/Scientific → lower priority
+    if (lowerName.includes('scientific') || lowerName.includes('taxonomy') || 
+        lowerName.includes('classification') || lowerName.includes('research')) {
+      priority -= 50;
+    }
+    
+    // Metadata → lowest priority
+    if (lowerName.includes('created') || lowerName.includes('updated') || 
+        lowerName.includes('modified') || lowerName.includes('_id') ||
+        lowerName.includes('slug')) {
+      priority -= 200;
     }
     
     // Description terms → medium boost

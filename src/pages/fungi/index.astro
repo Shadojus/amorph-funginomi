@@ -1072,16 +1072,56 @@ const morphMapper = new ServerMorphMapper();
 
     console.log(`[MorphMapper] ✅ Created ${totalMorphsCreated} morphs across ${containers.length} cards`);
     
+    // Debounce for card expansion/collapse (prevent re-render on every keystroke)
+    let expansionTimer = null;
+    let collapseTimer = null;
+    let isExpanded = false;
+    
     // Listen for search events to expand cards
     window.addEventListener('convex-search:completed', (event) => {
       const { query } = event.detail;
+      
+      // Clear existing timers
+      if (expansionTimer) {
+        clearTimeout(expansionTimer);
+      }
+      if (collapseTimer) {
+        clearTimeout(collapseTimer);
+      }
+      
       if (query && query.trim().length >= 2) {
-        expandCardsForSearch(containers, mapper);
+        // Only expand if not already expanded (prevent redundant re-renders)
+        if (!isExpanded) {
+          expansionTimer = setTimeout(() => {
+            expandCardsForSearch(containers, mapper);
+            isExpanded = true;
+          }, 500); // Wait 500ms after typing stops
+        }
+      } else if (isExpanded) {
+        // Only collapse if currently expanded AND query is too short
+        // Debounced to prevent freezing when deleting last characters
+        collapseTimer = setTimeout(() => {
+          collapseCardsToNormal(containers);
+          isExpanded = false;
+        }, 500);
       }
     });
     
     window.addEventListener('convex-search:reset', () => {
-      collapseCardsToNormal(containers);
+      if (expansionTimer) {
+        clearTimeout(expansionTimer);
+      }
+      if (collapseTimer) {
+        clearTimeout(collapseTimer);
+      }
+      
+      // Only collapse if expanded
+      if (isExpanded) {
+        collapseTimer = setTimeout(() => {
+          collapseCardsToNormal(containers);
+          isExpanded = false;
+        }, 300);
+      }
     });
   }
   
@@ -1123,6 +1163,13 @@ const morphMapper = new ServerMorphMapper();
     const mapper = window.amorph.morphMapper;
     
     containers.forEach(container => {
+      // Skip if already collapsed (check for search-expanded class)
+      const hasExpandedMorphs = container.querySelector('.search-expanded');
+      if (!hasExpandedMorphs) {
+        console.log('[MorphMapper] ⏭️ Already collapsed, skipping');
+        return;
+      }
+      
       const fungusDataStr = container.dataset.fullData;
       if (!fungusDataStr) return;
       
@@ -1134,16 +1181,21 @@ const morphMapper = new ServerMorphMapper();
         maxDepth: 1
       });
       
-      // Remove existing morphs
-      container.innerHTML = '';
-      
-      // Create morphs for top fields only
-      topFields.forEach(fieldConfig => {
-        const morphElement = mapper.createMorphElement(fieldConfig, fungusData);
-        morphElement.setAttribute('data-priority', fieldConfig.priority);
-        morphElement.setAttribute('data-morph-type', fieldConfig.morphType);
-        morphElement.setAttribute('data-field-path', fieldConfig.fullPath);
-        container.appendChild(morphElement);
+      // Use requestAnimationFrame to prevent blocking UI
+      requestAnimationFrame(() => {
+        // Remove existing morphs
+        container.innerHTML = '';
+        
+        // Create morphs for top fields only
+        topFields.forEach(fieldConfig => {
+          const morphElement = mapper.createMorphElement(fieldConfig, fungusData);
+          morphElement.setAttribute('data-priority', fieldConfig.priority);
+          morphElement.setAttribute('data-morph-type', fieldConfig.morphType);
+          morphElement.setAttribute('data-field-path', fieldConfig.fullPath);
+          container.appendChild(morphElement);
+        });
+        
+        console.log('[MorphMapper] ✅ Collapsed to top 15 fields');
       });
     });
   }

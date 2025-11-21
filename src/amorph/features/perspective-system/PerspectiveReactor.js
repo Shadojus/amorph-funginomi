@@ -36,6 +36,13 @@ export class PerspectiveReactor {
    * Apply perspective filtering to morphs
    */
   apply(morphs) {
+    // Skip if search is active (SearchFilterController handles highlighting during search)
+    const container = document.querySelector('.fungi-grid');
+    if (container && container.dataset.searchActive === 'true') {
+      console.log('[PerspectiveReactor] ⏸️ Skipped - search is active');
+      return 0;
+    }
+    
     this.injectStyles();
     
     // If no perspectives active, show all morphs

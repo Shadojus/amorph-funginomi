@@ -113,15 +113,23 @@ export const advancedSearch = query({
   },
   handler: async (ctx, args) => {
     const allFungi = await ctx.db.query("fungi").collect();
-    const searchTerm = args.query.toLowerCase().trim();
+    const searchQuery = args.query.toLowerCase().trim();
 
-    if (searchTerm.length < 2) {
+    if (searchQuery.length < 2) {
       return {
         results: allFungi,
         matchedPerspectives: {},
         totalResults: allFungi.length,
       };
     }
+
+    // Multi-word support: split query into terms
+    // "edible mushroom autumn" → ["edible", "mushroom", "autumn"]
+    const searchTerms = searchQuery
+      .split(/\s+/)
+      .filter(term => term.length >= 2);  // Filter out single letters
+    
+    console.log(`[advancedSearch] Query: "${searchQuery}" → ${searchTerms.length} terms:`, searchTerms);
 
     // Field to perspective mapping (same as SearchReactor)
     const fieldToPerspective: Record<string, string> = {
@@ -228,53 +236,114 @@ export const advancedSearch = query({
       const matchedFields: string[] = [];
       const matchedPerspectives: Set<string> = new Set();
 
-      // Helper to check if value matches search term
-      const matches = (value: any): boolean => {
-        if (!value) return false;
+      // Helper to check if value matches ANY search term (OR logic)
+      // Returns: { matched: boolean, matchCount: number, exactMatch: boolean }
+      const matches = (value: any): { matched: boolean; matchCount: number; exactMatch: boolean } => {
+        if (!value) return { matched: false, matchCount: 0, exactMatch: false };
+        
         if (typeof value === "string") {
-          return value.toLowerCase().includes(searchTerm);
+          const lowerValue = value.toLowerCase();
+          let matchCount = 0;
+          let exactMatch = false;
+          
+          // Check each search term
+          for (const term of searchTerms) {
+            if (lowerValue.includes(term)) {
+              matchCount++;
+              // Exact word match gets bonus
+              const wordBoundaryRegex = new RegExp(`\\b${term}\\b`, 'i');
+              if (wordBoundaryRegex.test(value)) {
+                exactMatch = true;
+              }
+            }
+          }
+          
+          return { 
+            matched: matchCount > 0, 
+            matchCount, 
+            exactMatch 
+          };
         }
+        
         if (Array.isArray(value)) {
-          return value.some((v) => matches(v));
+          let totalMatches = 0;
+          let hasExactMatch = false;
+          let matched = false;
+          
+          for (const item of value) {
+            const result = matches(item);
+            if (result.matched) {
+              matched = true;
+              totalMatches += result.matchCount;
+              if (result.exactMatch) hasExactMatch = true;
+            }
+          }
+          
+          return { matched, matchCount: totalMatches, exactMatch: hasExactMatch };
         }
+        
         if (typeof value === "object") {
-          return Object.values(value).some((v) => matches(v));
+          let totalMatches = 0;
+          let hasExactMatch = false;
+          let matched = false;
+          
+          for (const v of Object.values(value)) {
+            const result = matches(v);
+            if (result.matched) {
+              matched = true;
+              totalMatches += result.matchCount;
+              if (result.exactMatch) hasExactMatch = true;
+            }
+          }
+          
+          return { matched, matchCount: totalMatches, exactMatch: hasExactMatch };
         }
-        return false;
+        
+        return { matched: false, matchCount: 0, exactMatch: false };
       };
 
       // Check high-priority fields first
-      if (matches(fungus.commonName)) {
-        totalScore += weights.commonName;
+      const commonNameMatch = matches(fungus.commonName);
+      if (commonNameMatch.matched) {
+        // Score multiplier based on match quality
+        const multiplier = commonNameMatch.exactMatch ? 2 : 1;
+        totalScore += weights.commonName * commonNameMatch.matchCount * multiplier;
         matchedFields.push("commonName");
       }
 
-      if (matches(fungus.latinName)) {
-        totalScore += weights.latinName;
+      const latinNameMatch = matches(fungus.latinName);
+      if (latinNameMatch.matched) {
+        const multiplier = latinNameMatch.exactMatch ? 2 : 1;
+        totalScore += weights.latinName * latinNameMatch.matchCount * multiplier;
         matchedFields.push("latinName");
       }
 
       // Check taxonomy
       if (fungus.taxonomy) {
-        if (matches(fungus.taxonomy.family)) {
-          totalScore += weights.family;
+        const familyMatch = matches(fungus.taxonomy.family);
+        if (familyMatch.matched) {
+          const multiplier = familyMatch.exactMatch ? 2 : 1;
+          totalScore += weights.family * familyMatch.matchCount * multiplier;
           matchedFields.push("taxonomy.family");
           matchedPerspectives.add("taxonomy");
         }
-        if (matches(fungus.taxonomy.genus)) {
-          totalScore += weights.genus;
+        
+        const genusMatch = matches(fungus.taxonomy.genus);
+        if (genusMatch.matched) {
+          const multiplier = genusMatch.exactMatch ? 2 : 1;
+          totalScore += weights.genus * genusMatch.matchCount * multiplier;
           matchedFields.push("taxonomy.genus");
           matchedPerspectives.add("taxonomy");
         }
-        if (
-          matches(fungus.taxonomy.kingdom) ||
-          matches(fungus.taxonomy.phylum) ||
-          matches(fungus.taxonomy.class) ||
-          matches(fungus.taxonomy.order) ||
-          matches(fungus.taxonomy.species)
-        ) {
-          totalScore += weights.default;
-          matchedPerspectives.add("taxonomy");
+        
+        // Check other taxonomy fields
+        const taxonomyFields = ['kingdom', 'phylum', 'class', 'order', 'species'];
+        for (const field of taxonomyFields) {
+          const match = matches(fungus.taxonomy[field]);
+          if (match.matched) {
+            totalScore += weights.default * match.matchCount;
+            matchedPerspectives.add("taxonomy");
+          }
         }
       }
 
@@ -291,18 +360,21 @@ export const advancedSearch = query({
         { key: "commercialAndMarket", data: fungus.commercialAndMarket },
         { key: "environmentalAndConservation", data: fungus.environmentalAndConservation },
         { key: "researchAndInnovation", data: fungus.researchAndInnovation },
-      ];
-
-      for (const perspective of perspectives) {
-        if (!perspective.data) continue;
-
         // Check each field in perspective
         for (const [field, value] of Object.entries(perspective.data)) {
-          if (matches(value)) {
+          const match = matches(value);
+          if (match.matched) {
             const fieldPath = `${perspective.key}.${field}`;
             matchedFields.push(fieldPath);
             matchedPerspectives.add(perspective.key);
 
+            // Get weight for this field
+            const weight = weights[field as keyof typeof weights] || weights.default;
+            // Multi-term bonus: more terms matched = higher score
+            const multiplier = match.exactMatch ? 2 : 1;
+            totalScore += weight * match.matchCount * multiplier;
+          }
+        }
             // Get weight for this field
             const weight = weights[field as keyof typeof weights] || weights.default;
             totalScore += weight;
