@@ -10,17 +10,26 @@ Complete BubbleView visualization system with Canvas rendering, physics simulati
 
 ```
 features/bubble-view/
-├── BubbleView.js           # Main visualization component (913 lines)
+├── BubbleView.js           # Main visualization component (970 lines)
 ├── BubbleHost.js           # Data host for bubbles
-├── morphs/                 # Bubble-specific morphs
-│   └── BubbleMorph.js      # Individual bubble component
-├── reactors/               # BubbleView-specific reactors
-│   ├── BubbleDetailReactor.js       # Detail view handling
+├── morphs/                 # Bubble-specific morphs (only what's needed)
+│   ├── BubbleMorph.js      # Individual bubble component
+│   ├── UserNode.js         # Central user node
+│   ├── ConnectionMorph.js  # Connection visualization
+│   └── tokens.js           # Local design tokens
+├── reactors/               # All reactors (BubbleView + Visual)
+│   ├── BubbleDetailReactor.js       # Detail dialog (relationship-focused)
 │   ├── BubbleSearchReactor.js       # Search interaction
 │   ├── CanvasConnectionReactor.js   # Connection line rendering
 │   ├── CanvasPhysicsReactor.js      # Physics simulation
 │   ├── CanvasReactor.js             # Base canvas reactor
 │   ├── CanvasUserNodeReactor.js     # User node rendering
+│   ├── GlowReactor.js               # Glow effects
+│   ├── AnimationReactor.js          # Animations
+│   ├── PulseReactor.js              # Pulsing effects
+│   ├── HoverReactor.js              # Hover effects
+│   ├── SortReactor.js               # Sorting
+│   ├── FilterReactor.js             # Filtering
 │   └── index.js                     # Reactor exports
 ├── services/               # Helper services
 │   └── HilbertSpaceSimilarity.js    # Similarity calculations
@@ -120,16 +129,16 @@ Renders central user node with weighted connection lines to all bubbles.
 
 **Uses:**
 - `../../core/AmorphSystem.js` - System Registry & Event Coordination
-- `../../shared/morphs/data/UserNode.js` - User node morph
-- `../../shared/styles/tokens.js` - Design tokens
+- `./morphs/UserNode.js` - User node morph (feature-local)
+- `./morphs/tokens.js` - Design tokens (feature-local)
 
 **Used by:**
 - `../../../pages/[slug].astro` - Astro page integration
 - `BubbleHost.js` - Data provider
 
 **See also:**
-- `../../shared/observers/` - Event handling (MorphObserver, ReactorObserver)
-- `../../features/perspective-system/` - Perspective filtering
+- `../../core/observers/` - Event handling (MorphObserver, ReactorObserver)
+- `../perspective-system/` - Perspective filtering
 
 ---
 

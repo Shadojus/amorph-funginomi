@@ -635,21 +635,15 @@ src/amorph/
 │           ├── SearchReactor.js
 │           └── AstroDataSearchReactor.js
 │
-└── shared/                        # Gemeinsame Komponenten
-    ├── reactors/                  # Universelle Reactors
-    │   ├── GlowReactor.js
-    │   ├── AnimationReactor.js
-    │   ├── PulseReactor.js
-    │   ├── HoverReactor.js
-    │   ├── SortReactor.js
-    │   └── FilterReactor.js
-    │
-    ├── morphs/                    # Basis-Morphs
-    │   ├── data/                  # Daten-Morphs
-    │   └── global/                # Globale UI
-    │
-    ├── observers/                 # Stream Observers
-    └── styles/                    # Design Tokens
+└── core/observers/                # Stream Observers (System-level)
+    ├── BaseObserver.js
+    ├── MorphObserver.js
+    ├── ReactorObserver.js
+    ├── HostObserver.js
+    ├── GlobalObserver.js
+    ├── ArchObserver.js
+    ├── LayoutObserver.js
+    └── PerformanceObserver.js
 ```
 
 ## Vorteile der neuen Struktur
@@ -662,9 +656,9 @@ Jedes Feature hat ALLE seine Komponenten in einem Ordner:
 - SearchSystem: 2 Reactors
 
 ### ✅ Klare Abhängigkeiten
-- **core/** - Von allen genutzt
-- **shared/** - Von allen Features genutzt
-- **features/** - Feature-spezifisch, klar getrennt
+- **core/** - System-level (AmorphSystem, Observers, Config)
+- **features/** - Self-contained, no shared folders
+- **grid-view/** - Single source for ALL morphs & visual reactors
 
 ### ✅ Einfaches Onboarding
 Entwickler können sich auf ein Feature fokussieren ohne das gesamte System zu verstehen.
@@ -689,9 +683,11 @@ src/amorph/
 ### Neu (feature-basiert):
 ```
 src/amorph/
-├── core/          # Nur Kern-System
-├── features/      # Nach Feature gruppiert
-└── shared/        # Wirklich gemeinsam
+├── core/          # System-level (AmorphSystem, Observers, Config)
+└── features/      # Feature-only architecture (NO shared folders!)
+    ├── grid-view/morphs/     # Single source: ALL 15 morphs
+    ├── grid-view/reactors/   # Single source: ALL 6 visual reactors
+    └── (other features copy what they need)
 ```
 
 ## Import-Pfade aktualisieren

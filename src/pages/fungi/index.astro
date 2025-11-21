@@ -5,6 +5,7 @@
  * 
  * Main page showing all fungi with AMORPH morphs
  * Loads real data from Convex
+ * Uses MorphMapper for intelligent morph type selection
  */
 
 import BaseLayout from '@/amorph/core/layouts/BaseLayout.astro';
@@ -16,71 +17,147 @@ const fungi = await fetchFungi();
 console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
 
 /**
- * Extract relevant fields from fungus data dynamically
- * Only returns fields that actually exist in the data
+ * MorphMapper - Server-side version
+ * Determines correct morph type for each field
  */
-function getRelevantFields(fungus: any): string[] {
-  const fieldPriority = [
-    // Safety & Identification (highest priority)
-    'edibility',
-    'toxicityLevel',
-    
-    // Taxonomy (important for identification)
-    'taxonomy.family',
-    'taxonomy.genus',
-    'taxonomy.order',
-    
-    // Culinary & Nutritional
-    'culinaryAndNutritional.flavorProfile',
-    'culinaryAndNutritional.preparationMethods',
-    
-    // Cultivation & Processing
-    'cultivationAndProcessing.cultivationDifficulty',
-    'cultivationAndProcessing.cultivationMethods',
-    
-    // Medicinal & Health
-    'medicinalAndHealth.medicinalProperties',
-    'medicinalAndHealth.activeCompounds',
-    
-    // Ecology & Habitat
-    'ecologyAndHabitat.seasonality.primarySeason',
-    'ecologyAndHabitat.substrate',
-    
-    // Physical Characteristics
-    'physicalCharacteristics.capColor',
-    'physicalCharacteristics.sporePrintColor',
-    
-    // Chemical & Properties
-    'primaryCompounds',
-    'secondaryMetabolites',
-    
-    // Commercial & Market
-    'commercialAndMarket.commercialValue',
-    'commercialAndMarket.marketSegments',
-    
-    // Research & Innovation
-    'researchAndInnovation.researchInterest',
-    'activeResearchAreas'
-  ];
+class ServerMorphMapper {
+  constructor() {
+    // Exact field name to morph type mappings
+    this.exactMappings = {
+      // Names & Identifiers
+      'commonName': 'name-morph',
+      'latinName': 'name-morph',
+      'scientificName': 'name-morph',
+      'genus': 'name-morph',
+      'species': 'name-morph',
+      'family': 'name-morph',
+      
+      // Images
+      'imageUrl': 'image-morph',
+      'imageUrls': 'image-morph',
+      
+      // Text
+      'description': 'text-morph',
+      
+      // Tags & Categories
+      'edibility': 'tag-morph',
+      'toxicityLevel': 'tag-morph',
+      'habitat': 'tag-morph',
+      'substrate': 'tag-morph',
+      'primarySeason': 'tag-morph',
+      'capColor': 'tag-morph',
+      'sporePrintColor': 'tag-morph',
+      
+      // Booleans
+      'bioluminescence': 'boolean-morph',
+      'cultivated': 'boolean-morph',
+      
+      // Numbers
+      'diameter': 'number-morph',
+      'length': 'number-morph',
+    };
+  }
 
-  // Helper to get nested value
-  const getNestedValue = (obj: any, path: string): any => {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
-  };
+  getMorphType(fieldName: string, value: any): string {
+    // Check exact mappings
+    if (this.exactMappings[fieldName]) {
+      return this.exactMappings[fieldName];
+    }
 
-  // Filter to only fields that exist and have values
-  const existingFields = fieldPriority.filter(field => {
-    const value = getNestedValue(fungus, field);
-    // Include if value exists and is not empty
-    return value !== null && 
-           value !== undefined && 
-           value !== '' && 
-           !(Array.isArray(value) && value.length === 0);
-  });
+    // Pattern matching
+    if (/Name$/i.test(fieldName)) return 'name-morph';
+    if (/Image/i.test(fieldName)) return 'image-morph';
+    if (/Color$/i.test(fieldName)) return 'tag-morph';
+    if (/^is[A-Z]/.test(fieldName)) return 'boolean-morph';
+    if (/Count$/i.test(fieldName)) return 'number-morph';
+    
+    // Value-based analysis
+    if (typeof value === 'boolean') return 'boolean-morph';
+    if (typeof value === 'number') return 'number-morph';
+    if (Array.isArray(value)) {
+      if (value.length > 0 && typeof value[0] === 'string' && value[0].length < 30) {
+        return 'tag-morph';
+      }
+      return 'list-morph';
+    }
+    
+    return 'text-morph';
+  }
 
-  // Return max 8-10 fields to prevent overcrowding
-  return existingFields.slice(0, 10);
+  getFieldPriority(fieldName: string): number {
+    const priorities: Record<string, number> = {
+      'commonName': 1000,
+      'latinName': 950,
+      'imageUrl': 900,
+      'edibility': 800,
+      'toxicityLevel': 790,
+      'description': 850,
+      'habitat': 780,
+      'genus': 690,
+      'species': 680,
+    };
+    return priorities[fieldName] || 500;
+  }
+
+  getMappedFields(fungus: any) {
+    const fields: Array<{ fieldName: string; morphType: string; value: any; priority: number; fullPath: string }> = [];
+    
+    const excludeFields = ['_id', '_creationTime', 'seoName', 'slug', 'scientificNameSynonyms', 'commonNameVariants'];
+    
+    // Helper to get nested value
+    const getNestedValue = (obj: any, path: string): any => {
+      return path.split('.').reduce((current, key) => current?.[key], obj);
+    };
+
+    // Define priority fields with their paths
+    const fieldPaths = [
+      'commonName',
+      'latinName',
+      'imageUrl',
+      'description',
+      'safetyAndIdentification.edibility',
+      'safetyAndIdentification.toxicityLevel',
+      'taxonomy.family',
+      'taxonomy.genus',
+      'taxonomy.species',
+      'ecologyAndHabitat.habitat',
+      'ecologyAndHabitat.substrate',
+      'ecologyAndHabitat.seasonality.primarySeason',
+      'physicalCharacteristics.capColor',
+      'physicalCharacteristics.sporePrintColor',
+      'culinaryAndNutritional.flavorProfile',
+      'medicinalAndHealth.medicinalProperties',
+      'cultivationAndProcessing.cultivationDifficulty',
+    ];
+
+    for (const path of fieldPaths) {
+      const value = getNestedValue(fungus, path);
+      
+      // Skip if value doesn't exist or is empty
+      if (value === null || value === undefined || value === '' || 
+          (Array.isArray(value) && value.length === 0)) {
+        continue;
+      }
+
+      const fieldName = path.split('.').pop() || path;
+      const morphType = this.getMorphType(fieldName, value);
+      const priority = this.getFieldPriority(fieldName);
+
+      fields.push({
+        fieldName,
+        morphType,
+        value,
+        priority,
+        fullPath: path
+      });
+    }
+
+    // Sort by priority and limit to top 10
+    return fields.sort((a, b) => b.priority - a.priority).slice(0, 10);
+  }
 }
+
+const morphMapper = new ServerMorphMapper();
 ---
 
 <BaseLayout 
@@ -141,14 +218,12 @@ function getRelevantFields(fungus: any): string[] {
           </div>
           
 
-          <div class="card-data">
-            <!-- Dynamically render only fields that exist -->
-            {getRelevantFields(fungus).map((field) => (
-              <data-morph
-                fungus-data={JSON.stringify(fungus)}
-                field={field}
-              ></data-morph>
-            ))}
+          <div 
+            class="card-data" 
+            data-fungus={JSON.stringify(fungus)}
+            data-use-mapper="true"
+          >
+            <!-- Morphs will be dynamically created by MorphMapper on client-side -->
           </div>
 
           <a href={`/fungi/${fungus.slug}`} class="card-link">
@@ -318,10 +393,10 @@ function getRelevantFields(fungus: any): string[] {
   }
 
   .card-data {
-    padding: 1.25rem; /* Reduced from 1.75rem */
+    padding: 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: 0.625rem; /* Reduced from 0.875rem */
+    gap: 0.75rem;
     overflow-y: auto;
     overflow-x: hidden;
     max-height: 400px;
@@ -334,8 +409,35 @@ function getRelevantFields(fungus: any): string[] {
     display: none;
   }
 
+  /* Morph field wrapper with label */
+  .card-data .morph-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .card-data .morph-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  /* Style all morph types in card-data */
+  .card-data name-morph,
+  .card-data text-morph,
+  .card-data tag-morph,
+  .card-data boolean-morph,
+  .card-data number-morph,
+  .card-data list-morph,
   .card-data data-morph {
     margin-bottom: 0;
+  }
+  
+  /* Legacy data-morph support */
+  .card-data data-morph {
     order: 999; /* Default: hidden at bottom until perspective activates */
   }
 
@@ -902,6 +1004,156 @@ function getRelevantFields(fungus: any): string[] {
   
   // Initialize
   new DataMorphModeSwitcher();
+</script>
+
+<!-- MorphMapper Client-Side Initialization -->
+<script type="module">
+  /**
+   * 🗺️ MORPH MAPPER CLIENT INITIALIZATION
+   * ======================================
+   * 
+   * Dynamically creates morph elements based on data attributes
+   * using the MorphMapper to select the correct morph type
+   */
+  
+  async function initMorphMapper() {
+    // Wait for MorphMapper to be available
+    await new Promise(resolve => {
+      if (window.amorph?.morphMapper) {
+        resolve();
+      } else {
+        const checkInterval = setInterval(() => {
+          if (window.amorph?.morphMapper) {
+            clearInterval(checkInterval);
+            resolve();
+          }
+        }, 100);
+      }
+    });
+
+    const mapper = window.amorph.morphMapper;
+    console.log('[MorphMapper] ✅ Client initialization starting...');
+
+    // Find all card-data containers that need dynamic morphs
+    const containers = document.querySelectorAll('.card-data[data-use-mapper="true"]');
+    let totalMorphsCreated = 0;
+
+    containers.forEach(container => {
+      try {
+        const fungusDataStr = container.getAttribute('data-fungus');
+        if (!fungusDataStr) return;
+
+        const fungusData = JSON.parse(fungusDataStr);
+        
+        // Get mapped fields - NORMAL MODE: top 15 fields only
+        // Search will expand to show ALL fields when active
+        const fields = mapper.getMappedFields(fungusData, {
+          maxFields: 15,  // Limit in normal view
+          maxDepth: 1
+        });
+        
+        // Create and append morph elements
+        fields.forEach(fieldConfig => {
+          const morphElement = mapper.createMorphElement(fieldConfig, fungusData);
+          morphElement.setAttribute('data-priority', fieldConfig.priority);
+          morphElement.setAttribute('data-morph-type', fieldConfig.morphType);
+          morphElement.setAttribute('data-field-path', fieldConfig.fullPath);
+          container.appendChild(morphElement);
+          totalMorphsCreated++;
+        });
+        
+        // Store full data for search expansion
+        container.dataset.fullData = fungusDataStr;
+        
+      } catch (error) {
+        console.error('[MorphMapper] Error creating morphs:', error);
+      }
+    });
+
+    console.log(`[MorphMapper] ✅ Created ${totalMorphsCreated} morphs across ${containers.length} cards`);
+    
+    // Listen for search events to expand cards
+    window.addEventListener('convex-search:completed', (event) => {
+      const { query } = event.detail;
+      if (query && query.trim().length >= 2) {
+        expandCardsForSearch(containers, mapper);
+      }
+    });
+    
+    window.addEventListener('convex-search:reset', () => {
+      collapseCardsToNormal(containers);
+    });
+  }
+  
+  // Expand cards to show ALL fields during search
+  function expandCardsForSearch(containers, mapper) {
+    console.log('[MorphMapper] 🔍 Expanding cards to show ALL fields for search...');
+    
+    containers.forEach(container => {
+      const fungusDataStr = container.dataset.fullData;
+      if (!fungusDataStr) return;
+      
+      const fungusData = JSON.parse(fungusDataStr);
+      
+      // Get ALL fields (no limit)
+      const allFields = mapper.getMappedFields(fungusData, {
+        maxFields: null,  // Show everything during search
+        maxDepth: 2       // Include nested data
+      });
+      
+      // Remove existing morphs
+      container.innerHTML = '';
+      
+      // Create morphs for ALL fields
+      allFields.forEach(fieldConfig => {
+        const morphElement = mapper.createMorphElement(fieldConfig, fungusData);
+        morphElement.setAttribute('data-priority', fieldConfig.priority);
+        morphElement.setAttribute('data-morph-type', fieldConfig.morphType);
+        morphElement.setAttribute('data-field-path', fieldConfig.fullPath);
+        morphElement.classList.add('search-expanded');
+        container.appendChild(morphElement);
+      });
+    });
+  }
+  
+  // Collapse cards back to top 15 fields
+  function collapseCardsToNormal(containers) {
+    console.log('[MorphMapper] 📄 Collapsing cards to normal view (top 15 fields)...');
+    
+    const mapper = window.amorph.morphMapper;
+    
+    containers.forEach(container => {
+      const fungusDataStr = container.dataset.fullData;
+      if (!fungusDataStr) return;
+      
+      const fungusData = JSON.parse(fungusDataStr);
+      
+      // Get top 15 fields only
+      const topFields = mapper.getMappedFields(fungusData, {
+        maxFields: 15,
+        maxDepth: 1
+      });
+      
+      // Remove existing morphs
+      container.innerHTML = '';
+      
+      // Create morphs for top fields only
+      topFields.forEach(fieldConfig => {
+        const morphElement = mapper.createMorphElement(fieldConfig, fungusData);
+        morphElement.setAttribute('data-priority', fieldConfig.priority);
+        morphElement.setAttribute('data-morph-type', fieldConfig.morphType);
+        morphElement.setAttribute('data-field-path', fieldConfig.fullPath);
+        container.appendChild(morphElement);
+      });
+    });
+  }
+
+  // Start initialization
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMorphMapper);
+  } else {
+    initMorphMapper();
+  }
 </script>
 
 <!-- Touch Hover Effects -->

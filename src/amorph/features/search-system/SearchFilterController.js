@@ -322,55 +322,72 @@ export class SearchFilterController {
     this.clearHighlights();
     
     let totalHighlights = 0;
-    const highlightedMorphs = []; // Track all morphs with highlights for scrolling
+    const highlightedElements = []; // Track first highlighted element per card for scrolling
     
     this.allCards.forEach(card => {
       const slug = card.dataset.slug;
       if (!slug || !this.filteredSlugs.has(slug)) return;
       
-      let cardHasHighlight = false;
+      let cardFirstHighlight = null;
       
-      // Find all data-morphs in this card
-      const morphs = card.querySelectorAll('data-morph[data-morph="true"]');
+      // Find ALL morphs in this card (specialized morphs + data-morph)
+      const allMorphSelectors = [
+        'name-morph',
+        'text-morph', 
+        'tag-morph',
+        'boolean-morph',
+        'number-morph',
+        'list-morph',
+        'data-morph',
+        '.morph-field' // Wrapper divs
+      ];
+      
+      const morphs = card.querySelectorAll(allMorphSelectors.join(', '));
       
       morphs.forEach(morph => {
-        // Skip hidden morphs
+        // Skip hidden elements
         if (morph.style.display === 'none') return;
         
-        // Highlight text within this morph's shadow DOM or regular DOM
+        // Highlight text within this element's shadow DOM or regular DOM
         const highlightedCount = this.highlightTextInElement(morph, query);
         
         if (highlightedCount > 0) {
           totalHighlights += highlightedCount;
           
-          // Track first highlighted morph per card
-          if (!cardHasHighlight) {
-            highlightedMorphs.push(morph);
-            cardHasHighlight = true;
+          // Track first highlighted element per card
+          if (!cardFirstHighlight) {
+            cardFirstHighlight = morph;
           }
         }
       });
+      
+      // Store first highlight for this card
+      if (cardFirstHighlight) {
+        highlightedElements.push(cardFirstHighlight);
+      }
     });
     
-    console.log(`[SearchFilterController] ✨ Highlighted ${totalHighlights} text matches in ${highlightedMorphs.length} cards`);
+    console.log(`[SearchFilterController] ✨ Highlighted ${totalHighlights} text matches in ${highlightedElements.length} cards`);
     
-    // Simple scroll: just scroll each morph to top of its card-data container
-    if (highlightedMorphs.length > 0) {
+    // Auto-scroll: scroll first highlighted element into view for each card
+    if (highlightedElements.length > 0) {
       setTimeout(() => {
-        highlightedMorphs.forEach(morph => {
-          const cardData = morph.closest('.card-data');
+        highlightedElements.forEach(element => {
+          const cardData = element.closest('.card-data');
           if (cardData) {
-            // Simple: scroll to top of card-data
-            cardData.scrollTop = 0;
+            // Scroll the element into view within its card-data container
+            const elementTop = element.offsetTop;
+            cardData.scrollTop = Math.max(0, elementTop - 20); // 20px offset from top
           }
         });
-        console.log(`[SearchFilterController] 📍 Scrolled ${highlightedMorphs.length} cards to top`);
-      }, 150);
+        console.log(`[SearchFilterController] 📍 Auto-scrolled ${highlightedElements.length} cards to first match`);
+      }, 200); // Slightly longer delay to ensure rendering is complete
     }
   }
   
   /**
    * Highlight matching text within an element (works with Shadow DOM)
+   * ONLY highlights exact text matches, not entire elements
    */
   highlightTextInElement(element, query) {
     let highlightCount = 0;
@@ -393,9 +410,14 @@ export class SearchFilterController {
             return NodeFilter.FILTER_REJECT;
           }
           
-          // Only accept nodes with actual text content
-          const text = node.textContent.trim();
-          if (!text) return NodeFilter.FILTER_REJECT;
+          // Skip empty nodes
+          const text = node.textContent;
+          if (!text || text.trim().length === 0) return NodeFilter.FILTER_REJECT;
+          
+          // ONLY accept if this specific text contains the query (case-insensitive)
+          if (!text.toLowerCase().includes(query)) {
+            return NodeFilter.FILTER_REJECT;
+          }
           
           return NodeFilter.FILTER_ACCEPT;
         }
@@ -413,6 +435,7 @@ export class SearchFilterController {
       const text = textNode.textContent;
       const lowerText = text.toLowerCase();
       
+      // Double-check (should always pass due to filter above)
       if (!lowerText.includes(query)) return;
       
       // Create a temporary container to build highlighted HTML
@@ -517,17 +540,30 @@ export class SearchFilterController {
       }
     });
     
-    // Remove text-level highlights from Shadow DOM (data-morphs)
-    document.querySelectorAll('data-morph').forEach(morph => {
-      if (morph.shadowRoot) {
-        morph.shadowRoot.querySelectorAll('.search-highlight-text').forEach(span => {
-          const parent = span.parentNode;
-          if (parent) {
-            parent.replaceChild(document.createTextNode(span.textContent), span);
-            parent.normalize();
-          }
-        });
-      }
+    // Remove text-level highlights from Shadow DOM (ALL morph types)
+    const allMorphTypes = [
+      'name-morph',
+      'text-morph',
+      'tag-morph',
+      'boolean-morph',
+      'number-morph',
+      'list-morph',
+      'data-morph',
+      'image-morph'
+    ];
+    
+    allMorphTypes.forEach(morphType => {
+      document.querySelectorAll(morphType).forEach(morph => {
+        if (morph.shadowRoot) {
+          morph.shadowRoot.querySelectorAll('.search-highlight-text').forEach(span => {
+            const parent = span.parentNode;
+            if (parent) {
+              parent.replaceChild(document.createTextNode(span.textContent), span);
+              parent.normalize();
+            }
+          });
+        }
+      });
     });
   }
 }

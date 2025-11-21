@@ -34,15 +34,16 @@ Dims irrelevant morphs when perspective is active. Uses CSS opacity.
 
 **Uses:**
 - `../../core/AmorphSystem.js` - Perspective state management
-- `../../shared/morphs/global/MorphHeader.js` - Perspective buttons & FIFO queue
+- `../morph-header/MorphHeader.js` - Perspective buttons & FIFO queue
+- `../grid-view/morphs/tokens.js` - Design tokens (canonical source)
 
 **Used by:**
 - `../../../pages/[slug].astro` - Page-level perspective containers
 - `../search-system/` - Auto-activates perspectives from search results
 
 **See also:**
-- `../../shared/observers/` - GlobalObserver handles perspective events
-- `../../shared/morphs/data/` - All data morphs respond to perspective changes
+- `../../core/observers/` - GlobalObserver handles perspective events
+- `../grid-view/morphs/` - All data morphs respond to perspective changes (single source)
 
 ---
 

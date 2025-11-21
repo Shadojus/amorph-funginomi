@@ -10,21 +10,21 @@
  * 
  * Das System ist dann global als `window.amorph` verfügbar!
  * 
- * NEW FEATURE-BASED STRUCTURE:
- * - core/ - Core system files
- * - features/ - Feature-specific components (bubble-view, grid-view, etc.)
- * - shared/ - Shared components (morphs, reactors, observers)
+ * FEATURE-ONLY ARCHITECTURE:
+ * - core/ - Core system files + observers
+ * - features/ - Self-contained features (each has own morphs + reactors)
+ *   NO shared folders - components are duplicated per feature!
  */
 
 import { amorph } from './AmorphSystem.js';
 
-// Import Shared Reactors (work everywhere)
-import { GlowReactor } from '../shared/reactors/GlowReactor.js';
-import { AnimationReactor } from '../shared/reactors/AnimationReactor.js';
-import { PulseReactor } from '../shared/reactors/PulseReactor.js';
-import { HoverReactor } from '../shared/reactors/HoverReactor.js';
-import { SortReactor } from '../shared/reactors/SortReactor.js';
-import { FilterReactor } from '../shared/reactors/FilterReactor.js';
+// Import Visual Reactors from grid-view (work everywhere)
+import { GlowReactor } from '../features/grid-view/reactors/GlowReactor.js';
+import { AnimationReactor } from '../features/grid-view/reactors/AnimationReactor.js';
+import { PulseReactor } from '../features/grid-view/reactors/PulseReactor.js';
+import { HoverReactor } from '../features/grid-view/reactors/HoverReactor.js';
+import { SortReactor } from '../features/grid-view/reactors/SortReactor.js';
+import { FilterReactor } from '../features/grid-view/reactors/FilterReactor.js';
 
 // Import Search System (Convex-based)
 import { ConvexSearchReactor } from '../features/search-system/reactors/ConvexSearchReactor.js';
@@ -63,21 +63,21 @@ amorph.registerReactor('canvasConnection', CanvasConnectionReactor);
 amorph.registerReactor('bubbleDetail', BubbleDetailReactor);
 amorph.registerReactor('bubbleSearch', BubbleSearchReactor);
 
-// Import Shared Morphs
-import '../shared/morphs/data/NameMorph.js';
-import '../shared/morphs/data/ImageMorph.js';
-import '../shared/morphs/data/TagMorph.js';
-import '../shared/morphs/data/TextMorph.js';
-import '../shared/morphs/data/BooleanMorph.js';
-import '../shared/morphs/data/NumberMorph.js';
-import '../shared/morphs/data/ListMorph.js';
-import '../shared/morphs/data/DataMorph.js';
-import '../shared/morphs/data/ChartMorph.js';
-import '../shared/morphs/data/MapMorph.js';
-import '../shared/morphs/data/TimelineMorph.js';
+// Import Data Morphs from grid-view
+import '../features/grid-view/morphs/NameMorph.js';
+import '../features/grid-view/morphs/ImageMorph.js';
+import '../features/grid-view/morphs/TagMorph.js';
+import '../features/grid-view/morphs/TextMorph.js';
+import '../features/grid-view/morphs/BooleanMorph.js';
+import '../features/grid-view/morphs/NumberMorph.js';
+import '../features/grid-view/morphs/ListMorph.js';
+import '../features/grid-view/morphs/DataMorph.js';
+import '../features/grid-view/morphs/ChartMorph.js';
+import '../features/grid-view/morphs/MapMorph.js';
+import '../features/grid-view/morphs/TimelineMorph.js';
 
-// Import Global Components
-import '../shared/morphs/global/MorphHeader.js';
+// Import MorphHeader Feature
+import '../features/morph-header/MorphHeader.js';
 
 // Import Features
 import '../features/bubble-view/BubbleView.js';
@@ -86,17 +86,20 @@ import '../features/grid-view/GridHost.js';
 import '../features/perspective-system/PerspectiveHost.js';
 import '../features/perspective-system/PerspectiveCard.js';
 
+// Import MorphMapper (Intelligent Morph Type Selection)
+import { morphMapper } from '../features/grid-view/MorphMapper.js';
+
 // Export für manuelle Imports
-export { amorph };
+export { amorph, morphMapper };
 
 // Make globally available
 window.amorph = amorph;
+window.amorph.morphMapper = morphMapper;
 
 // System Info ausgeben
-console.log('🔮 AMORPH System loaded! (Feature-based structure)');
+console.log('🔮 AMORPH System loaded! (Feature-only structure)');
 console.log('✅ Available as window.amorph');
 console.log('📁 Structure:');
-console.log('   - core/ (AmorphSystem, Redis, etc.)');
-console.log('   - features/ (bubble-view, grid-view, perspective-system, search-system)');
-console.log('   - shared/ (morphs, reactors, observers)');
+console.log('   - core/ (AmorphSystem, Redis, Observers)');
+console.log('   - features/ (Each feature has its own morphs and reactors)');
 console.log('System Info:', amorph.getSystemInfo());

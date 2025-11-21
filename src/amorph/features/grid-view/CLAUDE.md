@@ -17,6 +17,18 @@ Grid-based layout for displaying fungus cards with wood floor design and touch-f
 ```
 features/grid-view/
 ├── GridHost.js     # Grid layout host
+├── morphs/         # ALL data morphs (single source!)
+│   ├── NameMorph.js, ImageMorph.js, TagMorph.js
+│   ├── TextMorph.js, BooleanMorph.js, NumberMorph.js
+│   ├── ListMorph.js, DataMorph.js, ChartMorph.js
+│   ├── MapMorph.js, TimelineMorph.js, QueryMorph.js
+│   ├── ConnectionMorph.js, UserNode.js
+│   ├── tokens.js   # Design tokens für alle morphs
+│   └── CLAUDE.md   # Morph documentation
+├── reactors/       # ALL visual reactors (single source!)
+│   ├── GlowReactor.js, AnimationReactor.js, PulseReactor.js
+│   ├── HoverReactor.js, SortReactor.js, FilterReactor.js
+│   └── CLAUDE.md   # Reactor documentation
 └── CLAUDE.md       # This file
 ```
 
@@ -25,23 +37,20 @@ features/grid-view/
 ### GridHost.js
 Responsive grid layout with CSS Grid. Displays morphs in cards.
 
+## Architecture
+
+**SINGLE SOURCE PRINCIPLE:**
+- Grid-view contains ALL 15 data morphs - imported by `core/init.js`
+- Grid-view contains ALL 6 visual reactors - imported by `core/init.js`
+- Other features copy only what they need OR import from grid-view
+- No shared folders - grid-view IS the canonical source
+
 ## Features
 
 - Responsive columns (auto-fill)
 - Configurable gap and min-width
 - Hover effects
-- Works with all shared reactors
-
-## 🔗 Related Components
-
-**Uses:**
-- `../../core/AmorphSystem.js` - System Registry
-- `../../shared/reactors/` - All universal reactors (Glow, Hover, etc.)
-- `../../shared/morphs/data/` - All data morphs for card content
-
-**See also:**
-- `../bubble-view/` - Alternative visualization (Canvas-based)
-- `../perspective-system/` - Works with PerspectiveHost for filtering
+- Works with all visual reactors
 
 ---
 

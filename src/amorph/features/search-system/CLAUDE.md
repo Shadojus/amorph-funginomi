@@ -122,7 +122,7 @@ Old client-side search through JSON attributes.
 
 **Uses:**
 - `../../core/AmorphSystem.js` - System Registry & Event Publishing
-- `../../shared/morphs/global/MorphHeader.js` - Search input & auto-perspective switching
+- `../morph-header/MorphHeader.js` - Search input & auto-perspective switching
 
 **Used by:**
 - All Views (BubbleView, GridView, PerspectiveHost)
@@ -130,7 +130,7 @@ Old client-side search through JSON attributes.
 
 **See also:**
 - `../perspective-system/` - Auto-activates perspectives based on search results
-- `../../shared/observers/` - Event stream processing
+- `../../core/observers/` - Event stream processing
 
 ---
 

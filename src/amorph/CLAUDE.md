@@ -14,21 +14,16 @@ Dies ist das Root-Verzeichnis des AMORPH Systems - ein vollständiges morphologi
 ## 🔗 Quick Navigation
 
 **Core System:**
-- [`core/CLAUDE.md`](./core/CLAUDE.md) - AmorphSystem, RedisEventBridge, PixieRenderer
+- [`core/CLAUDE.md`](./core/CLAUDE.md) - AmorphSystem, RedisEventBridge, Observers
 - [`core/init.js`](./core/init.js) - System Entry Point
+- [`core/observers/`](./core/observers/) - Redis Stream Observers
 
-**Features:**
+**Features (Each has own morphs & reactors):**
 - [`features/bubble-view/CLAUDE.md`](./features/bubble-view/CLAUDE.md) - Canvas Visualization
 - [`features/grid-view/CLAUDE.md`](./features/grid-view/CLAUDE.md) - Grid Layout
 - [`features/perspective-system/CLAUDE.md`](./features/perspective-system/CLAUDE.md) - 12 Perspektiven + FIFO
 - [`features/search-system/CLAUDE.md`](./features/search-system/CLAUDE.md) - Dual Search (Morph + Data)
-
-**Shared:**
-- [`shared/reactors/CLAUDE.md`](./shared/reactors/CLAUDE.md) - Universal Reactors
-- [`shared/morphs/data/CLAUDE.md`](./shared/morphs/data/CLAUDE.md) - Data Morphs (Name, Tag, Text, etc.)
-- [`shared/morphs/global/CLAUDE.md`](./shared/morphs/global/CLAUDE.md) - MorphHeader
-- [`shared/observers/CLAUDE.md`](./shared/observers/CLAUDE.md) - Redis Stream Observers
-- [`shared/styles/CLAUDE.md`](./shared/styles/CLAUDE.md) - Design Tokens
+- [`features/morph-header/CLAUDE.md`](./features/morph-header/CLAUDE.md) - Global Header Component
 
 **Architecture:**
 - [`FEATURE_ARCHITECTURE.md`](./FEATURE_ARCHITECTURE.md) - Complete Migration Documentation
@@ -48,61 +43,49 @@ src/amorph/
 │   ├── init.js                 # System Initialization
 │   ├── amorph.config.js        # System Config
 │   ├── reactors.config.js      # Reactor Config
-│   └── morphs.config.js        # Morph Config
+│   ├── morphs.config.js        # Morph Config
+│   └── observers/              # Redis Stream Observers
+│       ├── ArchObserver.js
+│       ├── BaseObserver.js
+│       ├── GlobalObserver.js
+│       ├── HostObserver.js
+│       ├── LayoutObserver.js
+│       ├── MorphObserver.js
+│       ├── PerformanceObserver.js
+│       └── ReactorObserver.js
 │
-├── features/                   # Feature-basierte Komponenten
-│   ├── bubble-view/            # BubbleView Feature (ALLES für Bubbles)
+├── features/                   # Feature-Only Architecture (NO shared folders!)
+│   ├── bubble-view/            # BubbleView Feature
 │   │   ├── BubbleView.js
 │   │   ├── BubbleHost.js
-│   │   ├── reactors/
+│   │   ├── morphs/             # Feature-specific morphs
+│   │   │   ├── BubbleMorph.js
+│   │   │   ├── UserNode.js
+│   │   │   ├── ConnectionMorph.js
+│   │   │   └── tokens.js
+│   │   ├── reactors/           # Feature-specific + visual reactors
 │   │   │   ├── CanvasConnectionReactor.js
 │   │   │   ├── CanvasPhysicsReactor.js
 │   │   │   ├── CanvasUserNodeReactor.js
-│   │   │   ├── FlowReactor.js
-│   │   │   └── ColorShiftReactor.js
-│   │   ├── controllers/
-│   │   │   ├── DragController.js
-│   │   │   └── ZoomPanController.js
+│   │   │   ├── BubbleDetailReactor.js
+│   │   │   ├── BubbleSearchReactor.js
+│   │   │   ├── GlowReactor.js
+│   │   │   ├── AnimationReactor.js
+│   │   │   ├── PulseReactor.js
+│   │   │   ├── HoverReactor.js
+│   │   │   ├── SortReactor.js
+│   │   │   └── FilterReactor.js
 │   │   ├── services/
-│   │   │   ├── HilbertSpaceSimilarity.js
-│   │   │   ├── CollisionDetector.js
-│   │   │   ├── ConnectionRenderer.js
-│   │   │   └── ForceDirectedLayout.js
+│   │   │   └── HilbertSpaceSimilarity.js
 │   │   └── CLAUDE.md
 │   │
 │   ├── grid-view/              # GridView Feature
 │   │   ├── GridHost.js
-│   │   └── CLAUDE.md
-│   │
-│   ├── perspective-system/     # Perspektiven-System
-│   │   ├── PerspectiveHost.js
-│   │   ├── PerspectiveCard.js
-│   │   ├── reactors/
-│   │   │   └── PerspectiveReactor.js
-│   │   └── CLAUDE.md
-│   │
-│   └── search-system/          # Such-System
-│       ├── reactors/
-│       │   ├── SearchReactor.js
-│       │   └── AstroDataSearchReactor.js
-│       └── CLAUDE.md
-│
-├── shared/                     # Shared zwischen allen Features
-│   ├── reactors/               # Universelle Reactors
-│   │   ├── GlowReactor.js
-│   │   ├── AnimationReactor.js
-│   │   ├── PulseReactor.js
-│   │   ├── HoverReactor.js
-│   │   ├── SortReactor.js
-│   │   ├── FilterReactor.js
-│   │   └── CLAUDE.md
-│   │
-│   ├── morphs/                 # Basis-Morphs
-│   │   ├── data/               # Data Morphs
+│   │   ├── morphs/             # ALL data morphs for grid
 │   │   │   ├── NameMorph.js
-│   │   │   ├── TextMorph.js
-│   │   │   ├── TagMorph.js
 │   │   │   ├── ImageMorph.js
+│   │   │   ├── TagMorph.js
+│   │   │   ├── TextMorph.js
 │   │   │   ├── BooleanMorph.js
 │   │   │   ├── NumberMorph.js
 │   │   │   ├── ListMorph.js
@@ -110,20 +93,46 @@ src/amorph/
 │   │   │   ├── ChartMorph.js
 │   │   │   ├── MapMorph.js
 │   │   │   ├── TimelineMorph.js
-│   │   │   ├── ConnectionMorph.js
-│   │   │   ├── QueryMorph.js
-│   │   │   ├── UserNode.js
-│   │   │   └── CLAUDE.md
-│   │   └── global/             # Global Components
-│   │       ├── MorphHeader.js
-│   │       └── CLAUDE.md
+│   │   │   └── tokens.js
+│   │   ├── reactors/           # Visual reactors for grid
+│   │   │   ├── GlowReactor.js
+│   │   │   ├── AnimationReactor.js
+│   │   │   ├── PulseReactor.js
+│   │   │   ├── HoverReactor.js
+│   │   │   ├── SortReactor.js
+│   │   │   └── FilterReactor.js
+│   │   └── CLAUDE.md
 │   │
-│   ├── observers/              # Stream-based State Management
-│   │   ├── BaseObserver.js
-│   │   ├── MorphObserver.js
-│   │   ├── ReactorObserver.js
-│   │   ├── HostObserver.js
-│   │   ├── GlobalObserver.js
+│   ├── morph-header/           # Global Header Feature
+│   │   ├── MorphHeader.js
+│   │   ├── tokens.js
+│   │   └── CLAUDE.md
+│   │
+│   ├── perspective-system/     # Perspektiven-System
+│   │   ├── PerspectiveHost.js
+│   │   ├── PerspectiveCard.js
+│   │   ├── PerspectiveReactor.js
+│   │   ├── reactors/           # Visual reactors (copied from grid-view)
+│   │   │   ├── GlowReactor.js
+│   │   │   ├── AnimationReactor.js
+│   │   │   ├── PulseReactor.js
+│   │   │   ├── HoverReactor.js
+│   │   │   ├── SortReactor.js
+│   │   │   └── FilterReactor.js
+│   │   └── CLAUDE.md
+│   │
+│   └── search-system/          # Such-System
+│       ├── SearchFilterController.js
+│       ├── reactors/           # Search-specific reactors
+│       │   └── ConvexSearchReactor.js
+│       ├── reactors-visual/    # Visual reactors (copied from grid-view)
+│       │   ├── GlowReactor.js
+│       │   ├── AnimationReactor.js
+│       │   ├── PulseReactor.js
+│       │   ├── HoverReactor.js
+│       │   ├── SortReactor.js
+│       │   └── FilterReactor.js
+│       └── CLAUDE.md
 │   │   ├── ArchObserver.js
 │   │   ├── LayoutObserver.js
 │   │   ├── PerformanceObserver.js

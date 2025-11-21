@@ -36,9 +36,9 @@ Der `core/` Ordner enthält die Kern-Komponenten des AMORPH Systems:
 ## 🔗 Related Components
 
 **Uses:**
-- `../shared/observers/` - Stream-based State Management (BaseObserver, MorphObserver, etc.)
-- `../shared/reactors/` - Universal Reactors (GlowReactor, HoverReactor, etc.)
-- `../shared/morphs/` - Alle Data Morphs für Registration
+- `./observers/` - Stream-based State Management (BaseObserver, MorphObserver, etc.)
+- `../features/grid-view/reactors/` - Universal Reactors (GlowReactor, HoverReactor, etc.) - SINGLE SOURCE
+- `../features/grid-view/morphs/` - All Data Morphs for Registration - SINGLE SOURCE
 
 **Used by:**
 - `../features/bubble-view/` - BubbleView Canvas System
@@ -46,7 +46,7 @@ Der `core/` Ordner enthält die Kern-Komponenten des AMORPH Systems:
 - `../features/perspective-system/` - Perspektiven-Management
 - `../features/search-system/` - Dual Search System
 
-**Design System:** `../shared/styles/tokens.js` - CSS Custom Properties für alle Morphs
+**Design System:** Each feature has local `tokens.js` - Grid-view is canonical source
 
 ## AmorphSystem.js
 

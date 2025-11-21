@@ -22,7 +22,7 @@
  */
 
 import { LitElement, html, css } from 'lit';
-import { globalStyles } from '../../shared/styles/tokens.js';
+import { globalStyles } from '../grid-view/morphs/tokens.js';
 import { amorph } from '../../core/AmorphSystem.js';
 
 export class PerspectiveCard extends LitElement {

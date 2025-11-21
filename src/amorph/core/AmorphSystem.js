@@ -18,15 +18,15 @@ import { AmorphConfig } from './amorph.config.js';
 import { ReactorsConfig } from './reactors.config.js';
 import { MorphsConfig } from './morphs.config.js';
 import { RedisEventBridge } from './RedisEventBridge.js';
-import { PerformanceObserver } from '../shared/observers/PerformanceObserver.js';
+import { PerformanceObserver } from './observers/PerformanceObserver.js';
 
 // Import all Stream Observers
-import { MorphObserver } from '../shared/observers/MorphObserver.js';
-import { ReactorObserver } from '../shared/observers/ReactorObserver.js';
-import { HostObserver } from '../shared/observers/HostObserver.js';
-import { GlobalObserver } from '../shared/observers/GlobalObserver.js';
-import { ArchObserver } from '../shared/observers/ArchObserver.js';
-import { LayoutObserver } from '../shared/observers/LayoutObserver.js';
+import { MorphObserver } from './observers/MorphObserver.js';
+import { ReactorObserver } from './observers/ReactorObserver.js';
+import { HostObserver } from './observers/HostObserver.js';
+import { GlobalObserver } from './observers/GlobalObserver.js';
+import { ArchObserver } from './observers/ArchObserver.js';
+import { LayoutObserver } from './observers/LayoutObserver.js';
 
 export class AmorphSystem {
   constructor(config = {}) {
