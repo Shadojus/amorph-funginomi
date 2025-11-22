@@ -529,6 +529,15 @@ const morphMapper = new ServerMorphMapper();
     width: 100%;
     box-sizing: border-box;
   }
+  
+  /* Enable flex ordering for perspective-based DataMorph positioning */
+  .card-data data-morph {
+    order: 999; /* Default: at bottom */
+  }
+  
+  .card-data data-morph[style*="order"] {
+    /* Custom order from perspective system takes precedence */
+  }
 
   /* Hide scrollbar for Chrome/Safari/Opera */
   .card-data::-webkit-scrollbar {
@@ -784,7 +793,7 @@ const morphMapper = new ServerMorphMapper();
       'taxonomy': ['kingdom', 'phylum', 'class', 'order']
     };
 
-    function updateDataMorphOrder() {
+    function updateDataMorphVisibility() {
       const cards = document.querySelectorAll('.card-data');
       
       cards.forEach((cardData) => {
@@ -793,11 +802,14 @@ const morphMapper = new ServerMorphMapper();
         morphs.forEach(morph => {
           const field = morph.getAttribute('field');
           let order = 999;
+          let shouldShow = false;
           
+          // Check if this field belongs to any active perspective
           for (let i = 0; i < perspectiveOrder.length; i++) {
             const perspectiveName = perspectiveOrder[i];
             const fields = perspectiveFieldMap[perspectiveName] || [];
             if (fields.includes(field)) {
+              shouldShow = true;
               order = i * 10;
               break;
             }
@@ -814,14 +826,15 @@ const morphMapper = new ServerMorphMapper();
     
     const perspectiveHandler = (event) => {
       const perspectives = event.detail?.perspectives || [];
-      if (perspectives.length === 0) return;
       
-      // SIMPLE FIFO: MorphHeader adds new perspectives to the END
-      // So we REVERSE the array to get newest first
+      console.log('🔄 Perspective changed:', perspectives);
+      
+      // Update active perspective order
       perspectiveOrder.length = 0;
-      perspectiveOrder.push(...perspectives.slice().reverse());
+      perspectiveOrder.push(...perspectives.map(p => p.name || p));
       
-      updateDataMorphOrder();
+      // Show/hide and reorder DataMorphs based on active perspectives
+      updateDataMorphVisibility();
     };
     
     // Listen ONLY to window event (MorphHeader dispatches to both window and document)
@@ -947,6 +960,21 @@ const morphMapper = new ServerMorphMapper();
   const searchFilter = new SearchFilterController('.entity-grid', '.entity-card');
   
   console.log('🔍 SearchFilterController initialized for Grid View');
+  
+  // Enable CardScrollReactor for smart image shrinking on scroll
+  (async () => {
+    // Wait for AMORPH system to be ready
+    while (!window.amorph || !window.amorph.hasReactor) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    
+    if (window.amorph.hasReactor('cardScroll')) {
+      await window.amorph.enableReactor('cardScroll');
+      console.log('✅ CardScrollReactor enabled - Images will shrink horizontally on scroll');
+    } else {
+      console.warn('⚠️ CardScrollReactor not found - scrolling without image resize');
+    }
+  })();
 </script>
 
 <!-- Dynamic DataMorph Mode Switcher -->
@@ -1005,12 +1033,10 @@ const morphMapper = new ServerMorphMapper();
         this.handleSearchReset();
       });
       
-      // Listen for perspective changes
-      if (typeof amorph !== 'undefined') {
-        amorph.on('perspectives:changed', (data) => {
-          this.handlePerspectiveChange(data);
-        });
-      }
+      // Listen for perspective changes (from MorphHeader)
+      window.addEventListener('perspective-changed', (event) => {
+        this.handlePerspectiveChange(event.detail);
+      });
       
       console.log('[DataMorphModeSwitcher] ✅ Ready - Listening for search and perspective events');
     }
@@ -1076,6 +1102,8 @@ const morphMapper = new ServerMorphMapper();
      * Switch all visible cards to deep mode
      */
     switchToDeepMode(reason = 'unknown') {
+      console.log(`[DataMorphModeSwitcher] 🔄 Switching to DEEP mode (reason: ${reason})`);
+      
       // Get all visible cards (not hidden by search filter)
       const cards = document.querySelectorAll('.entity-card');
       let updatedCount = 0;
@@ -1093,6 +1121,12 @@ const morphMapper = new ServerMorphMapper();
             morph.setAttribute('mode', 'deep');
             morph.removeAttribute('field');
             morph.style.display = '';
+            
+            // Force re-render by triggering extractData
+            if (morph.extractData && typeof morph.extractData === 'function') {
+              morph.extractData();
+            }
+            
             updatedCount++;
           } else {
             // Other morphs: hide them to prevent duplication
@@ -1101,7 +1135,14 @@ const morphMapper = new ServerMorphMapper();
         });
       });
       
-      console.log(`[DataMorphModeSwitcher] ✅ Updated ${updatedCount} cards to deep mode (hidden duplicates)`);
+      console.log(`[DataMorphModeSwitcher] ✅ Updated ${updatedCount} cards to deep mode (hidden ${cards.length - updatedCount} duplicate morphs)`);
+      
+      // Dispatch event to notify highlighting system
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('data-morph:deep-mode-ready', {
+          detail: { reason }
+        }));
+      }, 100);
     }
     
     /**

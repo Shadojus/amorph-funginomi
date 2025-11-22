@@ -291,6 +291,16 @@ export class DataMorph extends LitElement {
     if (changedProperties.has('entityData') || changedProperties.has('mode')) {
       this.extractData();
     }
+    
+    // Notify that rendering is complete for highlighting
+    // This triggers SearchFilterController to re-apply highlighting to this specific morph
+    if (this.mode === 'deep' && (changedProperties.has('currentData') || changedProperties.has('activePerspectives'))) {
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('data-morph:rendering-complete', {
+          detail: { field: this.field, morph: this }
+        }));
+      }, 50); // Small delay to ensure Shadow DOM is fully rendered
+    }
   }
 
   willUpdate(changedProperties) {

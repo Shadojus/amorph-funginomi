@@ -88,15 +88,37 @@ export class SearchFilterController {
       this.showAllCards();
     });
     
-    // Listen for deep mode rendering completion
+    // Listen for deep mode rendering completion (legacy event from MorphHeader)
     window.addEventListener('data-morph:deep-mode-ready', (event) => {
       const { query } = event.detail || {};
-      console.log('[SearchFilterController] 🎨 Deep mode ready, starting highlighting with debounce');
+      console.log('[SearchFilterController] 🎨 Deep mode ready (MorphHeader), starting highlighting');
       
       // Re-apply highlighting now that deep mode is rendered (debounced)
       if (this.currentQuery) {
         this.debouncedHighlight();
       }
+    });
+    
+    // NEW: Listen for individual DataMorph rendering completion
+    window.addEventListener('data-morph:rendering-complete', (event) => {
+      const { field, morph } = event.detail || {};
+      
+      // Re-apply highlighting to this specific morph if search is active
+      if (this.currentQuery && morph) {
+        console.log('[SearchFilterController] 🎨 Re-highlighting morph after rendering:', field);
+        this.highlightTextInElement(morph, this.currentQuery.toLowerCase().trim());
+      }
+    });
+    
+    // Listen for perspective changes to re-highlight newly visible morphs
+    window.addEventListener('perspective-changed', (event) => {
+      // Small delay to let DataMorphs update their visibility first
+      setTimeout(() => {
+        if (this.currentQuery && this.currentQuery.trim().length >= 2) {
+          console.log('[SearchFilterController] 🎨 Re-highlighting after perspective change');
+          this.debouncedHighlight();
+        }
+      }, 200);
     });
     
     console.log('[SearchFilterController] ✅ Listening for search events');
@@ -170,7 +192,7 @@ export class SearchFilterController {
    * Show all cards (reset filter)
    */
   showAllCards() {
-    console.log(`[SearchFilterController] 📄 Showing all ${this.allCards.length} cards (filter cleared)`);
+    console.log(`[SearchFilterController] 📄 Showing all cards`);
     this.isFiltering = false;
     this.filteredSlugs.clear();
     this.currentQuery = '';
@@ -191,41 +213,28 @@ export class SearchFilterController {
     // Clear highlights
     this.clearHighlights();
     
+    // Simple show - no animation
     this.allCards.forEach(card => {
-      this.showCard(card);
-    });
-    
-    // Reset BubbleView to show all
-    this.updateBubbleView(null);
-  }
-  
-  /**
-   * Show a card with animation
-   */
-  showCard(card) {
-    card.style.display = '';
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(20px)';
-    
-    // Animate in
-    requestAnimationFrame(() => {
-      card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      card.style.display = '';
       card.style.opacity = '1';
       card.style.transform = 'translateY(0)';
     });
   }
   
   /**
-   * Hide a card with animation
+   * Show a card (no animation)
+   */
+  showCard(card) {
+    card.style.display = '';
+    card.style.opacity = '1';
+    card.style.transform = 'translateY(0)';
+  }
+  
+  /**
+   * Hide a card (no animation)
    */
   hideCard(card) {
-    card.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
-    card.style.opacity = '0';
-    card.style.transform = 'translateY(-10px)';
-    
-    setTimeout(() => {
-      card.style.display = 'none';
-    }, 200);
+    card.style.display = 'none';
   }
   
   /**

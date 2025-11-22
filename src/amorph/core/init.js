@@ -25,6 +25,7 @@ import { PulseReactor } from '../features/grid-view/reactors/PulseReactor.js';
 import { HoverReactor } from '../features/grid-view/reactors/HoverReactor.js';
 import { SortReactor } from '../features/grid-view/reactors/SortReactor.js';
 import { FilterReactor } from '../features/grid-view/reactors/FilterReactor.js';
+import { CardScrollReactor } from '../features/grid-view/reactors/CardScrollReactor.js';
 
 // Import Search System (Convex-based)
 import { ConvexSearchReactor } from '../features/search-system/reactors/ConvexSearchReactor.js';
@@ -48,6 +49,7 @@ amorph.registerReactor('pulse', PulseReactor);
 amorph.registerReactor('hover', HoverReactor);
 amorph.registerReactor('sort', SortReactor);
 amorph.registerReactor('filter', FilterReactor);
+amorph.registerReactor('cardScroll', CardScrollReactor);
 
 // Register Search System (Convex-based - replaces old SearchReactor)
 amorph.registerReactor('convex-search', ConvexSearchReactor);

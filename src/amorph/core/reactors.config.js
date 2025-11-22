@@ -170,6 +170,20 @@ export const ReactorsConfig = {
     morphTypes: ['*']
   },
   
+  cardScroll: {
+    name: 'Card Scroll Reactor',
+    description: 'Shrinks image horizontally when scrolling in card data - creates more space for data',
+    category: 'interaction',
+    enabled: true, // Enable by default for better UX
+    defaultConfig: {
+      minWidth: 40,           // Minimum width percentage
+      maxWidth: 100,          // Maximum width percentage
+      transitionDuration: 300, // CSS transition in ms
+      throttleDelay: 50       // Scroll event throttle
+    },
+    morphTypes: ['card']
+  },
+  
   // ==========================================
   // BUBBLEVIEW REACTORS
   // ==========================================

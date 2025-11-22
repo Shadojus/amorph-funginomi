@@ -698,13 +698,12 @@ export class BubbleView extends LitElement {
   handleSearch(event) {
     const query = event.detail?.query || '';
     const totalResults = event.detail?.totalResults || 0;
-    const scores = event.detail?.scores || {}; // slug → numeric score
-    const matchedFields = event.detail?.matchedFields || {}; // slug → array of field paths
-    const results = event.detail?.results || []; // array of entity objects
+    const scores = event.detail?.scores || {};
+    const matchedFields = event.detail?.matchedFields || {};
+    const results = event.detail?.results || [];
     
-    console.log('[BubbleView] 🔍 Search completed:', { query, totalResults, hasQuery: !!query, scoresCount: Object.keys(scores).length });
+    console.log('[BubbleView] 🔍 Search:', { query, totalResults });
     
-    // Store current search query for connection weight calculation
     this.currentSearchQuery = query;
     this.hasActiveSearch = !!query && query.length >= 2;
     
@@ -715,44 +714,36 @@ export class BubbleView extends LitElement {
         timestamp: Date.now()
       });
       
-      // Store search scores and matched fields from ConvexSearchReactor
+      // Store search scores
       this.searchScores.clear();
       this.searchMatchedFields.clear();
       this.searchMatchedBubbles = new Set();
       
-      // Process results to extract scores and normalize them
       const maxScore = Math.max(...Object.values(scores), 1);
       
       results.forEach(entity => {
         const slug = entity.slug;
         if (this.bubbles.has(slug)) {
           this.searchMatchedBubbles.add(slug);
-          
-          // Normalize score to 0-1 range
           const rawScore = scores[slug] || 0;
           const normalizedScore = maxScore > 0 ? rawScore / maxScore : 0;
           this.searchScores.set(slug, normalizedScore);
-          
-          // Store matched fields for detail display
           const fields = matchedFields[slug] || [];
           this.searchMatchedFields.set(slug, fields);
-          
-          // Search matched: ${slug}
         }
       });
       
-      console.log('[BubbleView] Search matched bubbles:', this.searchMatchedBubbles.size);
+      console.log('[BubbleView] Matched:', this.searchMatchedBubbles.size);
+      
+      // Update connections and sizes
+      this.updateUserNodeConnections();
     } else {
-      // Empty or short search - clear search matches
+      // Clear search - NO updates needed (data is already there)
       this.searchMatchedBubbles = new Set();
       this.searchScores.clear();
       this.searchMatchedFields.clear();
       console.log('[BubbleView] Search cleared');
     }
-    
-    // Update connections and sizes immediately
-    this.updateUserNodeConnections();
-    // Note: updateBubbleSizes() is called in updateUserNodeConnections()
   }
 
   /**

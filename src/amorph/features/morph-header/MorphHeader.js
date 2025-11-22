@@ -1081,7 +1081,7 @@ export class MorphHeader extends LitElement {
               <input 
                 type="text" 
                 class="search-input"
-                placeholder="search this data..."
+                placeholder="keyword.."
                 .value=${this.searchQuery}
                 @input=${this.handleSearchInput}
               />

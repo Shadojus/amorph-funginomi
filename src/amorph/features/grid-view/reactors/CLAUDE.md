@@ -16,6 +16,7 @@
 - **HoverReactor** - Adds hover effects
 - **SortReactor** - Sorts morphs by various criteria
 - **FilterReactor** - Filters morphs based on criteria
+- **CardScrollReactor** ⭐ **NEW** - Shrinks images horizontally when scrolling in cards, creating more space for data
 
 ## Architecture
 

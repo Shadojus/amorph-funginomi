@@ -28,7 +28,6 @@ export class ConvexSearchReactor {
   constructor(config = {}) {
     this.config = {
       debounce: 300,        // Longer debounce for API calls
-      minQueryLength: 2,    // Minimum query length
       apiEndpoint: '/api/search',
       highlightResults: true,
       highlightColor: '#3b82f6',  // Blue highlight
@@ -111,6 +110,7 @@ export class ConvexSearchReactor {
   onSearchChange(data) {
     // AMORPH events pass data directly, not wrapped in event.detail
     const query = data?.query || '';
+    const trimmedQuery = query.trim();
     this.currentQuery = query;
     
     // Cancel previous debounce
@@ -123,15 +123,15 @@ export class ConvexSearchReactor {
       this.abortController.abort();
     }
     
-    // If query is empty or too short, reset to all results
-    if (query.length < this.config.minQueryLength) {
-      this.resetSearch();
+    // If query is empty, do NOTHING - no events, no resets, no data loading
+    if (!trimmedQuery) {
+      console.log('[ConvexSearchReactor] Empty query - no action');
       return;
     }
     
-    // Debounced search
+    // Debounced search for any non-empty query
     this.debounceTimer = setTimeout(() => {
-      this.performSearch(query);
+      this.performSearch(trimmedQuery);
     }, this.config.debounce);
   }
   
@@ -149,8 +149,8 @@ export class ConvexSearchReactor {
    * Perform search via Convex API
    */
   async performSearch(query) {
-    if (!query || query.trim().length < this.config.minQueryLength) {
-      this.resetSearch();
+    if (!query || !query.trim()) {
+      console.log('[ConvexSearchReactor] Empty query in performSearch - skipping');
       return;
     }
     
@@ -220,9 +220,10 @@ export class ConvexSearchReactor {
   
   /**
    * Reset search (show all results)
+   * Only called programmatically when needed, not on every keystroke
    */
   resetSearch() {
-    console.log('[ConvexSearchReactor] 🔄 Search reset → showing all entities');
+    console.log('[ConvexSearchReactor] 🔄 Search reset');
     
     this.currentQuery = '';
     
@@ -238,15 +239,6 @@ export class ConvexSearchReactor {
         timestamp: Date.now() 
       }
     }));
-    
-    // Also dispatch completed event with empty query
-    this.dispatchSearchComplete({
-      results: [],
-      scores: {},
-      matchedPerspectives: {},
-      totalResults: 0,
-      query: ''
-    });
   }
   
   /**

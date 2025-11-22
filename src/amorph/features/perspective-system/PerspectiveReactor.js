@@ -40,7 +40,7 @@ export class PerspectiveReactor {
     const containerSelector = window.amorph?.domainConfig?.ui?.grid?.containerClass || '.entity-grid';
     const container = document.querySelector(containerSelector);
     if (container && container.dataset.searchActive === 'true') {
-      console.log('[PerspectiveReactor] ⏸️ Skipped - search is active');
+      console.log('[PerspectiveReactor] ⏸️ Skipped - search is active, SearchFilterController handles highlighting');
       return 0;
     }
     
@@ -149,21 +149,16 @@ export class PerspectiveReactor {
     
     const style = document.createElement('style');
     style.textContent = `
-      /* Perspective Reactor Styles */
+      /* Perspective Reactor Styles - Simple left border */
       .reactor-perspective-dimmed {
         opacity: 0.6 !important;
         transition: opacity ${this.config.duration}ms ease;
       }
       
       .reactor-perspective-highlighted {
-        border-color: var(--perspective-color) !important;
-        box-shadow: 0 0 0 2px var(--perspective-color, transparent) !important;
-        transition: all ${this.config.duration}ms ease;
-      }
-      
-      .reactor-perspective-highlighted:hover {
-        box-shadow: 0 4px 12px var(--perspective-color, transparent) !important;
-        transform: translateY(-2px);
+        border-left: 3px solid var(--perspective-color, transparent) !important;
+        padding-left: 0.5rem !important;
+        transition: border-left ${this.config.duration}ms ease, padding-left ${this.config.duration}ms ease;
       }
     `;
     
