@@ -1,6 +1,8 @@
-# 🎯 AMORPH Core - System Kern
+# 🎯 AMORPH Core - Framework Kernel
 
-**Last Updated:** 21. November 2025
+**Last Updated:** 22. November 2025
+
+**Framework Note:** Der Core ist **domain-agnostisch**. Er enthält keine Pilz-spezifische Logik. AmorphSystem, Observers, und EventBridge funktionieren mit beliebigen strukturierten Daten.
 
 ## Structure
 

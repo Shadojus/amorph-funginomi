@@ -1,15 +1,22 @@
-# 🔮 AMORPH System - Root Documentation
+# 🔮 AMORPH System - Generic Data Visualization Framework
 
-**Last Updated:** 21. November 2025
+**Last Updated:** 22. November 2025
 
 ## Übersicht
 
-Dies ist das Root-Verzeichnis des AMORPH Systems - ein vollständiges morphologisches UI-System für die Funginomi Pilz-Datenbank.
+**AMORPH ist ein Framework für generische datengetriebene Visualisierungen.**
 
-**Philosophie:** Atomic Design - Jedes Datenfeld ist ein eigener Morph  
-**Tech Stack:** Astro + Lit + Vanilla JS Reactors + Convex (Lokal) + Canvas 2D Renderer + Redis Event Bus
+Dies ist das Root-Verzeichnis des AMORPH Systems - ein domain-agnostisches morphologisches UI-Framework. Die erste Instanz ist **Funginomi** (Pilz-Enzyklopädie), weitere folgen (Phytonomi für Pflanzen, etc.).
 
-**Latest:** BubbleView mit relationship-focused detail dialog, Canvas ohne Pixi.js, mobile-optimiert ohne horizontal scroll.
+**Philosophie:** 
+- **Data-Driven UI** - Morphs generieren sich automatisch aus Datenstruktur
+- **Domain-Agnostic** - Keine hardcodierten Pilz-spezifischen Logik
+- **Event-Driven** - Features kommunizieren über Events, nicht direkte Dependencies
+- **Multi-Instance** - Redis Streams ermöglichen Cross-Domain Data Exchange
+
+**Tech Stack:** Astro + Lit + Vanilla JS Reactors + Convex + Canvas 2D + Redis Streams
+
+**Latest:** MorphMapper mit intelligenter Type Detection, BubbleView mit Similarity-based Layout, Perspective System mit FIFO queue.
 
 ## 🔗 Quick Navigation
 

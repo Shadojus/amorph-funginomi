@@ -1,10 +1,12 @@
-# Grid View - Visual Reactors
+# Grid View - Visual Reactors (Framework Core)
 
-**Last Updated:** 21. November 2025
+**Last Updated:** 22. November 2025
 
 ## Overview
 
-Visual Reactors for the Grid View feature. These reactors add visual effects and behaviors to morphs without modifying their internal logic.
+**Domain-agnostic visual effects system.** These reactors add visual effects and behaviors to morphs without modifying their internal logic or knowing about the domain.
+
+**Framework Principle:** Reactors sind vollkommen generisch. GlowReactor kann beliebige HTML-Elemente highlighten (Pilz-Karten, Pflanzen-Karten, Produkt-Karten), FilterReactor kann beliebige Listen filtern, SortReactor kann beliebige Collections sortieren. Zero domain knowledge.
 
 ## Available Reactors
 

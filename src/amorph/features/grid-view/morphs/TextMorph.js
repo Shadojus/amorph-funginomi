@@ -31,6 +31,8 @@ export class TextMorph extends LitElement {
     css`
       :host {
         display: block;
+        max-width: 100%;
+        overflow: hidden;
       }
       
       .text {
@@ -40,7 +42,9 @@ export class TextMorph extends LitElement {
         transition: var(--transition-base);
         word-wrap: break-word;
         overflow-wrap: break-word;
+        word-break: break-word;
         color: var(--color-text-muted);
+        max-width: 100%;
     }
     
     .text.ellipsis {

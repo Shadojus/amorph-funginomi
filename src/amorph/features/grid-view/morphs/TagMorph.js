@@ -20,6 +20,7 @@ import { globalStyles } from './tokens.js';
 export class TagMorph extends LitElement {
   static properties = {
     value: { type: String },
+    tags: { type: Array },  // NEW: Support for multiple tags
     variant: { type: String },  // 'pill' | 'badge' | 'chip'
     color: { type: String },
     clickable: { type: Boolean }
@@ -30,20 +31,32 @@ export class TagMorph extends LitElement {
     css`
       :host {
         display: inline-block;
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .tags-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        max-width: 100%;
       }
       
       .tag {
-        padding: var(--space-sm) var(--space-md);
+        padding: 0.35rem 0.75rem;
         border-radius: var(--radius-full);
-        font-size: var(--font-size-sm);
+        font-size: 0.75rem;
         font-weight: var(--font-weight-medium);
         transition: var(--transition-base);
-      border: 1.5px solid currentColor;
-      background: transparent;
-      color: #667eea;
-      display: inline-block;
-      white-space: nowrap;
-      user-select: none;
+        border: 1.5px solid currentColor;
+        background: transparent;
+        color: #667eea;
+        display: inline-block;
+        white-space: nowrap;
+        user-select: none;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     .tag.clickable {
@@ -91,6 +104,7 @@ export class TagMorph extends LitElement {
   constructor() {
     super();
     this.value = '';
+    this.tags = null;
     this.variant = 'pill';
     this.color = 'auto';
     this.clickable = true;
@@ -135,6 +149,23 @@ export class TagMorph extends LitElement {
       });
     }
   }
+
+  handleTagClick(tag) {
+    if (this.clickable) {
+      // Dispatch Custom Event for individual tag in array
+      this.dispatchEvent(new CustomEvent('tag-click', {
+        detail: { tag, color: this.color },
+        bubbles: true,
+        composed: true
+      }));
+      
+      // Auch direkt an amorph melden
+      amorph.emit('tag:clicked', { 
+        tag, 
+        color: this.color
+      });
+    }
+  }
   
   getColorStyle() {
     if (this.color && this.color !== 'auto') {
@@ -148,7 +179,24 @@ export class TagMorph extends LitElement {
   }
   
   render() {
-    // Don't render if value is empty
+    // Multiple tags (array)
+    if (this.tags && Array.isArray(this.tags) && this.tags.length > 0) {
+      return html`
+        <div class="tags-container">
+          ${this.tags.map(tag => html`
+            <span 
+              class="tag ${this.variant} ${this.clickable ? 'clickable' : ''}"
+              style="${this.getColorStyle()}"
+              @click="${() => this.handleTagClick(tag)}"
+            >
+              ${tag}
+            </span>
+          `)}
+        </div>
+      `;
+    }
+    
+    // Single tag (string)
     if (!this.value || this.value.trim().length === 0) {
       return html``;
     }

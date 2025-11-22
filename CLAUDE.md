@@ -1,28 +1,103 @@
-# 📝 AMORPH Funginomi - Project Documentation
+# 📝 AMORPH Framework - Generic Data Visualization System
 
-**Last Updated:** 21. November 2025
+**Last Updated:** 22. November 2025
 
-## 🎯 Ziel
+## 🎯 Vision
 
-Alle CLAUDE.md Dateien auf dem neuesten Stand:
+**AMORPH ist ein Framework-Prototyp für generische datengetriebene Visualisierungen.**
+
+Die wirkliche Innovation ist **nicht** "Pilze schön darstellen", sondern **"beliebige strukturierte Daten automatisch sinnvoll visualisieren"**. Das ist der Kern, der wertvoll ist.
+
+**Funginomi** ist die erste Instanz dieses Frameworks - eine Pilz-Enzyklopädie als Proof-of-Concept. Weitere Wissensseiten (z.B. Phytonomi für Pflanzen) werden folgen und über Redis Streams Daten austauschen.
+
+**Ziel:** Alle CLAUDE.md Dateien auf dem neuesten Stand:
 - ✅ **Jungfräulich** - Für neue Claude-Sessions verständlich
 - ✅ **Vollständig** - Keine Details der Implementierung verloren
 - ✅ **Akkurat** - Exakte Schema-Feldnamen dokumentiert
+- ✅ **Framework-First** - Generische Architektur, nicht domain-spezifisch
 
-## 📊 Aktueller System-Stand (21. November 2025)
+## 🔧 Framework-Architektur
 
-**Core Features:**
-- ✅ **BubbleView** - Canvas-based visualization mit UserNode connections (Native Canvas 2D, kein Pixi.js)
-- ✅ **GridView** - Responsive Karten-Layout mit wood floor background
-- ✅ **Perspective System** - 12 Perspektiven mit FIFO queue (max 4 aktiv)
-- ✅ **Convex Search** - Server-side search mit auto-perspective switching
+**AMORPH ist domain-agnostisch.** Die Komponenten sind **nicht** für Pilze gebaut, sondern für **strukturierte Daten beliebiger Domänen**.
+
+### Core Framework Features
+
+- ✅ **MorphMapper** - Intelligent type detection (ZERO hardcoded mappings!)
+  - Erkennt automatisch: Numbers, Ranges, Booleans, Arrays, Objects, URLs, Coordinates
+  - Wählt passende Visualisierung basierend auf Datenstruktur
+  - **Domain-agnostisch** - funktioniert für Pilze, Pflanzen, Produkte, etc.
+
+- ✅ **BubbleView** - Generic similarity visualization (Native Canvas 2D)
+  - Hilbert-Space similarity calculations
+  - Physics-based layout
+  - UserNode connections für personalisierte Beziehungen
+  - **Keine Pilz-Logik** - arbeitet mit beliebigen Entitäten
+
+- ✅ **GridView** - Responsive card layout
+  - Automatische Morph-Generierung aus Datenfeldern
+  - Keine hardcodierten Field-Namen
+  - **Universal einsetzbar**
+
+- ✅ **Perspective System** - Multi-dimensional data filtering
+  - Generisches Tag-basiertes Perspektiven-System
+  - FIFO queue (max 4 aktiv)
+  - **Domain-konfigurierbar** - 12 Perspektiven für Funginomi, beliebig erweiterbar
+
+- ✅ **Event-Driven Architecture** - Redis Streams für Cross-Domain Data Exchange
+  - Features kommunizieren über Events, nicht direkte Abhängigkeiten
+  - **Multi-Instance-Ready** - Funginomi, Phytonomi, etc. können Daten austauschen
+  - Observer-Pattern für Stream-based State Management
+
+## 🌐 Multi-Instance Architecture (Roadmap)
+
+**Vision:** Mehrere Knowledge-Bases teilen die gleiche AMORPH-Architektur:
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│ FUNGINOMI   │     │ PHYTONOMI   │     │ FURTHER...  │
+│ (Mushrooms) │     │ (Plants)    │     │ (...)       │
+└──────┬──────┘     └──────┬──────┘     └──────┬──────┘
+       │                   │                   │
+       │    Redis Streams  │                   │
+       └───────────────────┴───────────────────┘
+                           │
+                    ┌──────▼──────┐
+                    │ BIFRÖST.IO  │
+                    │ (Aggregator)│
+                    └─────────────┘
+```
+
+**Shared Framework:**
+- `src/amorph/core/` - Identisch für alle Instanzen
+- `src/amorph/features/` - Identische Features (BubbleView, GridView, etc.)
+- MorphMapper - Funktioniert mit beliebigen Datenstrukturen
+
+**Instance-Specific:**
+- `convex/schema.ts` - Domain-spezifisches Schema (fungi vs. plants vs. ...)
+- Perspektiven-Konfiguration - 12 für Funginomi, andere für Phytonomi
+- Design Tokens - Instance-spezifisches Branding
+
+**Cross-Instance Features:**
+- User fügt Pilz zu Sammlung hinzu → Event via Redis
+- Phytonomi zeigt "wächst auf Bäumen der Art X" → Cross-Reference
+- Bifröst.io aggregiert alle Knowledge-Bases in eine Suche
+
+## 📊 Funginomi Instance (Aktueller Stand)
+
+**Funginomi = AMORPH Framework + Pilz-Domäne**
+
+- ✅ **Convex Backend** - 6 Beispiel-Pilze (Beauveria, Cordyceps, Fomitopsis, etc.)
+- ✅ **12 Perspektiven** - Culinary, Medicinal, Chemical, Ecology, Safety, etc.
 - ✅ **BubbleDetailReactor** - Relationship-focused dialog statt data dump
+- ✅ **Server-side Search** - Auto-perspective switching
 
-**Recent Fixes:**
-- ✅ Canvas responsive ohne horizontal scroll
-- ✅ BubbleDetailReactor connection strength korrekt (Mittel ≥ 30%)
-- ✅ CanvasPhysicsReactor getAllNodes() method wiederhergestellt
-- ✅ UserNode bleibt fixed im Canvas-Center
+**Recent Updates (2025-11-22):**
+- ✅ **MorphMapper System** - Fully data-driven type detection, nested field extraction
+- ✅ **RangeMorph Visualization** - Positioned segment on scale (not full bar)
+- ✅ **TagMorph Arrays** - Multiple pills for string arrays
+- ✅ **Full Responsive** - All morphs with max-width, overflow, word-wrap
+- ✅ **Reduced Logging** - Cleaner console, only essential events
+- ✅ **Visual Morph Improvements** - KeyValueMorph inline Range, ListMorph wrapping
 
 **Architecture:**
 - Feature-based structure (bubble-view, grid-view, search-system, perspective-system)

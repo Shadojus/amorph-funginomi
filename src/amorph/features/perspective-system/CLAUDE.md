@@ -1,10 +1,14 @@
 # 👁️ PERSPECTIVE SYSTEM FEATURE
 
-**Last Updated:** 21. November 2025
+**Last Updated:** 22. November 2025
 
 ## Overview
 
-Multi-perspective display system with FIFO queue (max 4 active). Integrates with BubbleView for weighted connections.
+**Domain-agnostic multi-dimensional data filtering system** with FIFO queue (max 4 active).
+
+**Framework Concept:** Das Perspektiven-System ist NICHT "für Pilze" gebaut. Es ist ein generisches Tag-basiertes Filtersystem, das beliebige Datenstrukturen aus verschiedenen Blickwinkeln betrachten kann. Die 12 Perspektiven in Funginomi (Culinary, Medicinal, etc.) sind domain-spezifische Konfiguration - andere Instanzen (Phytonomi) haben andere Perspektiven.
+
+**Key Principle:** Perspektiven sind **dynamisch konfigurierbar** und basieren auf Property-Tags, nicht auf hardcodierten Logiken. Das System filtert/highlightet Morphs basierend auf deren Tags, unabhängig von der Domäne.
 
 ## Structure
 

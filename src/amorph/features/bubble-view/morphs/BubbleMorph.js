@@ -272,7 +272,7 @@ export class BubbleMorph extends LitElement {
         const oldSize = changedProperties.get('size');
         const sizeDiff = Math.abs((oldSize || 0) - this.size);
         if (sizeDiff > 5 || oldSize === undefined) {
-          console.log(`[BubbleMorph] 📊 ${this.fungusData?.slug}: ${oldSize || 'initial'} → ${this.size}px`);
+          // Size change (logged nur bei großen Sprüngen)
         }
       }
     }

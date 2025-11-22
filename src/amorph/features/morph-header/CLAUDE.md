@@ -1,6 +1,8 @@
 # 🌍 AMORPH Global Components
 
-**Last Updated:** 21. November 2025
+**Last Updated:** 22. November 2025
+
+**Framework Note:** MorphHeader ist **konfigurierbar** für verschiedene Instanzen. Die Perspektiven-Buttons, Branding, und Search-Integration sind über Props/Config anpassbar. Funginomi zeigt 12 Pilz-Perspektiven, Phytonomi würde andere Perspektiven zeigen.
 
 ## Structure
 

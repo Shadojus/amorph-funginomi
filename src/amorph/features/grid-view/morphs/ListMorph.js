@@ -33,14 +33,18 @@ export class ListMorph extends LitElement {
     css`
       :host {
         display: block;
+        max-width: 100%;
+        overflow: hidden;
       }
 
       .list-container {
-        padding: var(--space-lg);
-        border-radius: var(--radius-lg);
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: all 0.3s ease;
+        padding: 0.75rem;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .list-container:hover {
@@ -62,18 +66,24 @@ export class ListMorph extends LitElement {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
+      width: 100%;
+      max-width: 100%;
     }
 
     .item {
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
+      padding: 0.4rem 0.8rem;
+      border-radius: 16px;
       background: rgba(102, 126, 234, 0.1);
       border: 1.5px solid rgba(102, 126, 234, 0.3);
       color: #8b9dff;
-      font-size: 0.875rem;
+      font-size: 0.7rem;
       font-weight: 500;
       transition: all 0.2s ease;
       user-select: none;
+      max-width: 100%;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.3;
     }
 
     .item:hover {
@@ -167,6 +177,24 @@ export class ListMorph extends LitElement {
     return this.items.length - this.maxItems;
   }
 
+  renderItem(item) {
+    // Primitive Werte (Strings, Numbers, Booleans)
+    if (typeof item !== 'object' || item === null) {
+      return html`${String(item)}`;
+    }
+    
+    // Objekte: Zeige wichtigste Felder
+    // z.B. { name: "Cordycepin", class: "...", concentration: {...} }
+    const nameField = item.name || item.species || item.title || item.label;
+    if (nameField) {
+      return html`<strong>${nameField}</strong>`;
+    }
+    
+    // Fallback: Erstes Feld
+    const firstKey = Object.keys(item)[0];
+    return html`${String(item[firstKey])}`;
+  }
+
   render() {
     if (!this.items || this.items.length === 0) {
       return html`
@@ -191,7 +219,7 @@ export class ListMorph extends LitElement {
                 color: ${this.color};
               "
             >
-              ${item}
+              ${this.renderItem(item)}
             </span>
           `)}
           

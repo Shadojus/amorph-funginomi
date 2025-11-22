@@ -1,10 +1,14 @@
 # 🫧 BUBBLE VIEW FEATURE
 
-**Last Updated:** 21. November 2025
+**Last Updated:** 22. November 2025
 
 ## Overview
 
-Complete BubbleView visualization system with Canvas rendering, physics simulation, user node connections, and relationship-focused bubble detail dialog.
+**Domain-agnostic similarity visualization system** with Canvas rendering, physics simulation, user node connections, and relationship-focused detail dialog.
+
+**Framework Concept:** BubbleView visualisiert **Ähnlichkeitsbeziehungen zwischen Entitäten**, nicht "Pilze". Es funktioniert mit beliebigen Daten - Pilze, Pflanzen, Produkte, Personen, Papers, etc. Die Hilbert-Space-Similarity berechnet Distanzen basierend auf gemeinsamen Properties, unabhängig von der Domäne.
+
+**Key Principle:** Das System zeigt **"WHY entities are connected"** (gemeinsame Eigenschaften, Ähnlichkeiten), nicht "comprehensive data dumps". Die Detail-Ansicht fokussiert auf Beziehungen, nicht auf alle Datenfelder.
 
 ## Structure
 

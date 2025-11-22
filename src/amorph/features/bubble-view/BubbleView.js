@@ -374,7 +374,7 @@ export class BubbleView extends LitElement {
     
     const radius = Math.min(width, height) * radiusMultiplier;
     
-    console.log(`[BubbleView] 📱 Viewport: ${width}x${height}, radius: ${radius.toFixed(0)}px, initial size: ${initialSize}px`);
+    // Viewport setup: ${width}x${height}
     
     // Clear existing bubbles
     this.bubbles.clear();
@@ -400,7 +400,7 @@ export class BubbleView extends LitElement {
         isDragging: false
       });
       
-      console.log(`[BubbleView] ✅ Bubble created: ${slug} at (${Math.round(width / 2 + Math.cos(angle) * radius)}, ${Math.round(height / 2 + Math.sin(angle) * radius)})`);
+      // Bubble created: ${slug}
     });
     
     console.log(`[BubbleView] 🎯 Created ${this.bubbles.size} bubbles, now calculating connections...`);
@@ -535,19 +535,11 @@ export class BubbleView extends LitElement {
       
       this.userNodeData.connections.set(slug, weight);
       
-      if (weight > 0.3) { // Log significant connections
-        console.log(`[BubbleView] Connection to ${slug}: ${weight.toFixed(2)} [${factors.join(', ') || 'base'}]`);
-      }
+      // Connection weight: ${weight.toFixed(2)}
     });
     
     const strongConnections = Array.from(this.userNodeData.connections.values()).filter(w => w > 0.3).length;
-    const searchStatus = hasActiveSearch ? `Active (${this.searchMatchedBubbles.size} matches)` : 'Inactive';
-    console.log(`[BubbleView] 👤 USER NODE: ${this.userNodeData.connections.size} total connections, ${strongConnections} strong (>0.3) [Search: ${searchStatus}, Perspectives: ${this.activePerspectives.length}]`);
-    
-    // Log all connection weights for debugging
-    Array.from(this.userNodeData.connections.entries()).forEach(([targetId, weight]) => {
-      console.log(`  → ${targetId}: ${weight.toFixed(3)}`);
-    });
+    console.log(`[BubbleView] 👤 USER NODE: ${this.userNodeData.connections.size} connections, ${strongConnections} strong (>0.3)`);
     
     // UPDATE BUBBLE SIZES based on weights (visualize importance)
     this.updateBubbleSizes();
@@ -573,8 +565,7 @@ export class BubbleView extends LitElement {
       maxSize = 120;
     }
     
-    console.log(`[BubbleView] 📏 Updating bubble sizes for ${this.bubbles.size} bubbles (screen: ${width}px, range: ${minSize}-${maxSize}px)`);
-    console.log(`[BubbleView] 📏 User node connections:`, Array.from(this.userNodeData.connections.entries()));
+    // Updating bubble sizes (${this.bubbles.size} bubbles)
     
     this.bubbles.forEach((bubble, slug) => {
       let weight = 0;
@@ -608,7 +599,7 @@ export class BubbleView extends LitElement {
         bubble.morph.requestUpdate();
       }
       
-      console.log(`[BubbleView] 📏 ${slug}: size ${newSize.toFixed(0)}px (weight: ${weight.toFixed(2)})`);
+      // Size update
     });
   }
 
@@ -671,7 +662,7 @@ export class BubbleView extends LitElement {
           });
           
           if (similarity > 0.5) { // Log strong connections
-            console.log(`[BubbleView] Strong Hilbert similarity ${bubble1.slug} ↔ ${bubble2.slug}: ${similarity.toFixed(3)}`);
+            // Strong Hilbert similarity: ${similarity.toFixed(3)}
           }
         }
       }
@@ -734,7 +725,7 @@ export class BubbleView extends LitElement {
           const fields = matchedFields[slug] || [];
           this.searchMatchedFields.set(slug, fields);
           
-          console.log('[BubbleView] 🎯 Search matched:', slug, 'score:', normalizedScore.toFixed(3), 'fields:', fields.length);
+          // Search matched: ${slug}
         }
       });
       

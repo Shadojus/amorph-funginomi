@@ -292,7 +292,7 @@ class BubbleHost extends LitElement {
       maxSize = 150;
     }
     
-    console.log(`[BubbleHost] 📱 Viewport: ${viewWidth}x${viewHeight}, using size range ${minSize}-${maxSize}px`);
+    // Viewport size range: ${minSize}-${maxSize}px
     
     // Get active perspectives from AMORPH state
     const activePerspectives = window.amorph?.state?.activePerspectives || 
@@ -357,7 +357,7 @@ class BubbleHost extends LitElement {
       bubbleMorph.setAttribute('data-slug', fungus.slug);
       bubbleMorph.activePerspectives = activePerspectives;
       
-      console.log(`[BubbleHost] 📊 Bubble ${fungus.slug}: size=${size.toFixed(0)}px, score=${normalizedScore.toFixed(3)}, fields=${fieldsCount}, color=${color}`);
+      // Bubble created: ${fungus.slug}
       
       container.appendChild(bubbleMorph);
       this.activeBubbles.set(fungus.slug, bubbleMorph);

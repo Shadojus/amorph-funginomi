@@ -76,6 +76,17 @@ import '../features/grid-view/morphs/ChartMorph.js';
 import '../features/grid-view/morphs/MapMorph.js';
 import '../features/grid-view/morphs/TimelineMorph.js';
 
+// Visual Data Morphs (datengetrieben)
+import '../features/grid-view/morphs/RangeMorph.js';
+import '../features/grid-view/morphs/ProgressMorph.js';
+import '../features/grid-view/morphs/KeyValueMorph.js';
+
+// Visual Chart Morphs (datengetrieben)
+import '../features/grid-view/morphs/BarChartMorph.js';
+import '../features/grid-view/morphs/PieChartMorph.js';
+import '../features/grid-view/morphs/SparklineMorph.js';
+import '../features/grid-view/morphs/RadarChartMorph.js';
+
 // Import MorphHeader Feature
 import '../features/morph-header/MorphHeader.js';
 

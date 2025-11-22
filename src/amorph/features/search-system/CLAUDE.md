@@ -1,10 +1,14 @@
 # 🔍 SEARCH SYSTEM FEATURE
 
-**Last Updated:** 21. November 2025
+**Last Updated:** 22. November 2025
 
 ## Overview
 
-**Convex-powered server-side search** with auto-perspective switching and client-side highlighting.
+**Domain-agnostic full-text search system** with server-side processing and client-side highlighting.
+
+**Framework Concept:** Das Search-System ist generisch. Es durchsucht strukturierte Daten rekursiv (beliebige Objekte, Arrays, Nested Properties) und highlightet Treffer in den gerenderten Morphs. Die Convex-Integration ist austauschbar - das System funktioniert mit beliebigen Backend-APIs (REST, GraphQL, etc.).
+
+**Key Principle:** Search analysiert **Datenstrukturen**, nicht "Pilz-Felder". Die Auto-Perspective-Switching-Logik basiert auf generischen Field-to-Perspective-Mappings, die pro Instance konfigurierbar sind.
 
 **✨ UPDATED (2025-11-21):**
 - ConvexSearchReactor coordinates with BubbleView for bubble creation

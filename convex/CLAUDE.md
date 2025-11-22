@@ -1,6 +1,8 @@
-# 🗄️ CONVEX - Database & Backend
+# 🗄️ CONVEX - Database & Backend (Funginomi Instance)
 
-**Last Updated:** 21. November 2025
+**Last Updated:** 22. November 2025
+
+**⚠️ DOMAIN-SPECIFIC:** Dieses Schema ist **Funginomi-spezifisch** (Pilze). Das AMORPH Framework selbst ist domain-agnostisch. Andere Instanzen (Phytonomi für Pflanzen, etc.) haben ihre eigenen Schemas mit unterschiedlichen Feldern, aber die gleiche AMORPH-Architektur.
 
 ## Structure
 

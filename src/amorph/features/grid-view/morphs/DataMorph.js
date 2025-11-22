@@ -30,11 +30,11 @@ export class DataMorph extends LitElement {
   };
 
   static styles = css`
-    :host {
-      display: block;
-    }
-
-    .data-container {
+      :host {
+        display: block;
+        max-width: 100%;
+        overflow: hidden;
+      }    .data-container {
       background: transparent;
       padding: 0.375rem 0.5rem 0.375rem 0;
       margin-bottom: 0.5rem;
@@ -43,6 +43,9 @@ export class DataMorph extends LitElement {
       border-radius: 4px;
       transition: all 0.3s ease;
       position: relative;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
     
     :host(.search-highlight-morph) .data-container {
@@ -71,6 +74,9 @@ export class DataMorph extends LitElement {
       line-height: 1.3;
       font-size: 0.8125rem;
       transition: all 0.3s ease;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      max-width: 100%;
     }
     
     /* Search highlight - background only, no overlay effect */

@@ -1,14 +1,16 @@
-# 📄 PAGES - Astro Pages & Routes
+# 📄 PAGES - Astro Pages & Routes (Funginomi Instance)
 
-**Last Updated:** 21. November 2025
+**Last Updated:** 22. November 2025
+
+**⚠️ INSTANCE-SPECIFIC:** Diese Pages sind **Funginomi-spezifisch**. Das AMORPH Framework selbst ist page-agnostic. Andere Instanzen haben andere Routes (z.B. `/plants/[slug]` für Phytonomi), aber nutzen die gleichen Features (GridView, BubbleView, PerspectiveSystem).
 
 ## Übersicht
 
 Alle Astro Pages der Funginomi AMORPH App:
-- ✅ **fungi/index.astro**: Hauptseite mit Grid & Bubble View
-- ✅ **fungi/[slug].astro**: Detail-Seite für einzelnen Pilz
+- ✅ **fungi/index.astro**: Hauptseite mit Grid & Bubble View (framework-powered)
+- ✅ **fungi/[slug].astro**: Detail-Seite für einzelnen Pilz (framework-powered)
 - ✅ **[slug].astro**: Top-level slug route
-- ✅ **api/search.ts**: Server-side search API endpoint
+- ✅ **api/search.ts**: Server-side search API endpoint (Convex-specific)
 
 ## Structure
 

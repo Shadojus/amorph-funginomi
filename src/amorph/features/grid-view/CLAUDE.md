@@ -1,16 +1,20 @@
 # 📊 GRID VIEW FEATURE
 
-**Last Updated:** 21. November 2025
+**Last Updated:** 22. November 2025
 
 ## Overview
 
-Grid-based layout for displaying fungus cards with wood floor design and touch-friendly interactions.
+**Domain-agnostic grid-based layout** for displaying entity cards with intelligent data-driven morph rendering.
 
-**✨ NEW (2025-11-19):**
-- 🪵 **Wood floor background** - Natural texture on cards
-- 👆 **Touch hover effects** - Cards stay highlighted until next touch
-- 📦 **Ultra-compact layout** - 40% less padding/whitespace
-- 🔍 **Search highlighting** - Background gradient on matched values
+**Framework Concept:** GridView ist NICHT "für Pilze" gebaut. Es ist ein generisches Card-Layout, das beliebige strukturierte Daten (Pilze, Pflanzen, Produkte, Personen) visualisieren kann. Die MorphMapper-Intelligenz entscheidet automatisch, welche Visualisierung für welchen Datentyp passend ist.
+
+**✨ LATEST (2025-11-22):**
+- 🧑‍💻 **MorphMapper** - Fully data-driven morph type detection (NO hardcoded mappings!)
+- 📊 **RangeMorph** - Visual scale showing min/max/optimal on positioned track
+- 🏷️ **TagMorph Arrays** - Renders multiple pills for string arrays
+- 📱 **Full Responsive** - All morphs with max-width, overflow handling, word-wrap
+- 🔍 **Nested Field Extraction** - Flattens one level to expose visual morphs
+- 🪧 **Reduced Logging** - Cleaner console output, only essential events
 
 ## Structure
 
@@ -33,6 +37,31 @@ features/grid-view/
 ```
 
 ## Components
+
+### MorphMapper.js (FRAMEWORK CORE)
+**Intelligent data-driven morph type detection - Der Kern des generischen Ansatzes**
+
+**Framework-Prinzip:**
+MorphMapper analysiert Datenstrukturen, **nicht** Feldnamen. Es gibt KEINE hardcodierten Mappings wie "commonName → NameMorph" oder "edibility → TagMorph". Stattdessen erkennt es die **Struktur** der Daten und wählt die passende Visualisierung.
+
+**Detection Logic (Domain-Agnostic):**
+- `typeof value === 'boolean'` → BooleanMorph (funktioniert für "edible", "organic", "available", etc.)
+- `typeof value === 'number'` → NumberMorph (funktioniert für "price", "weight", "temperature", etc.)
+- `typeof value === 'string' && value.length < 50` → NameMorph/TagMorph
+- `typeof value === 'string' && value.length > 50` → TextMorph
+- `Array.isArray(value) && all strings` → TagMorph (funktioniert für "colors", "flavors", "categories", etc.)
+- `Array.isArray(value) && all numbers` → SparklineMorph
+- `Object with {min, max, optimal}` → RangeMorph (funktioniert für "size", "price range", "temperature", etc.)
+- `Object (small, flat)` → KeyValueMorph
+- `Complex nested object` → DataMorph
+
+**Nested Field Extraction:**
+Flattens DataMorph objects one level to expose visual morphs inside complex structures.
+
+**Priority System:**
+- Visual morphs: +120 (RangeMorph, ChartMorph, etc.)
+- Field hints: +100 (z.B. "range" im Feldnamen)
+- Type-based: Base score (Boolean, Number, String)
 
 ### GridHost.js
 Responsive grid layout with CSS Grid. Displays morphs in cards.

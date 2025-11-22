@@ -18,142 +18,266 @@ console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
 
 /**
  * MorphMapper - Server-side version
- * Determines correct morph type for each field
+ * Determines correct morph type for each field - DATA DRIVEN!
+ * Synchronized with client-side MorphMapper.js logic
  */
 class ServerMorphMapper {
   constructor() {
-    // Exact field name to morph type mappings
-    this.exactMappings = {
-      // Names & Identifiers
-      'commonName': 'name-morph',
-      'latinName': 'name-morph',
-      'scientificName': 'name-morph',
-      'genus': 'name-morph',
-      'species': 'name-morph',
-      'family': 'name-morph',
-      
-      // Images
-      'imageUrl': 'image-morph',
-      'imageUrls': 'image-morph',
-      
-      // Text
-      'description': 'text-morph',
-      
-      // Tags & Categories
-      'edibility': 'tag-morph',
-      'toxicityLevel': 'tag-morph',
-      'habitat': 'tag-morph',
-      'substrate': 'tag-morph',
-      'primarySeason': 'tag-morph',
-      'capColor': 'tag-morph',
-      'sporePrintColor': 'tag-morph',
-      
-      // Booleans
-      'bioluminescence': 'boolean-morph',
-      'cultivated': 'boolean-morph',
-      
-      // Numbers
-      'diameter': 'number-morph',
-      'length': 'number-morph',
-    };
+    // NO hardcoded mappings - everything is data-driven!
   }
 
   getMorphType(fieldName: string, value: any): string {
-    // Check exact mappings
-    if (this.exactMappings[fieldName]) {
-      return this.exactMappings[fieldName];
+    return this.getMorphByValueAnalysis(value, fieldName);
+  }
+
+  getMorphByValueAnalysis(value: any, fieldName: string = ''): string {
+    if (value === null || value === undefined) {
+      return 'text-morph';
     }
 
-    // Pattern matching
-    if (/Name$/i.test(fieldName)) return 'name-morph';
-    if (/Image/i.test(fieldName)) return 'image-morph';
-    if (/Color$/i.test(fieldName)) return 'tag-morph';
-    if (/^is[A-Z]/.test(fieldName)) return 'boolean-morph';
-    if (/Count$/i.test(fieldName)) return 'number-morph';
-    
-    // Value-based analysis
-    if (typeof value === 'boolean') return 'boolean-morph';
-    if (typeof value === 'number') return 'number-morph';
-    if (Array.isArray(value)) {
-      if (value.length > 0 && typeof value[0] === 'string' && value[0].length < 30) {
-        return 'tag-morph';
+    const type = typeof value;
+
+    // Boolean values → BooleanMorph
+    if (type === 'boolean') {
+      return 'boolean-morph';
+    }
+
+    // Number values → NumberMorph
+    if (type === 'number') {
+      return 'number-morph';
+    }
+
+    // String values - analyze content structure
+    if (type === 'string') {
+      const trimmed = value.trim();
+      
+      if (trimmed.length === 0) return 'text-morph';
+      
+      // Image URL detection
+      if (this.isImageUrl(trimmed)) return 'image-morph';
+      
+      // Date/Time detection
+      if (this.isDateString(trimmed)) return 'timeline-morph';
+      
+      // Short strings
+      if (trimmed.length < 30 && !trimmed.includes('\n')) {
+        if (trimmed.length < 15) return 'tag-morph';
+        return 'name-morph';
       }
+      
+      return 'text-morph';
+    }
+
+    // Array values
+    if (Array.isArray(value)) {
+      if (value.length === 0) return 'list-morph';
+
+      const firstItem = value[0];
+      const itemType = typeof firstItem;
+      
+      // Array of strings
+      if (itemType === 'string') {
+        const avgLength = value.reduce((sum: number, item: any) => sum + (item?.length || 0), 0) / value.length;
+        if (avgLength < 20) return 'tag-morph';
+        return 'list-morph';
+      }
+
+      // Array of numbers
+      if (itemType === 'number') {
+        if (value.length < 5) return 'list-morph';
+        if (value.length >= 5 && value.length <= 15) return 'sparkline-morph';
+        return 'list-morph';
+      }
+
+      // Array of objects - NUR für strukturierte Chart-Daten
+      if (itemType === 'object' && firstItem !== null) {
+        const keys = Object.keys(firstItem);
+        const isSimpleObject = keys.length >= 2 && keys.length <= 3;
+        
+        const allSameStructure = value.every((item: any) => {
+          if (typeof item !== 'object' || item === null) return false;
+          const itemKeys = Object.keys(item);
+          return itemKeys.length === keys.length && itemKeys.every(k => keys.includes(k));
+        });
+        
+        if (isSimpleObject && allSameStructure) {
+          if (value.length >= 3 && value.length <= 6 &&
+              (keys.includes('axis') || keys.includes('dimension') || keys.includes('label')) &&
+              (keys.includes('value') || keys.includes('score') || keys.includes('rating'))) {
+            return 'radar-chart-morph';
+          }
+          
+          if (value.length >= 2 && value.length <= 6 &&
+              (keys.includes('category') || keys.includes('type') || keys.includes('name')) &&
+              (keys.includes('count') || keys.includes('percentage') || keys.includes('value'))) {
+            return 'pie-chart-morph';
+          }
+          
+          if (value.length >= 3 && value.length <= 8 &&
+              (keys.includes('label') || keys.includes('month') || keys.includes('period')) &&
+              (keys.includes('value') || keys.includes('amount'))) {
+            return 'bar-chart-morph';
+          }
+        }
+        
+        return 'list-morph';
+      }
+
       return 'list-morph';
     }
-    
+
+    // Object values
+    if (type === 'object' && value !== null) {
+      if (value instanceof Date) return 'timeline-morph';
+      
+      if (('lat' in value && 'lng' in value) || 
+          ('latitude' in value && 'longitude' in value)) {
+        return 'map-morph';
+      }
+
+      // Range object (min/max)
+      if ('min' in value && 'max' in value) {
+        return 'range-morph';
+      }
+
+      // Progress object
+      if (('value' in value && 'max' in value) || 'percentage' in value) {
+        return 'progress-morph';
+      }
+
+      // Small flat objects
+      const primitiveFields = Object.entries(value).filter(([_, v]) => 
+        typeof v !== 'object' || v === null
+      );
+      const hasNestedObjects = Object.values(value).some((v: any) => 
+        typeof v === 'object' && v !== null && !Array.isArray(v)
+      );
+      const hasArrays = Object.values(value).some((v: any) => Array.isArray(v));
+      
+      if (primitiveFields.length > 0 && primitiveFields.length <= 5 && 
+          !hasNestedObjects && !hasArrays && primitiveFields.length === Object.keys(value).length) {
+        return 'key-value-morph';
+      }
+
+      return 'data-morph';
+    }
+
     return 'text-morph';
   }
 
-  getFieldPriority(fieldName: string): number {
-    const priorities: Record<string, number> = {
-      'commonName': 1000,
-      'latinName': 950,
-      'imageUrl': 900,
-      'edibility': 800,
-      'toxicityLevel': 790,
-      'description': 850,
-      'habitat': 780,
-      'genus': 690,
-      'species': 680,
-    };
-    return priorities[fieldName] || 500;
+  isImageUrl(str: string): boolean {
+    const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg|ico|bmp)$/i;
+    const hasImageExtension = imageExtensions.test(str);
+    const isUrlLike = str.startsWith('http') || str.startsWith('/') || str.startsWith('data:image');
+    return isUrlLike && (hasImageExtension || str.includes('image') || str.startsWith('data:image'));
   }
 
-  getMappedFields(fungus: any) {
-    const fields: Array<{ fieldName: string; morphType: string; value: any; priority: number; fullPath: string }> = [];
-    
-    const excludeFields = ['_id', '_creationTime', 'seoName', 'slug', 'scientificNameSynonyms', 'commonNameVariants'];
-    
-    // Helper to get nested value
-    const getNestedValue = (obj: any, path: string): any => {
-      return path.split('.').reduce((current, key) => current?.[key], obj);
+  isDateString(str: string): boolean {
+    const isoDatePattern = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?/;
+    if (isoDatePattern.test(str)) return true;
+    const parsed = Date.parse(str);
+    return !isNaN(parsed);
+  }
+
+  getFieldPriority(fieldName: string, morphType: string): number {
+    const basePriorities: Record<string, number> = {
+      'name-morph': 900,
+      'image-morph': 850,
+      'tag-morph': 750,
+      'text-morph': 700,
+      'radar-chart-morph': 690,
+      'range-morph': 680,
+      'progress-morph': 670,
+      'bar-chart-morph': 665,
+      'sparkline-morph': 660,
+      'pie-chart-morph': 655,
+      'number-morph': 650,
+      'key-value-morph': 620,
+      'boolean-morph': 600,
+      'list-morph': 550,
+      'data-morph': 400,
+      'map-morph': 350,
+      'chart-morph': 300,
+      'timeline-morph': 200,
     };
 
-    // Define priority fields with their paths
-    const fieldPaths = [
-      'commonName',
-      'latinName',
-      'imageUrl',
-      'description',
-      'safetyAndIdentification.edibility',
-      'safetyAndIdentification.toxicityLevel',
-      'taxonomy.family',
-      'taxonomy.genus',
-      'taxonomy.species',
-      'ecologyAndHabitat.habitat',
-      'ecologyAndHabitat.substrate',
-      'ecologyAndHabitat.seasonality.primarySeason',
-      'physicalCharacteristics.capColor',
-      'physicalCharacteristics.sporePrintColor',
-      'culinaryAndNutritional.flavorProfile',
-      'medicinalAndHealth.medicinalProperties',
-      'cultivationAndProcessing.cultivationDifficulty',
-    ];
+    let priority = basePriorities[morphType] || 500;
 
-    for (const path of fieldPaths) {
-      const value = getNestedValue(fungus, path);
-      
-      // Skip if value doesn't exist or is empty
-      if (value === null || value === undefined || value === '' || 
-          (Array.isArray(value) && value.length === 0)) {
-        continue;
-      }
-
-      const fieldName = path.split('.').pop() || path;
-      const morphType = this.getMorphType(fieldName, value);
-      const priority = this.getFieldPriority(fieldName);
-
-      fields.push({
-        fieldName,
-        morphType,
-        value,
-        priority,
-        fullPath: path
-      });
+    const lowerName = fieldName.toLowerCase();
+    
+    // CRITICAL SAFETY INFO → Highest priority
+    if (lowerName.includes('edib') || lowerName.includes('toxic') || 
+        lowerName.includes('poison') || lowerName.includes('deadly') ||
+        lowerName.includes('lookalike') || lowerName.includes('danger')) {
+      priority += 300;
+    }
+    
+    // Identity terms → boost priority
+    if (lowerName.includes('name') || lowerName.includes('title')) {
+      priority += 100;
+    }
+    
+    // Visuelle Morphs (Range, Charts) → Extra Boost!
+    if (morphType === 'range-morph' || morphType === 'progress-morph' ||
+        morphType.includes('chart') || morphType === 'sparkline-morph' ||
+        morphType === 'radar-chart-morph' || morphType === 'key-value-morph') {
+      priority += 120;
+    }
+    
+    // Visual identification → high priority
+    if (lowerName.includes('color') || lowerName.includes('shape') || 
+        lowerName.includes('spore') || lowerName.includes('cap') ||
+        lowerName.includes('stem') || lowerName.includes('gill') ||
+        lowerName.includes('diameter') || lowerName.includes('length') ||
+        lowerName.includes('size') || lowerName.includes('temperature') ||
+        lowerName.includes('humidity') || lowerName.includes('range')) {
+      priority += 100;
+    }
+    
+    // Metadata → lowest priority
+    if (lowerName.includes('created') || lowerName.includes('updated') || 
+        lowerName.includes('modified') || lowerName.includes('_id') ||
+        lowerName.includes('slug')) {
+      priority -= 500;
     }
 
-    // Sort by priority and limit to top 10
-    return fields.sort((a, b) => b.priority - a.priority).slice(0, 10);
+    return priority;
+  }
+
+  getMappedFields(fungus: any, options: any = {}) {
+    const {
+      excludeFields = ['_id', '_creationTime', 'slug', 'seoName', 'imageUrls'],
+      maxFields = 15,
+      maxDepth = 1,
+      currentDepth = 0,
+      parentPath = ''
+    } = options;
+
+    const fields: Array<{ fieldName: string; morphType: string; value: any; priority: number; fullPath: string }> = [];
+
+    for (const [key, value] of Object.entries(fungus)) {
+      if (excludeFields.includes(key)) continue;
+      if (value === null || value === undefined) continue;
+
+      const fullPath = parentPath ? `${parentPath}.${key}` : key;
+      const morphType = this.getMorphType(key, value);
+      const priority = this.getFieldPriority(key, morphType);
+
+      fields.push({
+        fieldName: key,
+        fullPath,
+        morphType,
+        value,
+        priority
+      });
+
+      // Für verschachtelte Objekte: data-morph handlet das
+      // Keine Rekursion mehr, um Explosion zu vermeiden
+    }
+
+    // Sort by priority and limit
+    const sorted = fields.sort((a, b) => b.priority - a.priority);
+    return maxFields ? sorted.slice(0, maxFields) : sorted;
   }
 }
 
@@ -402,6 +526,8 @@ const morphMapper = new ServerMorphMapper();
     max-height: 400px;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   /* Hide scrollbar for Chrome/Safari/Opera */
@@ -415,6 +541,10 @@ const morphMapper = new ServerMorphMapper();
     flex-direction: column;
     gap: 0.375rem;
     margin-bottom: 0.5rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
   }
   
   .card-data .morph-label {
@@ -423,6 +553,9 @@ const morphMapper = new ServerMorphMapper();
     color: rgba(255, 255, 255, 0.5);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   
   /* Style all morph types in card-data */
@@ -432,8 +565,14 @@ const morphMapper = new ServerMorphMapper();
   .card-data boolean-morph,
   .card-data number-morph,
   .card-data list-morph,
-  .card-data data-morph {
+  .card-data data-morph,
+  .card-data range-morph,
+  .card-data key-value-morph {
     margin-bottom: 0;
+    max-width: 100%;
+    overflow: hidden;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
   
   /* Legacy data-morph support */
@@ -1054,6 +1193,7 @@ const morphMapper = new ServerMorphMapper();
         
         // Create and append morph elements
         fields.forEach(fieldConfig => {
+          // Creating: ${fieldConfig.fieldName} → ${fieldConfig.morphType}
           const morphElement = mapper.createMorphElement(fieldConfig, fungusData);
           morphElement.setAttribute('data-priority', fieldConfig.priority);
           morphElement.setAttribute('data-morph-type', fieldConfig.morphType);

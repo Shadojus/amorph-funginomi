@@ -42,6 +42,8 @@ export class MorphMapper {
     }
 
     const type = typeof value;
+    
+    // Check for Range objects
 
     // Boolean values → BooleanMorph
     if (type === 'boolean') {
@@ -98,18 +100,29 @@ export class MorphMapper {
       // Array of strings
       if (itemType === 'string') {
         const avgLength = value.reduce((sum, item) => sum + (item?.length || 0), 0) / value.length;
+        const maxLength = Math.max(...value.map(item => item?.length || 0));
         
-        // Short strings (< 20 chars average) → Tags
-        if (avgLength < 20) {
+        // Tags: Kurze Strings ODER kleine Arrays mit mäßig langen Strings
+        if (avgLength < 20 || (value.length <= 6 && maxLength < 40)) {
+          console.log(`[MorphMapper] ✅ tag-morph: "${fieldName}" (${value.length} items)`);
           return 'tag-morph';
         }
         // Longer strings → List
         return 'list-morph';
       }
 
-      // Array of numbers → Could be chart data
+      // Array of numbers → Angepasst für realistische Fungi-Daten
       if (itemType === 'number') {
-        return 'list-morph'; // or 'chart-morph' if we want visualization
+        // 2-4 Werte: Zu wenige für Charts, normale Liste
+        if (value.length < 5) {
+          return 'list-morph';
+        }
+        // 5-15 Werte: Sparkline (Trend macht Sinn)
+        if (value.length >= 5 && value.length <= 15) {
+          return 'sparkline-morph';
+        }
+        // Mehr als 15: Liste (zu viele Werte für Chart)
+        return 'list-morph';
       }
 
       // Array of booleans → List
@@ -117,8 +130,44 @@ export class MorphMapper {
         return 'list-morph';
       }
 
-      // Array of objects → List
+      // Array of objects → NUR für klar strukturierte Chart-Daten
       if (itemType === 'object' && firstItem !== null) {
+        const keys = Object.keys(firstItem);
+        const isSimpleObject = keys.length >= 2 && keys.length <= 3; // Genau 2-3 Felder
+        
+        // Prüfe ob ALLE Items die gleiche Struktur haben
+        const allSameStructure = value.every(item => {
+          if (typeof item !== 'object' || item === null) return false;
+          const itemKeys = Object.keys(item);
+          return itemKeys.length === keys.length && 
+                 itemKeys.every(k => keys.includes(k));
+        });
+        
+        if (isSimpleObject && allSameStructure) {
+          // Radar Chart: axis/dimension/label + value/score (3-6 items)
+          if (value.length >= 3 && value.length <= 6 &&
+              (keys.includes('axis') || keys.includes('dimension') || keys.includes('label')) &&
+              (keys.includes('value') || keys.includes('score') || keys.includes('rating'))) {
+            return 'radar-chart-morph';
+          }
+          
+          // Pie Chart: category/type/name + count/percentage/value (2-6 items)
+          if (value.length >= 2 && value.length <= 6 &&
+              (keys.includes('category') || keys.includes('type') || keys.includes('name')) &&
+              (keys.includes('count') || keys.includes('percentage') || keys.includes('value'))) {
+            return 'pie-chart-morph';
+          }
+          
+          // Bar Chart: label/month/period + value/amount (3-8 items)
+          if (value.length >= 3 && value.length <= 8 &&
+              (keys.includes('label') || keys.includes('month') || keys.includes('period')) &&
+              (keys.includes('value') || keys.includes('amount'))) {
+            return 'bar-chart-morph';
+          }
+        }
+        
+        // Komplexe Objekte (wie activeCompounds, lookalikeSpecies) → ListMorph
+        // Diese haben > 3 Felder oder verschachtelte Strukturen
         return 'list-morph';
       }
 
@@ -136,6 +185,48 @@ export class MorphMapper {
       if (('lat' in value && 'lng' in value) || 
           ('latitude' in value && 'longitude' in value)) {
         return 'map-morph';
+      }
+
+      // Range object (min/max values) → RangeMorph
+      // Direkt: {min: 5, max: 40, unit: "cm"}
+      if ('min' in value && 'max' in value && typeof value.min === 'number' && typeof value.max === 'number') {
+        console.log(`[MorphMapper] ✅ range-morph: "${fieldName}"`);
+        return 'range-morph';
+      }
+      
+      // Verschachtelte Range-Strukturen (z.B. temperatureRequirements: {colonization: {min, max}, fruiting: {min, max}})
+      const values = Object.values(value);
+      const allAreRanges = values.length > 0 && values.length <= 5 && values.every(v => 
+        typeof v === 'object' && v !== null && 'min' in v && 'max' in v && typeof v.min === 'number'
+      );
+      if (allAreRanges) {
+        // Spezialfall: Jedes Unterfeld ist ein Range → Verwende data-morph der die Ranges rekursiv rendert
+        return 'data-morph';
+      }
+
+      // Progress/Percentage object → ProgressMorph
+      if (('value' in value && 'max' in value) || 'percentage' in value) {
+        return 'progress-morph';
+      }
+
+      // Small flat objects (≤5 fields) → KeyValueMorph (kompakt)
+      const entries = Object.entries(value);
+      const primitiveFields = entries.filter(([_, v]) => 
+        typeof v !== 'object' || v === null
+      );
+      const hasArrays = Object.values(value).some(v => Array.isArray(v));
+      
+      // Erlaube kleine Objekte mit Primitives ODER mit Range-Objekten als Werte
+      const hasOnlySimpleRanges = entries.every(([_, v]) => {
+        if (v === null || typeof v !== 'object' || Array.isArray(v)) return typeof v !== 'object' || v === null;
+        // Ist es ein Range-Objekt?
+        return 'min' in v && 'max' in v && typeof v.min === 'number';
+      });
+      
+      if (entries.length > 0 && entries.length <= 5 && !hasArrays && 
+          (primitiveFields.length === entries.length || hasOnlySimpleRanges)) {
+        console.log(`[MorphMapper] ✅ key-value-morph: "${fieldName}" (${entries.length} fields)`);
+        return 'key-value-morph';
       }
 
       // Generic object - use DataMorph to recursively render
@@ -198,12 +289,19 @@ export class MorphMapper {
       'image-morph': 850,         // Visual content
       'tag-morph': 750,           // Categories
       'text-morph': 700,          // Descriptions
+      'radar-chart-morph': 690,   // Multi-dimensional visual
+      'range-morph': 680,         // Visual ranges (helpful!)
+      'progress-morph': 670,      // Visual progress
+      'bar-chart-morph': 665,     // Comparison visual
+      'sparkline-morph': 660,     // Trend visual
+      'pie-chart-morph': 655,     // Distribution visual
       'number-morph': 650,        // Simple numbers
+      'key-value-morph': 620,     // Compact object display
       'boolean-morph': 600,       // Yes/No facts
       'list-morph': 550,          // Lists
       'data-morph': 400,          // Nested objects
       'map-morph': 350,           // Maps
-      'chart-morph': 300,         // Charts
+      'chart-morph': 300,         // Generic charts
       'timeline-morph': 200,      // Dates (often metadata)
     };
 
@@ -225,11 +323,21 @@ export class MorphMapper {
       priority += 100;
     }
     
+    // Visuelle Morphs (Range, Charts) → Extra Boost!
+    if (morphType === 'range-morph' || morphType === 'progress-morph' ||
+        morphType.includes('chart') || morphType === 'sparkline-morph' ||
+        morphType === 'radar-chart-morph' || morphType === 'key-value-morph') {
+      priority += 120; // Visuelle Darstellungen bevorzugen!
+    }
+    
     // Visual identification → high priority
     if (lowerName.includes('color') || lowerName.includes('shape') || 
         lowerName.includes('spore') || lowerName.includes('cap') ||
-        lowerName.includes('stem') || lowerName.includes('gill')) {
-      priority += 80;
+        lowerName.includes('stem') || lowerName.includes('gill') ||
+        lowerName.includes('diameter') || lowerName.includes('length') ||
+        lowerName.includes('size') || lowerName.includes('temperature') ||
+        lowerName.includes('humidity') || lowerName.includes('range')) {
+      priority += 100;
     }
     
     // Location/Habitat → useful for finding
@@ -244,6 +352,11 @@ export class MorphMapper {
       priority += 50;
     }
     
+    // Description terms → medium boost
+    if (lowerName.includes('description') || lowerName.includes('summary')) {
+      priority += 40;
+    }
+    
     // Technical/Scientific → lower priority
     if (lowerName.includes('scientific') || lowerName.includes('taxonomy') || 
         lowerName.includes('classification') || lowerName.includes('research')) {
@@ -254,17 +367,6 @@ export class MorphMapper {
     if (lowerName.includes('created') || lowerName.includes('updated') || 
         lowerName.includes('modified') || lowerName.includes('_id') ||
         lowerName.includes('slug')) {
-      priority -= 200;
-    }
-    
-    // Description terms → medium boost
-    if (lowerName.includes('description') || lowerName.includes('summary')) {
-      priority += 50;
-    }
-    
-    // Metadata terms → reduce priority
-    if (lowerName.includes('created') || lowerName.includes('updated') || 
-        lowerName.includes('modified') || lowerName.includes('_id')) {
       priority -= 500; // Push to bottom
     }
 
@@ -305,11 +407,28 @@ export class MorphMapper {
         priority
       });
 
-      // For nested objects: use data-morph instead of recursion
-      // This prevents explosion of morphs (1426 morphs -> ~15 morphs per card)
-      if (morphType === 'data-morph' && typeof value === 'object' && !Array.isArray(value)) {
-        // Don't recurse - data-morph will handle the nested object rendering
-        // This keeps the morph count manageable
+      // For nested objects: FLATTEN one level to expose visual morphs!
+      // This extracts capDiameter, stipeLength, etc. from physicalCharacteristics
+      if (morphType === 'data-morph' && typeof value === 'object' && !Array.isArray(value) && currentDepth < maxDepth) {
+        // Extract nested fields (ONE level only!)
+        for (const [nestedKey, nestedValue] of Object.entries(value)) {
+          if (nestedValue === null || nestedValue === undefined) continue;
+          
+          const nestedPath = `${fullPath}.${nestedKey}`;
+          const nestedMorphType = this.getMorphType(nestedKey, nestedValue, { parentPath: fullPath });
+          const nestedPriority = this.getFieldPriority(nestedKey, nestedMorphType);
+          
+          // Only add if it's a VISUAL morph (not another nested data-morph)
+          if (nestedMorphType !== 'data-morph' && nestedMorphType !== 'list-morph') {
+            fields.push({
+              fieldName: nestedKey,
+              fullPath: nestedPath,
+              morphType: nestedMorphType,
+              value: nestedValue,
+              priority: nestedPriority + 50 // Boost nested visual morphs!
+            });
+          }
+        }
       }
     }
 
@@ -326,7 +445,11 @@ export class MorphMapper {
     const { fieldName, morphType, value, fullPath } = fieldConfig;
     
     // Create wrapper for morphs that need labels
-    const needsWrapper = ['name-morph', 'text-morph', 'tag-morph'];
+    const needsWrapper = [
+      'name-morph', 'text-morph', 'tag-morph',
+      'range-morph', 'progress-morph', 'key-value-morph',
+      'bar-chart-morph', 'pie-chart-morph', 'sparkline-morph', 'radar-chart-morph'
+    ];
     const wrapper = needsWrapper.includes(morphType) ? document.createElement('div') : null;
     
     if (wrapper) {
@@ -362,11 +485,11 @@ export class MorphMapper {
       element.setAttribute('lazy', 'true');
       
     } else if (morphType === 'tag-morph') {
-      // Handle both single values and arrays
+      // Handle both single values and arrays - pass as-is
       if (Array.isArray(value)) {
-        element.setAttribute('value', value.join(', '));
+        element.tags = value; // Set as property for arrays
       } else {
-        element.setAttribute('value', String(value));
+        element.value = String(value); // Single string
       }
       element.setAttribute('variant', 'pill');
       element.setAttribute('clickable', 'true');
@@ -396,6 +519,34 @@ export class MorphMapper {
       element.setAttribute('fungus-data', JSON.stringify(fungusData));
       element.setAttribute('field', fullPath || fieldName);
       element.setAttribute('mode', 'simple');
+      
+    } else if (morphType === 'range-morph') {
+      // Range object {min, max, optimal, unit}
+      element.data = value; // Set as property, not attribute!
+      
+    } else if (morphType === 'progress-morph') {
+      // Progress object {value, max} or {percentage}
+      element.data = value;
+      
+    } else if (morphType === 'key-value-morph') {
+      // Small flat object
+      element.data = value;
+      
+    } else if (morphType === 'bar-chart-morph') {
+      // Array of numbers or [{label, value}, ...]
+      element.data = value;
+      
+    } else if (morphType === 'pie-chart-morph') {
+      // Array of [{category, count}, ...]
+      element.data = value;
+      
+    } else if (morphType === 'sparkline-morph') {
+      // Array of numbers
+      element.data = value;
+      
+    } else if (morphType === 'radar-chart-morph') {
+      // Array of [{axis, value}, ...]
+      element.data = value;
       
     } else {
       // Fallback: use text-morph

@@ -32,6 +32,10 @@ export class NameMorph extends LitElement {
         color: var(--color-text-light);
         transition: var(--transition-base);
         line-height: var(--line-height-normal);
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        max-width: 100%;
       }
       
       .name.small { font-size: var(--font-size-sm); }

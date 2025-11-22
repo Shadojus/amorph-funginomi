@@ -1,34 +1,76 @@
-# Grid View - Data Morphs
+# Grid View - Data Morphs (Framework Core)
 
-**Last Updated:** 21. November 2025
+**Last Updated:** 22. November 2025
 
 ## Overview
 
-Data Morphs for the Grid View feature. Each morph represents a specific data type and handles its own rendering, styling, and interactions.
+**Domain-agnostic data visualization components.** Each morph represents a **data structure type** (not a domain concept) and handles its own rendering, styling, and interactions.
+
+**Framework Principle:** Morphs sind NICHT "für Pilze". NameMorph zeigt beliebige Namen (Pilze, Pflanzen, Produkte), TagMorph zeigt beliebige Tags (Farben, Kategorien, Eigenschaften), RangeMorph zeigt beliebige Ranges (Größe, Preis, Temperatur). Die Morphs kennen keine Pilz-Felder.
 
 ## Available Morphs
 
-- **NameMorph** - Displays fungus names with scientific/common variants
-- **ImageMorph** - Displays fungus images with lazy loading
-- **TagMorph** - Displays clickable tags that activate perspectives
-- **TextMorph** - Displays rich text with deep mode highlighting
-- **BooleanMorph** - Displays yes/no values with visual indicators
-- **NumberMorph** - Displays numeric values with formatting
-- **ListMorph** - Displays lists of items
-- **DataMorph** - Generic morph for any data type
-- **ChartMorph** - Displays data as charts
-- **MapMorph** - Displays geographic data
-- **TimelineMorph** - Displays temporal data
+### Core Data Morphs
+- **NameMorph** - Names with word-wrap, scientific/common variants
+- **TextMorph** - Long text with word-break, ellipsis support
+- **TagMorph** - Single tags OR arrays of tags as multiple pills
+- **ListMorph** - Lists with wrapping items, compact padding
+- **BooleanMorph** - Yes/no values with visual indicators
+- **NumberMorph** - Numeric values with formatting
+
+### Visual Data Morphs (NEW)
+- **RangeMorph** - Visual scale showing {min, max, optimal, unit}
+  - Gray track with positioned green segment
+  - Shows where range sits on scale
+  - Labels: min (left), optimal (center), max (right)
+- **ProgressMorph** - Progress bars for {value, max} or {percentage}
+- **KeyValueMorph** - Small flat objects as 2-column grid
+  - Supports Range objects as values (inline formatting)
+  - Responsive grid layout
+
+### Complex Morphs
+- **DataMorph** - Generic morph for nested objects
+- **ChartMorph** - Bar/Pie/Radar charts
+- **SparklineMorph** - Trend lines for number arrays
+- **MapMorph** - Geographic data
+- **TimelineMorph** - Temporal data
+
+### Design System
 - **tokens.js** - Shared design tokens for all morphs
 
 ## Architecture
 
 Each morph:
-- Is a Lit Web Component
+- Is a Lit Web Component with Shadow DOM
 - Uses `tokens.js` for consistent styling
 - Handles perspective-based visibility
 - Supports deep mode highlighting for search
 - Emits events for user interactions
+
+### Responsive Design (2025-11-22)
+**ALL morphs now have:**
+```css
+:host {
+  display: block; /* or inline-block */
+  max-width: 100%;
+  overflow: hidden;
+}
+```
+
+**Text-based morphs:**
+- word-wrap: break-word
+- overflow-wrap: break-word
+- word-break: break-word (for NameMorph, TextMorph)
+
+**Container morphs:**
+- width: 100%, box-sizing: border-box
+- flex/grid with proper wrapping
+- Compact padding for card layouts
+
+**Visual morphs:**
+- Flexible layouts with flex-shrink on labels
+- Responsive font sizes (0.7-0.75rem)
+- White-space handling for units
 
 ## Usage
 

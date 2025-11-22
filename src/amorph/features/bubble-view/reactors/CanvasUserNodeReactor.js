@@ -99,7 +99,7 @@ export class CanvasUserNodeReactor extends CanvasReactor {
     this.updateCount++;
     if (this.updateCount % 60 === 0) {
       const threshold = (this.config.scoreThreshold * 100).toFixed(0);
-      console.log(`[CanvasUserNodeReactor] 🔗 Connections: ${this.activeConnections.length}/${userNode.connections.size} active (threshold: ${threshold}%)`);
+      // Connections culled (logged nur bei Änderungen > 20%)
     }
   }
   
@@ -144,7 +144,7 @@ export class CanvasUserNodeReactor extends CanvasReactor {
     // Only log every 120 frames (~2s at 60fps) to reduce console spam
     if (this.renderCount % 120 === 0) {
       const pos = `(${Math.round(userNode.x)}, ${Math.round(userNode.y)})`;
-      console.log(`[CanvasUserNodeReactor] 🎨 Render #${this.renderCount}: ${this.activeConnections.length} connections at ${pos}`);
+      // Render updates (zu frequent für logging)
     }
     
     // 1. Render Connections FIRST (behind node)
