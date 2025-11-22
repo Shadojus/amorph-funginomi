@@ -344,7 +344,7 @@ export class CanvasUserNodeReactor extends CanvasReactor {
   renderStats(ctx, userNode) {
     // Position BELOW user node, offset by its size
     const x = userNode.x;
-    const y = userNode.y + userNode.size / 2 + 30;
+    const y = userNode.y + userNode.size / 2 + 20;
     
     const stats = [
       `${userNode.interactions.length} interactions`,

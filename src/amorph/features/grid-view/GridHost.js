@@ -127,14 +127,14 @@ class GridHost extends LitElement {
 
   /**
    * Group morphs that belong together
-   * (e.g., all morphs for one fungus)
+   * (e.g., all morphs for one entity)
    */
   groupMorphs(morphs) {
     const groups = new Map();
     
     morphs.forEach(morph => {
       // Try to find parent element or use morph itself
-      const parent = morph.closest('article, .fungus-card, [data-item]') || morph;
+      const parent = morph.closest('article, .entity-card, [data-item]') || morph;
       const key = parent.id || parent.dataset?.id || `group-${groups.size}`;
       
       if (!groups.has(key)) {

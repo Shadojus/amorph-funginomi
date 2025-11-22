@@ -190,7 +190,7 @@ export class ConvexSearchReactor {
         ? Object.keys(searchResults.matchedPerspectives).join(', ')
         : 'none';
       const matchedFieldCount = Object.keys(searchResults.matchedFields || {}).length;
-      console.log(`[ConvexSearchReactor] ✅ "${query}" → ${searchResults.totalResults} results in ${duration.toFixed(0)}ms | Perspectives: ${matchedPerspectivesStr} | Fields: ${matchedFieldCount} fungi`);
+      console.log(`[ConvexSearchReactor] ✅ "${query}" → ${searchResults.totalResults} results in ${duration.toFixed(0)}ms | Perspectives: ${matchedPerspectivesStr} | Fields: ${matchedFieldCount} entities`);
       
       // Update AmorphSystem state
       if (amorph.state) {
@@ -222,7 +222,7 @@ export class ConvexSearchReactor {
    * Reset search (show all results)
    */
   resetSearch() {
-    console.log('[ConvexSearchReactor] 🔄 Search reset → showing all fungi');
+    console.log('[ConvexSearchReactor] 🔄 Search reset → showing all entities');
     
     this.currentQuery = '';
     

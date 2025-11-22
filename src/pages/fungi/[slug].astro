@@ -1,10 +1,10 @@
 ---
 import BaseLayout from '@/amorph/core/layouts/BaseLayout.astro';
-import { fetchFungus } from '@/amorph/core/convex';
+import { fetchEntity } from '@/amorph/core/convex';
 
 const { slug } = Astro.params;
-const fungus = await fetchFungus(slug!);
-if (!fungus) return Astro.redirect('/fungi');
+const entity = await fetchEntity(slug!);
+if (!entity) return Astro.redirect('/fungi');
 
 // Deep recursive renderer - renders ALL nested data
 function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): any[] {
@@ -72,36 +72,36 @@ function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): a
 }
 
 const perspectives = [
-  { id: 'taxonomy', title: 'Taxonomy', icon: '🧬', color: '#ef4444', data: fungus.taxonomy },
-  { id: 'physicalCharacteristics', title: 'Physical', icon: '👁️', color: '#f97316', data: fungus.physicalCharacteristics },
-  { id: 'ecologyAndHabitat', title: 'Ecology', icon: '🌍', color: '#eab308', data: fungus.ecologyAndHabitat },
-  { id: 'culinaryAndNutritional', title: 'Culinary', icon: '🍳', color: '#22c55e', data: fungus.culinaryAndNutritional },
-  { id: 'medicinalAndHealth', title: 'Medicinal', icon: '⚕️', color: '#06b6d4', data: fungus.medicinalAndHealth },
-  { id: 'cultivationAndProcessing', title: 'Cultivation', icon: '🌱', color: '#3b82f6', data: fungus.cultivationAndProcessing },
-  { id: 'safetyAndIdentification', title: 'Safety', icon: '⚠️', color: '#8b5cf6', data: fungus.safetyAndIdentification },
-  { id: 'chemicalAndProperties', title: 'Chemical', icon: '🧪', color: '#ec4899', data: fungus.chemicalAndProperties },
-  { id: 'culturalAndHistorical', title: 'Cultural', icon: '📜', color: '#d946ef', data: fungus.culturalAndHistorical },
-  { id: 'commercialAndMarket', title: 'Commercial', icon: '💰', color: '#14b8a6', data: fungus.commercialAndMarket },
-  { id: 'environmentalAndConservation', title: 'Environment', icon: '🌿', color: '#10b981', data: fungus.environmentalAndConservation },
-  { id: 'researchAndInnovation', title: 'Innovation', icon: '🔬', color: '#0ea5e9', data: fungus.researchAndInnovation }
+  { id: 'taxonomy', title: 'Taxonomy', icon: '🧬', color: '#ef4444', data: entity.taxonomy },
+  { id: 'physicalCharacteristics', title: 'Physical', icon: '👁️', color: '#f97316', data: entity.physicalCharacteristics },
+  { id: 'ecologyAndHabitat', title: 'Ecology', icon: '🌍', color: '#eab308', data: entity.ecologyAndHabitat },
+  { id: 'culinaryAndNutritional', title: 'Culinary', icon: '🍳', color: '#22c55e', data: entity.culinaryAndNutritional },
+  { id: 'medicinalAndHealth', title: 'Medicinal', icon: '⚕️', color: '#06b6d4', data: entity.medicinalAndHealth },
+  { id: 'cultivationAndProcessing', title: 'Cultivation', icon: '🌱', color: '#3b82f6', data: entity.cultivationAndProcessing },
+  { id: 'safetyAndIdentification', title: 'Safety', icon: '⚠️', color: '#8b5cf6', data: entity.safetyAndIdentification },
+  { id: 'chemicalAndProperties', title: 'Chemical', icon: '🧪', color: '#ec4899', data: entity.chemicalAndProperties },
+  { id: 'culturalAndHistorical', title: 'Cultural', icon: '📜', color: '#d946ef', data: entity.culturalAndHistorical },
+  { id: 'commercialAndMarket', title: 'Commercial', icon: '💰', color: '#14b8a6', data: entity.commercialAndMarket },
+  { id: 'environmentalAndConservation', title: 'Environment', icon: '🌿', color: '#10b981', data: entity.environmentalAndConservation },
+  { id: 'researchAndInnovation', title: 'Innovation', icon: '🔬', color: '#0ea5e9', data: entity.researchAndInnovation }
 ];
 ---
 
 <BaseLayout 
-  title={`${fungus.commonName} - Funginomi`} 
-  description={fungus.description} 
+  title={`${entity.commonName} - Funginomi`} 
+  description={entity.description} 
   enableGlow={true} 
   enableSearch={false} 
   enableAnimation={true} 
   showPerspectives={true}
 >
-  <div class="fungus-detail">
+  <div class="entity-detail">
     <section class="hero">
       <div class="hero-image">
-        {fungus.imageUrl && (
+        {entity.imageUrl && (
           <image-morph 
-            src={fungus.imageUrl} 
-            alt={fungus.commonName} 
+            src={entity.imageUrl} 
+            alt={entity.commonName} 
             width="100%" 
             height="400px" 
             style="border-radius:16px"
@@ -110,13 +110,13 @@ const perspectives = [
       </div>
       <div class="hero-content">
         <name-morph 
-          value={fungus.commonName} 
-          subtitle={fungus.latinName} 
+          value={entity.commonName} 
+          subtitle={entity.latinName} 
           size="large"
         ></name-morph>
-        {fungus.description && (
+        {entity.description && (
           <text-morph 
-            value={fungus.description} 
+            value={entity.description} 
             label="Description"
           ></text-morph>
         )}
@@ -180,7 +180,7 @@ const perspectives = [
 </BaseLayout>
 
 <style>
-  .fungus-detail {
+  .entity-detail {
     max-width: 1400px;
     margin: 0 auto;
     padding: 2rem;
@@ -252,7 +252,7 @@ const perspectives = [
   }
 
   @media (max-width: 768px) {
-    .fungus-detail {
+    .entity-detail {
       padding: 1rem;
     }
     .hero {

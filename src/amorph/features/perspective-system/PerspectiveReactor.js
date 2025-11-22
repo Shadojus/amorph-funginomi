@@ -37,7 +37,8 @@ export class PerspectiveReactor {
    */
   apply(morphs) {
     // Skip if search is active (SearchFilterController handles highlighting during search)
-    const container = document.querySelector('.fungi-grid');
+    const containerSelector = window.amorph?.domainConfig?.ui?.grid?.containerClass || '.entity-grid';
+    const container = document.querySelector(containerSelector);
     if (container && container.dataset.searchActive === 'true') {
       console.log('[PerspectiveReactor] ⏸️ Skipped - search is active');
       return 0;
@@ -177,7 +178,7 @@ export class PerspectiveReactor {
  */
 const PERSPECTIVE_CONFIG = {
   taxonomy: {
-    highlightTags: ['fungi', 'basidiomycota', 'agaricales', 'scientific'],
+    highlightTags: ['scientific', 'classification', 'kingdom', 'phylum'],
     morphTypes: ['name-morph', 'text-morph']
   },
   

@@ -111,9 +111,9 @@ export class MorphMapper {
         return 'list-morph';
       }
 
-      // Array of numbers → Angepasst für realistische Fungi-Daten
+      // Array of numbers → Data-driven detection
       if (itemType === 'number') {
-        // 2-4 Werte: Zu wenige für Charts, normale Liste
+        // 2-4 values: Too few for charts, use list
         if (value.length < 5) {
           return 'list-morph';
         }
@@ -441,7 +441,7 @@ export class MorphMapper {
    * Create morph element programmatically
    * Creates specialized morph components with proper attributes
    */
-  createMorphElement(fieldConfig, fungusData) {
+  createMorphElement(fieldConfig, entityData) {
     const { fieldName, morphType, value, fullPath } = fieldConfig;
     
     // Create wrapper for morphs that need labels
@@ -480,7 +480,9 @@ export class MorphMapper {
     } else if (morphType === 'image-morph') {
       element.setAttribute('src', String(value));
       // Try to get alt text from common name field if available
-      element.setAttribute('alt', fungusData?.commonName || fieldName);
+      // Get entity name from domain config or fallback
+      const nameField = window.amorph?.domainConfig?.dataSource?.nameField || 'commonName';
+      element.setAttribute('alt', entityData?.[nameField] || fieldName);
       element.setAttribute('aspect-ratio', '16/9');
       element.setAttribute('lazy', 'true');
       
@@ -516,7 +518,7 @@ export class MorphMapper {
       
     } else if (morphType === 'data-morph') {
       // Nested object - pass as JSON
-      element.setAttribute('fungus-data', JSON.stringify(fungusData));
+      element.setAttribute('entity-data', JSON.stringify(entityData));
       element.setAttribute('field', fullPath || fieldName);
       element.setAttribute('mode', 'simple');
       

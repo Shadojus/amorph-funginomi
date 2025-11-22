@@ -6,7 +6,7 @@
  * 
  * Usage in Astro:
  * import { fetchQuery } from '@/lib/convex';
- * const fungi = await fetchQuery(api.fungi.list);
+ * const entities = await fetchQuery(api.fungi.list);
  */
 
 import { ConvexHttpClient } from 'convex/browser';
@@ -36,152 +36,152 @@ export async function fetchQuery(query: any, args: any = {}) {
 /**
  * Type-safe query wrapper
  */
-export async function fetchFungi() {
+export async function fetchEntities() {
   try {
     // @ts-ignore - Dynamic import
     const { api } = await import('../../../convex/_generated/api');
-    const fungi = await fetchQuery(api.fungi.list, {});
+    const entities = await fetchQuery(api.fungi.list, {});
     
     // Transform to match expected format
-    return fungi?.map((fungus: any) => ({
-      _id: fungus._id,
-      slug: fungus.seoName || fungus.slug,
+    return entities?.map((entity: any) => ({
+      _id: entity._id,
+      slug: entity.seoName || entity.slug,
       names: {
-        common: fungus.commonName,
-        scientific: fungus.latinName,
+        common: entity.commonName,
+        scientific: entity.latinName,
       },
       images: [
         {
-          url: `/images/fungi/${fungus.seoName}.jpg`,
-          alt: `${fungus.commonName} (${fungus.latinName})`,
-          caption: fungus.commonName
+          url: `/images/fungi/${entity.seoName}.jpg`,
+          alt: `${entity.commonName} (${entity.latinName})`,
+          caption: entity.commonName
         }
       ],
-      tags: extractTags(fungus),
-      description: extractDescription(fungus),
+      tags: extractTags(entity),
+      description: extractDescription(entity),
       // Pass through all perspectives as-is from schema (top-level properties)
-      taxonomy: fungus.taxonomy,
-      physicalCharacteristics: fungus.physicalCharacteristics,
-      safetyAndIdentification: fungus.safetyAndIdentification,
-      ecologyAndHabitat: fungus.ecologyAndHabitat,
-      culinaryAndNutritional: fungus.culinaryAndNutritional,
-      medicinalAndHealth: fungus.medicinalAndHealth,
-      cultivationAndProcessing: fungus.cultivationAndProcessing,
-      chemicalAndProperties: fungus.chemicalAndProperties,
-      culturalAndHistorical: fungus.culturalAndHistorical,
-      commercialAndMarket: fungus.commercialAndMarket,
-      environmentalAndConservation: fungus.environmentalAndConservation,
-      researchAndInnovation: fungus.researchAndInnovation,
+      taxonomy: entity.taxonomy,
+      physicalCharacteristics: entity.physicalCharacteristics,
+      safetyAndIdentification: entity.safetyAndIdentification,
+      ecologyAndHabitat: entity.ecologyAndHabitat,
+      culinaryAndNutritional: entity.culinaryAndNutritional,
+      medicinalAndHealth: entity.medicinalAndHealth,
+      cultivationAndProcessing: entity.cultivationAndProcessing,
+      chemicalAndProperties: entity.chemicalAndProperties,
+      culturalAndHistorical: entity.culturalAndHistorical,
+      commercialAndMarket: entity.commercialAndMarket,
+      environmentalAndConservation: entity.environmentalAndConservation,
+      researchAndInnovation: entity.researchAndInnovation,
     })) || [];
   } catch (error) {
-    console.error('Failed to fetch fungi:', error);
+    console.error('Failed to fetch entities:', error);
     return [];
   }
 }
 
 /**
- * Extract tags from fungus data
+ * Extract tags from entity data
  */
-function extractTags(fungus: any): string[] {
+function extractTags(entity: any): string[] {
   const tags: string[] = [];
   
   // Culinary tags
-  if (fungus.culinaryAndNutritional?.edibleRaw) tags.push('edible');
-  if (fungus.culinaryAndNutritional?.toxicity) tags.push('toxic');
-  if (fungus.culinaryAndNutritional?.cookingRequired) tags.push('cook-required');
+  if (entity.culinaryAndNutritional?.edibleRaw) tags.push('edible');
+  if (entity.culinaryAndNutritional?.toxicity) tags.push('toxic');
+  if (entity.culinaryAndNutritional?.cookingRequired) tags.push('cook-required');
   
   // Medicinal tags
-  if (fungus.medicinalAndHealth?.medicinalUses?.length > 0) tags.push('medicinal');
+  if (entity.medicinalAndHealth?.medicinalUses?.length > 0) tags.push('medicinal');
   
   // Ecology tags
-  if (fungus.ecologyAndHabitat?.season) {
-    fungus.ecologyAndHabitat.season.forEach((s: string) => tags.push(s.toLowerCase()));
+  if (entity.ecologyAndHabitat?.season) {
+    entity.ecologyAndHabitat.season.forEach((s: string) => tags.push(s.toLowerCase()));
   }
   
   // Morphology
-  if (fungus.morphologyAndIdentification?.capColor) {
-    fungus.morphologyAndIdentification.capColor.forEach((c: string) => tags.push(c.toLowerCase()));
+  if (entity.morphologyAndIdentification?.capColor) {
+    entity.morphologyAndIdentification.capColor.forEach((c: string) => tags.push(c.toLowerCase()));
   }
   
   return tags.slice(0, 8); // Max 8 tags
 }
 
 /**
- * Extract description from fungus data
+ * Extract description from entity data
  */
-function extractDescription(fungus: any): string {
+function extractDescription(entity: any): string {
   // Try description field first
-  if (fungus.description) {
-    return fungus.description.substring(0, 200) + '...';
+  if (entity.description) {
+    return entity.description.substring(0, 200) + '...';
   }
   
   // Try different perspectives for description
-  if (fungus.culinaryAndNutritional?.culinaryUses?.[0]) {
-    return fungus.culinaryAndNutritional.culinaryUses[0];
+  if (entity.culinaryAndNutritional?.culinaryUses?.[0]) {
+    return entity.culinaryAndNutritional.culinaryUses[0];
   }
   
-  if (fungus.medicinalAndHealth?.medicinalUses?.[0]) {
-    return fungus.medicinalAndHealth.medicinalUses[0];
+  if (entity.medicinalAndHealth?.medicinalUses?.[0]) {
+    return entity.medicinalAndHealth.medicinalUses[0];
   }
   
-  if (fungus.ecologyAndHabitat?.ecologicalRole) {
-    return fungus.ecologyAndHabitat.ecologicalRole;
+  if (entity.ecologyAndHabitat?.ecologicalRole) {
+    return entity.ecologyAndHabitat.ecologicalRole;
   }
   
-  return `${fungus.commonName} (${fungus.latinName})`;
+  return `${entity.commonName} (${entity.latinName})`;
 }
 
 /**
- * Extract active perspectives from fungus data
+ * Extract active perspectives from entity data
  */
-function extractPerspectives(fungus: any): string[] {
+function extractPerspectives(entity: any): string[] {
   const perspectives: string[] = [];
   
-  if (fungus.culinaryAndNutritional) perspectives.push('culinary');
-  if (fungus.medicinalAndHealth) perspectives.push('medicinal');
-  if (fungus.cultivationAndProcessing) perspectives.push('cultivation');
-  if (fungus.safetyAndIdentification) perspectives.push('safety');
-  if (fungus.ecologyAndHabitat) perspectives.push('ecology');
-  if (fungus.morphologyAndIdentification) perspectives.push('morphology');
+  if (entity.culinaryAndNutritional) perspectives.push('culinary');
+  if (entity.medicinalAndHealth) perspectives.push('medicinal');
+  if (entity.cultivationAndProcessing) perspectives.push('cultivation');
+  if (entity.safetyAndIdentification) perspectives.push('safety');
+  if (entity.ecologyAndHabitat) perspectives.push('ecology');
+  if (entity.morphologyAndIdentification) perspectives.push('morphology');
   
   return perspectives;
 }
 
 /**
- * Fetch single fungus by slug (seoName)
- * Returns full fungus data with all perspectives
+ * Fetch single entity by slug (seoName)
+ * Returns full entity data with all perspectives
  */
-export async function fetchFungus(slug: string) {
+export async function fetchEntity(slug: string) {
   try {
     // @ts-ignore - Dynamic import
     const { api } = await import('../../../convex/_generated/api');
-    const fungus = await fetchQuery(api.fungi.getBySlug, { slug });
+    const entity = await fetchQuery(api.fungi.getBySlug, { slug });
     
-    if (!fungus) return null;
+    if (!entity) return null;
     
     return {
-      _id: fungus._id,
-      slug: fungus.seoName,
-      commonName: fungus.commonName,
-      latinName: fungus.latinName,
-      description: fungus.description,
-      imageUrl: fungus.imageUrl,
-      imageUrls: fungus.imageUrls || [],
-      taxonomy: fungus.taxonomy,
-      physicalCharacteristics: fungus.physicalCharacteristics,
-      ecologyAndHabitat: fungus.ecologyAndHabitat,
-      culinaryAndNutritional: fungus.culinaryAndNutritional,
-      medicinalAndHealth: fungus.medicinalAndHealth,
-      cultivationAndProcessing: fungus.cultivationAndProcessing,
-      safetyAndIdentification: fungus.safetyAndIdentification,
-      chemicalAndProperties: fungus.chemicalAndProperties,
-      culturalAndHistorical: fungus.culturalAndHistorical,
-      commercialAndMarket: fungus.commercialAndMarket,
-      environmentalAndConservation: fungus.environmentalAndConservation,
-      researchAndInnovation: fungus.researchAndInnovation,
+      _id: entity._id,
+      slug: entity.seoName,
+      commonName: entity.commonName,
+      latinName: entity.latinName,
+      description: entity.description,
+      imageUrl: entity.imageUrl,
+      imageUrls: entity.imageUrls || [],
+      taxonomy: entity.taxonomy,
+      physicalCharacteristics: entity.physicalCharacteristics,
+      ecologyAndHabitat: entity.ecologyAndHabitat,
+      culinaryAndNutritional: entity.culinaryAndNutritional,
+      medicinalAndHealth: entity.medicinalAndHealth,
+      cultivationAndProcessing: entity.cultivationAndProcessing,
+      safetyAndIdentification: entity.safetyAndIdentification,
+      chemicalAndProperties: entity.chemicalAndProperties,
+      culturalAndHistorical: entity.culturalAndHistorical,
+      commercialAndMarket: entity.commercialAndMarket,
+      environmentalAndConservation: entity.environmentalAndConservation,
+      researchAndInnovation: entity.researchAndInnovation,
     };
   } catch (error) {
-    console.error(`Failed to fetch fungus with slug "${slug}":`, error);
+    console.error(`Failed to fetch entity with slug "${slug}":`, error);
     return null;
   }
 }

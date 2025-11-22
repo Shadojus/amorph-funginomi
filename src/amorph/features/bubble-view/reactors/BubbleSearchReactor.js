@@ -73,7 +73,7 @@ export class BubbleSearchReactor {
       
       bubbles.forEach(bubble => {
         totalBubbles++;
-        const slug = bubble.fungusData?.slug;
+        const slug = bubble.entityData?.slug;
         
         if (this.matchedSlugs.has(slug)) {
           // Matched - highlight

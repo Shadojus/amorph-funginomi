@@ -1,22 +1,30 @@
 /**
- * 🎯 AMORPH CORE SYSTEM
+ * 🎯 AMORPH CORE SYSTEM (Domain-Agnostic Framework)
  * 
- * Das Gehirn des AMORPH Systems!
+ * The brain of the AMORPH Framework!
  * 
- * Zentrale Registry die ALLES verwaltet:
- * - Reactor-Management (register, enable, disable, toggle) - PLUG & PLAY! 🔌
- * - Morph-Discovery & Registration
- * - Event-System (lokal + Redis)
- * - Multi-Perspektiven State (bis zu 4)
- * - Search State mit Weighted Scoring
- * - Pixie Renderer Integration (für BubbleView)
+ * Central registry managing ALL framework components:
+ * - Reactor Management (register, enable, disable, toggle) - PLUG & PLAY! 🔌
+ * - Morph Discovery & Registration
+ * - Event System (local + Redis Streams)
+ * - Multi-Perspective State (configurable, default max 4)
+ * - Search State with Weighted Scoring
+ * - Canvas Renderer Integration
+ * - Domain Configuration Injection
  * 
- * WICHTIG: Das ist ein Singleton - global als `window.amorph` verfügbar!
+ * FRAMEWORK PRINCIPLE: This system is DOMAIN-AGNOSTIC.
+ * AMORPH is the morphological knowledge representation system.
+ * It uses DomainConfig to adapt to specific domains (biology, science, etc.)
+ * and provides core services like EventBus, PixieRenderer, and DataAdapter.
+ * 
+ * IMPORTANT: This is a singleton - globally available as `window.amorph`!
  */
 
 import { AmorphConfig } from './amorph.config.js';
 import { ReactorsConfig } from './reactors.config.js';
 import { MorphsConfig } from './morphs.config.js';
+import DomainConfig from './domain.config.js';
+import { getDataAdapter } from './DataAdapter.js';
 import { RedisEventBridge } from './RedisEventBridge.js';
 import { PerformanceObserver } from './observers/PerformanceObserver.js';
 
@@ -30,20 +38,24 @@ import { LayoutObserver } from './observers/LayoutObserver.js';
 
 export class AmorphSystem {
   constructor(config = {}) {
-    // Merge Configs
+    // Merge Configs (System config + Domain config)
     this.config = { ...AmorphConfig, ...config };
+    this.domainConfig = DomainConfig; // Inject domain-specific configuration
+    
+    // Data Adapter (domain-specific data source)
+    this.dataAdapter = getDataAdapter();
     
     // Registries
     this.reactors = new Map();           // name → ReactorClass
-    this.morphs = new Set();             // Set aller registrierten Morphs (DOM elements)
+    this.morphs = new Set();             // Set of all registered morphs (DOM elements)
     
-    // Event Listeners (lokal, für sync handling) - MUSS VOR PerformanceObserver kommen!
+    // Event Listeners (local, for sync handling)
     this.listeners = new Map();
     
-    // Redis Event Bridge (optional)
+    // Redis Event Bridge (optional, for cross-instance communication)
     this.eventBridge = new RedisEventBridge(this.config.redis);
     
-    // Stream Observers (NEW - Redis Streams Pattern)
+    // Stream Observers (Redis Streams Pattern for state management)
     this.observers = {
       morph: null,
       reactor: null,
@@ -53,10 +65,10 @@ export class AmorphSystem {
       layout: null
     };
     
-    // State
+    // State (uses domain config for defaults)
     this.state = {
       initTime: Date.now(),
-      activePerspectives: [...this.config.multiPerspective.defaultPerspectives],
+      activePerspectives: [...(this.domainConfig.ui.perspectives.defaultActive || [])],
       selectedTags: [],
       searchQuery: '',
       searchScores: new Map(),      // morph element → score
@@ -644,6 +656,74 @@ export class AmorphSystem {
     
     this.log('✅ Cleanup complete');
   }
+
+  // ==========================================
+  // DOMAIN-AWARE METHODS (Framework Helpers)
+  // ==========================================
+
+  /**
+   * Get domain configuration
+   * @returns {Object} Domain config
+   */
+  getDomainConfig() {
+    return this.domainConfig;
+  }
+
+  /**
+   * Get data adapter for current domain
+   * @returns {BaseDataAdapter} Data adapter instance
+   */
+  getDataAdapter() {
+    return this.dataAdapter;
+  }
+
+  /**
+   * Get all perspectives for current domain
+   * @returns {Array} Array of perspective configs
+   */
+  getPerspectives() {
+    return this.domainConfig.perspectives || [];
+  }
+
+  /**
+   * Get perspective by ID
+   * @param {string} id - Perspective ID
+   * @returns {Object|null} Perspective config
+   */
+  getPerspective(id) {
+    return this.domainConfig.perspectives.find(p => p.id === id) || null;
+  }
+
+  /**
+   * Get field-to-perspective mapping for search
+   * @returns {Object} Field mapping
+   */
+  getFieldToPerspectiveMap() {
+    return this.domainConfig.search.fieldToPerspective || {};
+  }
+
+  /**
+   * Get similarity configuration
+   * @returns {Object} Similarity config
+   */
+  getSimilarityConfig() {
+    return this.domainConfig.similarity || {};
+  }
+
+  /**
+   * Get instance metadata
+   * @returns {Object} Instance info
+   */
+  getInstanceInfo() {
+    return {
+      name: this.domainConfig.instance.name,
+      domain: this.domainConfig.instance.domain,
+      description: this.domainConfig.instance.description,
+      dataSource: this.domainConfig.dataSource.type,
+      perspectivesCount: this.domainConfig.perspectives.length,
+      version: '1.0.0'
+    };
+  }
 }
 
 // ==========================================
@@ -691,9 +771,16 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * Helper: Get perspective color by name
+ * Helper: Get perspective color by name (domain-aware)
  */
 function getPerspectiveColor(name) {
+  // Use domain config if available
+  if (window.amorph?.domainConfig?.perspectives) {
+    const perspective = window.amorph.domainConfig.perspectives.find(p => p.id === name);
+    if (perspective) return perspective.color;
+  }
+
+  // Fallback colors (should not be reached if domain config is complete)
   const colors = {
     'taxonomy': '#ef4444',
     'physicalCharacteristics': '#f97316',

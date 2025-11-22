@@ -14,7 +14,7 @@
  * Events die gesammelt werden:
  * - search:input → Suchbegriffe
  * - perspective-changed → Aktive Perspektiven
- * - bubble-selected → Ausgewählte Fungi
+ * - bubble-selected → Ausgewählte Entities
  * - tag-clicked → Geklickte Tags
  * - reactor:enabled → Aktivierte Reactors
  * 

@@ -91,6 +91,16 @@ Die wirkliche Innovation ist **nicht** "Pilze schön darstellen", sondern **"bel
 - ✅ **BubbleDetailReactor** - Relationship-focused dialog statt data dump
 - ✅ **Server-side Search** - Auto-perspective switching
 
+**Framework Refactoring (2025-11-22):**
+- ✅ **Domain Config System** - `domain.config.js` isolates all Funginomi-specific configuration
+- ✅ **Generic Data Adapter** - Supports Convex, REST, GraphQL backends
+- ✅ **MorphMapper** - Fully generic, uses `entity-data` attribute (was `fungus-data`)
+- ✅ **HilbertSpaceSimilarity** - Generic entity comparison, uses DomainConfig for perspectives
+- ✅ **BubbleView** - Generic entity visualization (was fungi-specific)
+- ✅ **BubbleMorph** - Uses `entityData` property (was `fungusData`)
+- ✅ **SearchSystem** - Domain-agnostic, extracts slugs from DomainConfig
+- ✅ **AmorphSystem** - Injects DomainConfig, provides domain-aware helpers
+
 **Recent Updates (2025-11-22):**
 - ✅ **MorphMapper System** - Fully data-driven type detection, nested field extraction
 - ✅ **RangeMorph Visualization** - Positioned segment on scale (not full bar)

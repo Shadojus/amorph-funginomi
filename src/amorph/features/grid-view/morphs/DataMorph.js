@@ -7,7 +7,7 @@
  * 
  * Usage:
  * <data-morph
- *   fungus-data={JSON.stringify(fungusData)}
+ *   entity-data={JSON.stringify(entityData)}
  *   field="edibility"
  * ></data-morph>
  * 
@@ -22,7 +22,7 @@ import { LitElement, html, css } from 'lit';
 
 export class DataMorph extends LitElement {
   static properties = {
-    fungusData: { type: Object },
+    entityData: { type: Object },
     field: { type: String },
     mode: { type: String }, // 'simple' (default) or 'deep' (recursive rendering)
     activePerspectives: { type: Array },
@@ -277,7 +277,7 @@ export class DataMorph extends LitElement {
 
   constructor() {
     super();
-    this.fungusData = null;
+    this.entityData = null;
     this.field = null;
     this.mode = 'simple'; // 'simple' or 'deep'
     this.activePerspectives = [];
@@ -287,8 +287,8 @@ export class DataMorph extends LitElement {
   updated(changedProperties) {
     super.updated(changedProperties);
     
-    // Re-extract data when fungusData or mode changes
-    if (changedProperties.has('fungusData') || changedProperties.has('mode')) {
+    // Re-extract data when entityData or mode changes
+    if (changedProperties.has('entityData') || changedProperties.has('mode')) {
       this.extractData();
     }
   }
@@ -296,15 +296,15 @@ export class DataMorph extends LitElement {
   willUpdate(changedProperties) {
     super.willUpdate(changedProperties);
     
-    // Parse fungus-data attribute on first render
-    if (changedProperties.has('fungusData') || changedProperties.has('field')) {
+    // Parse entity-data attribute on first render
+    if (changedProperties.has('entityData') || changedProperties.has('field')) {
       // Check if we got a string that needs parsing
-      const dataAttr = this.getAttribute('fungus-data');
-      if (dataAttr && typeof this.fungusData === 'string') {
+      const dataAttr = this.getAttribute('entity-data');
+      if (dataAttr && typeof this.entityData === 'string') {
         try {
-          this.fungusData = JSON.parse(dataAttr);
+          this.entityData = JSON.parse(dataAttr);
         } catch (e) {
-          console.error('[DataMorph] Failed to parse fungus-data:', e);
+          console.error('[DataMorph] Failed to parse entity-data:', e);
         }
       }
       // Don't call extractData here - let updated() handle it
@@ -315,12 +315,12 @@ export class DataMorph extends LitElement {
     super.connectedCallback();
     
     // Parse attribute if it's a string
-    const dataAttr = this.getAttribute('fungus-data');
+    const dataAttr = this.getAttribute('entity-data');
     if (dataAttr) {
       try {
-        this.fungusData = JSON.parse(dataAttr);
+        this.entityData = JSON.parse(dataAttr);
       } catch (e) {
-        console.error('[DataMorph] Failed to parse fungus-data:', e);
+        console.error('[DataMorph] Failed to parse entity-data:', e);
       }
     }
     
@@ -374,7 +374,7 @@ export class DataMorph extends LitElement {
    * DEEP MODE: If mode='deep' and no field specified, extracts ALL perspectives
    */
   extractData() {
-    if (!this.fungusData) {
+    if (!this.entityData) {
       this.currentData = {};
       return;
     }
@@ -402,7 +402,7 @@ export class DataMorph extends LitElement {
         : allPerspectives;
       
       for (const perspectiveName of searchPerspectives) {
-        const perspectiveData = this.fungusData[perspectiveName];
+        const perspectiveData = this.entityData[perspectiveName];
         if (perspectiveData && Object.keys(perspectiveData).length > 0) {
           extracted[perspectiveName] = perspectiveData;
         }
@@ -427,8 +427,8 @@ export class DataMorph extends LitElement {
       const fieldName = fieldParts[0];
       
       // Check top-level first
-      if (fieldName in this.fungusData && this.fungusData[fieldName] !== null && this.fungusData[fieldName] !== undefined) {
-        extracted['root'] = this.fungusData[fieldName];
+      if (fieldName in this.entityData && this.entityData[fieldName] !== null && this.entityData[fieldName] !== undefined) {
+        extracted['root'] = this.entityData[fieldName];
       }
       
       // Also check all perspectives (if perspectives are active)
@@ -437,7 +437,7 @@ export class DataMorph extends LitElement {
         : allPerspectives;
       
       for (const perspectiveName of searchPerspectives) {
-        const perspectiveData = this.fungusData[perspectiveName];
+        const perspectiveData = this.entityData[perspectiveName];
         if (!perspectiveData) continue;
         
         if (fieldName in perspectiveData && perspectiveData[fieldName] !== null && perspectiveData[fieldName] !== undefined) {
@@ -453,7 +453,7 @@ export class DataMorph extends LitElement {
       // Check if first part is a perspective name
       if (allPerspectives.includes(firstPart)) {
         // Field explicitly references a perspective (e.g., "taxonomy.family")
-        const perspectiveData = this.fungusData[firstPart];
+        const perspectiveData = this.entityData[firstPart];
         if (perspectiveData) {
           const remainingPath = fieldParts.slice(1);
           const value = this.getNestedValue(perspectiveData, remainingPath);
@@ -468,7 +468,7 @@ export class DataMorph extends LitElement {
           : allPerspectives;
         
         for (const perspectiveName of searchPerspectives) {
-          const perspectiveData = this.fungusData[perspectiveName];
+          const perspectiveData = this.entityData[perspectiveName];
           if (!perspectiveData) continue;
           
           // Try direct nested access

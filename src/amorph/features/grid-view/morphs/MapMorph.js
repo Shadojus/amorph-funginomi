@@ -6,7 +6,7 @@
  * 
  * Features:
  * - Interactive map
- * - Markers for fungus habitats
+ * - Markers for entity locations
  * - Heatmap for distribution
  * - Custom icons per perspective
  * - Zoom controls

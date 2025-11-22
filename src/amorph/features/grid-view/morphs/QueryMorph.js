@@ -3,7 +3,7 @@
  * ==============
  * 
  * Represents search queries and semantic concepts as bubbles
- * Acts as a dynamic node that connects to relevant fungi/data
+ * Acts as a dynamic node that connects to relevant entities/data
  * 
  * Features:
  * - Visualizes search queries as bubbles

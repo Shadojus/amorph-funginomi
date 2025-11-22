@@ -7,7 +7,7 @@
  * 
  * Usage:
  * <bubble-morph
- *   fungus-data={JSON.stringify(fungus)}
+ *   entity-data={JSON.stringify(entity)}
  *   x="100"
  *   y="200"
  *   size="80"
@@ -18,7 +18,7 @@ import { LitElement, html, css } from 'lit';
 
 export class BubbleMorph extends LitElement {
   static properties = {
-    fungusData: { type: Object },
+    entityData: { type: Object },
     x: { type: Number },
     y: { type: Number },
     size: { type: Number },
@@ -181,7 +181,7 @@ export class BubbleMorph extends LitElement {
 
   constructor() {
     super();
-    this.fungusData = null;
+    this.entityData = null;
     this.x = 0;
     this.y = 0;
     this.size = 80;
@@ -198,7 +198,8 @@ export class BubbleMorph extends LitElement {
     // Register with AMORPH system
     if (typeof window !== 'undefined' && window.amorph) {
       window.amorph.registerMorph(this);
-      console.log('[BubbleMorph] Registered:', this.fungusData?.slug);
+      const slugField = window.amorph?.domainConfig?.dataSource?.slugField || 'slug';
+      console.log('[BubbleMorph] Registered:', this.entityData?.[slugField]);
     }
 
     // Listen for perspective changes
@@ -236,7 +237,7 @@ export class BubbleMorph extends LitElement {
     // Emit bubble clicked event
     const event = new CustomEvent('bubble:clicked', {
       detail: {
-        fungusData: this.fungusData,
+        entityData: this.entityData,
         morph: this
       },
       bubbles: true,
@@ -247,7 +248,7 @@ export class BubbleMorph extends LitElement {
     // Also emit via AMORPH system
     if (window.amorph) {
       window.amorph.emit('bubble:clicked', {
-        fungusData: this.fungusData,
+        entityData: this.entityData,
         morph: this
       });
     }
@@ -294,7 +295,7 @@ export class BubbleMorph extends LitElement {
    * Get visible data fields based on active perspectives
    */
   getVisibleFields() {
-    if (!this.fungusData) return [];
+    if (!this.entityData) return [];
     
     // Mapping of perspectives to fields (matches Grid View)
     const perspectiveFieldMap = {
@@ -312,9 +313,10 @@ export class BubbleMorph extends LitElement {
     
     // If no perspectives active, show first 2-3 basic fields
     if (this.activePerspectives.length === 0) {
-      if (this.fungusData.edibility) fields.push({ label: 'Edibility', value: this.fungusData.edibility });
-      if (this.fungusData.ecologyAndHabitat?.substrate) {
-        fields.push({ label: 'Substrate', value: this.fungusData.ecologyAndHabitat.substrate });
+      // Get common fields from entity data (domain-agnostic)
+      if (this.entityData.edibility) fields.push({ label: 'Edibility', value: this.entityData.edibility });
+      if (this.entityData.ecologyAndHabitat?.substrate) {
+        fields.push({ label: 'Substrate', value: this.entityData.ecologyAndHabitat.substrate });
       }
       return fields.slice(0, 2);
     }
@@ -323,7 +325,7 @@ export class BubbleMorph extends LitElement {
     for (const perspective of this.activePerspectives) {
       const fieldNames = perspectiveFieldMap[perspective] || [];
       for (const fieldName of fieldNames) {
-        const value = this.getNestedValue(this.fungusData, fieldName);
+        const value = this.getNestedValue(this.entityData, fieldName);
         if (value) {
           fields.push({
             label: this.formatFieldName(fieldName),
@@ -367,21 +369,26 @@ export class BubbleMorph extends LitElement {
   }
 
   render() {
-    if (!this.fungusData) {
+    if (!this.entityData) {
       return html`<div class="bubble-container">No Data</div>`;
     }
 
     const visibleFields = this.getVisibleFields();
     
-    // Get name - try common name first, then scientific name, then slug
+    // Get name from domain config fields
+    const nameField = window.amorph?.domainConfig?.dataSource?.nameField || 'commonName';
+    const secondaryNameField = window.amorph?.domainConfig?.dataSource?.secondaryNameField || 'scientificName';
+    const slugField = window.amorph?.domainConfig?.dataSource?.slugField || 'slug';
+    const domain = window.amorph?.domainConfig?.instance?.domain || 'fungi';
+    
     let name = 'Unknown';
-    if (this.fungusData.commonName) {
-      name = this.fungusData.commonName;
-    } else if (this.fungusData.scientificName) {
-      name = this.fungusData.scientificName;
-    } else if (this.fungusData.slug) {
+    if (this.entityData[nameField]) {
+      name = this.entityData[nameField];
+    } else if (this.entityData[secondaryNameField]) {
+      name = this.entityData[secondaryNameField];
+    } else if (this.entityData[slugField]) {
       // Format slug as fallback
-      name = this.fungusData.slug
+      name = this.entityData[slugField]
         .split('-')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
@@ -389,16 +396,16 @@ export class BubbleMorph extends LitElement {
     
     // Render log removed - use browser DevTools for render tracking
 
-    // Image path (same as Grid View)
-    const imagePath = `/images/fungi/${this.fungusData.slug}.jpg`;
+    // Image path
+    const imagePath = `/images/${domain}/${this.entityData[slugField]}.jpg`;
     
     return html`
       <div 
         class="bubble-container"
         data-morph
         data-morph-type="bubble"
-        data-slug="${this.fungusData.slug}"
-        data-fungus-data="${JSON.stringify(this.fungusData)}"
+        data-slug="${this.entityData[slugField]}"
+        data-entity-data="${JSON.stringify(this.entityData)}"
       >
         <img 
           class="bubble-image" 

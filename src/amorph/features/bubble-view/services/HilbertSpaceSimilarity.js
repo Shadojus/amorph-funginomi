@@ -1,41 +1,34 @@
 /**
- * 🔬 HILBERT SPACE SIMILARITY
- * ===========================
+ * 🔬 HILBERT SPACE SIMILARITY (Domain-Agnostic)
+ * ==============================================
  * 
- * Berechnet Ähnlichkeit zwischen Pilzen im Hilbert-Raum basierend auf aktiven Perspektiven
- * Je mehr gemeinsame Eigenschaften in aktiven Perspektiven, desto höher die Similarity
+ * Calculates similarity between entities in Hilbert space based on active perspectives
+ * The more common properties in active perspectives, the higher the similarity
  * 
  * Usage:
- * const similarity = HilbertSpaceSimilarity.calculate(fungus1, fungus2, activePerspectives);
- * // Returns 0-1 (0 = komplett unterschiedlich, 1 = identisch)
+ * const similarity = HilbertSpaceSimilarity.calculate(entity1, entity2, activePerspectives);
+ * // Returns 0-1 (0 = completely different, 1 = identical)
  */
 
 export class HilbertSpaceSimilarity {
   /**
-   * Calculate similarity between two fungi in Hilbert space
-   * @param {Object} fungus1 - First fungus data
-   * @param {Object} fungus2 - Second fungus data
+   * Calculate similarity between two entities in Hilbert space
+   * @param {Object} entity1 - First entity data
+   * @param {Object} entity2 - Second entity data
    * @param {Array<string>} activePerspectives - Active perspective names
    * @returns {number} Similarity score 0-1
    */
-  static calculate(fungus1, fungus2, activePerspectives = []) {
-    if (!fungus1 || !fungus2) return 0;
+  static calculate(entity1, entity2, activePerspectives = []) {
+    if (!entity1 || !entity2) return 0;
     if (activePerspectives.length === 0) {
-      // If no perspectives active, use all
-      activePerspectives = [
-        'taxonomy',
-        'physicalCharacteristics',
-        'ecologyAndHabitat',
-        'culinaryAndNutritional',
-        'medicinalAndHealth',
-        'cultivationAndProcessing',
-        'safetyAndIdentification',
-        'chemicalAndProperties',
-        'culturalAndHistorical',
-        'commercialAndMarket',
-        'environmentalAndConservation',
-        'researchAndInnovation'
-      ];
+      // If no perspectives active, use all from domain config
+      const domainConfig = window.amorph?.domainConfig;
+      if (domainConfig?.perspectives) {
+        activePerspectives = domainConfig.perspectives.map(p => p.schemaField);
+      } else {
+        // Fallback if no config available
+        activePerspectives = [];
+      }
     }
 
     let totalSimilarity = 0;
@@ -43,8 +36,8 @@ export class HilbertSpaceSimilarity {
 
     // Calculate similarity for each active perspective
     for (const perspective of activePerspectives) {
-      const data1 = fungus1[perspective];
-      const data2 = fungus2[perspective];
+      const data1 = entity1[perspective];
+      const data2 = entity2[perspective];
 
       if (!data1 || !data2) continue;
 
@@ -162,20 +155,20 @@ export class HilbertSpaceSimilarity {
 
   /**
    * Calculate weighted similarity based on perspective importance
-   * @param {Object} fungus1 - First fungus
-   * @param {Object} fungus2 - Second fungus
+   * @param {Object} entity1 - First entity
+   * @param {Object} entity2 - Second entity
    * @param {Map<string, number>} perspectiveWeights - Perspective -> weight (0-1)
    * @returns {number} Weighted similarity 0-1
    */
-  static calculateWeighted(fungus1, fungus2, perspectiveWeights) {
-    if (!fungus1 || !fungus2 || !perspectiveWeights) return 0;
+  static calculateWeighted(entity1, entity2, perspectiveWeights) {
+    if (!entity1 || !entity2 || !perspectiveWeights) return 0;
 
     let totalWeightedSimilarity = 0;
     let totalWeight = 0;
 
     for (const [perspective, weight] of perspectiveWeights.entries()) {
-      const data1 = fungus1[perspective];
-      const data2 = fungus2[perspective];
+      const data1 = entity1[perspective];
+      const data2 = entity2[perspective];
 
       if (!data1 || !data2) continue;
 
@@ -210,30 +203,30 @@ export class HilbertSpaceSimilarity {
   }
 
   /**
-   * Calculate similarity matrix for all fungi
-   * @param {Array<Object>} fungi - Array of fungus data
+   * Calculate similarity matrix for all entities
+   * @param {Array<Object>} entities - Array of entity data
    * @param {Array<string>} activePerspectives - Active perspectives
    * @returns {Map<string, Map<string, number>>} Matrix of similarities
    */
-  static calculateMatrix(fungi, activePerspectives) {
+  static calculateMatrix(entities, activePerspectives) {
     const matrix = new Map();
 
-    for (let i = 0; i < fungi.length; i++) {
-      const fungus1 = fungi[i];
+    for (let i = 0; i < entities.length; i++) {
+      const entity1 = entities[i];
       const similarities = new Map();
 
-      for (let j = 0; j < fungi.length; j++) {
+      for (let j = 0; j < entities.length; j++) {
         if (i === j) {
-          similarities.set(fungus1.slug, 1.0); // Self-similarity is 1
+          similarities.set(entity1.slug, 1.0); // Self-similarity is 1
           continue;
         }
 
-        const fungus2 = fungi[j];
-        const similarity = this.calculate(fungus1, fungus2, activePerspectives);
-        similarities.set(fungus2.slug, similarity);
+        const entity2 = entities[j];
+        const similarity = this.calculate(entity1, entity2, activePerspectives);
+        similarities.set(entity2.slug, similarity);
       }
 
-      matrix.set(fungus1.slug, similarities);
+      matrix.set(entity1.slug, similarities);
     }
 
     return matrix;

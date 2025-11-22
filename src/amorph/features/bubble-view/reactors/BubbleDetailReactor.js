@@ -224,15 +224,15 @@ export class BubbleDetailReactor {
    */
   handleBubbleClick(event) {
     const data = event.detail;
-    console.log('[BubbleDetailReactor] Bubble clicked:', data.fungusData.slug);
+    console.log('[BubbleDetailReactor] Bubble clicked:', data.entityData.slug);
     this.selectedBubble = data.morph;
-    this.showDetailPanel(data.fungusData, data.morph);
+    this.showDetailPanel(data.entityData, data.morph);
   }
 
   /**
    * Show detail panel with connection & relationship info
    */
-  showDetailPanel(fungusData, bubbleMorph) {
+  showDetailPanel(entityData, bubbleMorph) {
     const content = this.detailPanel.querySelector('.detail-content');
     
     // Get BubbleView to access connections data
@@ -241,23 +241,28 @@ export class BubbleDetailReactor {
     const bubbleConnections = bubbleView?.connections || new Map();
     
     // Get connection info for this bubble
-    const userNodeConnection = userNodeConnections.get(fungusData.slug);
+    const userNodeConnection = userNodeConnections.get(entityData.slug);
     const connectionScore = userNodeConnection ? userNodeConnection[1] : 0;
     
     // Get connected bubbles (bubble-to-bubble connections)
-    const connectedBubbles = this.getConnectedBubbles(fungusData.slug, bubbleConnections, bubbleView);
+    const connectedBubbles = this.getConnectedBubbles(entityData.slug, bubbleConnections, bubbleView);
     
     // Get active perspectives
     const activePerspectives = bubbleView?.activePerspectives || [];
     
     // Get key facts
-    const keyFacts = this.extractKeyFacts(fungusData, activePerspectives);
+    const keyFacts = this.extractKeyFacts(entityData, activePerspectives);
+    
+    // Get domain config for field names
+    const nameField = window.amorph?.domainConfig?.dataSource?.nameField || 'commonName';
+    const secondaryNameField = window.amorph?.domainConfig?.dataSource?.secondaryNameField || 'scientificName';
+    const domain = window.amorph?.domainConfig?.instance?.domain || 'fungi';
     
     // Generate content
     content.innerHTML = `
       <div class="detail-header">
-        <div class="detail-name">${fungusData.commonName || 'Unknown'}</div>
-        <div class="detail-scientific">${fungusData.scientificName || ''}</div>
+        <div class="detail-name">${entityData[nameField] || 'Unknown'}</div>
+        <div class="detail-scientific">${entityData[secondaryNameField] || ''}</div>
       </div>
 
       ${this.renderConnectionInfo(connectionScore, activePerspectives)}
@@ -267,7 +272,7 @@ export class BubbleDetailReactor {
       ${this.renderKeyFacts(keyFacts)}
       
       <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-        <a href="/fungi/${fungusData.slug}" 
+        <a href="/${domain}/${entityData.slug}" 
            style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; 
                   background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4);
                   border-radius: 8px; color: white; text-decoration: none; font-weight: 600;
@@ -310,19 +315,19 @@ export class BubbleDetailReactor {
   }
 
   /**
-   * Extract key facts from fungus data
+   * Extract key facts from entity data
    */
-  extractKeyFacts(fungusData, activePerspectives) {
+  extractKeyFacts(entityData, activePerspectives) {
     const facts = [];
     
     // Edibility (always show if available)
-    if (fungusData.edibility) {
-      facts.push({ label: 'Essbarkeit', value: fungusData.edibility, icon: '🍄' });
+    if (entityData.edibility) {
+      facts.push({ label: 'Essbarkeit', value: entityData.edibility, icon: '🍄' });
     }
     
     // From active perspectives
     if (activePerspectives.includes('cultivationAndProcessing')) {
-      const cultivation = fungusData.cultivationAndProcessing;
+      const cultivation = entityData.cultivationAndProcessing;
       if (cultivation?.cultivationDifficulty) {
         facts.push({ 
           label: 'Anbau-Schwierigkeit', 
@@ -333,7 +338,7 @@ export class BubbleDetailReactor {
     }
     
     if (activePerspectives.includes('medicinalAndHealth')) {
-      const medicinal = fungusData.medicinalAndHealth;
+      const medicinal = entityData.medicinalAndHealth;
       if (medicinal?.primaryHealthBenefits?.length > 0) {
         facts.push({ 
           label: 'Gesundheitliche Vorteile', 
@@ -344,7 +349,7 @@ export class BubbleDetailReactor {
     }
     
     if (activePerspectives.includes('culinaryAndNutritional')) {
-      const culinary = fungusData.culinaryAndNutritional;
+      const culinary = entityData.culinaryAndNutritional;
       if (culinary?.flavorProfile) {
         facts.push({ 
           label: 'Geschmacksprofil', 
@@ -355,7 +360,7 @@ export class BubbleDetailReactor {
     }
     
     if (activePerspectives.includes('chemicalAndProperties')) {
-      const chemical = fungusData.chemicalAndProperties;
+      const chemical = entityData.chemicalAndProperties;
       if (chemical?.primaryCompounds?.length > 0) {
         facts.push({ 
           label: 'Hauptinhaltsstoffe', 
@@ -404,15 +409,18 @@ export class BubbleDetailReactor {
    * Render connected bubbles
    */
   renderConnectedBubbles(connected) {
+    const connectedLabel = window.amorph?.domainConfig?.ui?.labels?.connectedEntities || 'Connected Entities';
     return `
       <div style="margin-bottom: 1rem;">
         <div style="font-size: 0.75rem; font-weight: 600; color: rgba(255, 255, 255, 0.6); 
                     text-transform: uppercase; margin-bottom: 0.75rem;">
-          🫧 Verbundene Pilze (${connected.length})
+          🫧 ${connectedLabel} (${connected.length})
         </div>
         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-          ${connected.map(bubble => `
-            <a href="/fungi/${bubble.slug}" 
+          ${connected.map(bubble => {
+            const domain = window.amorph?.domainConfig?.instance?.domain || 'fungi';
+            return `
+            <a href="/${domain}/${bubble.slug}" 
                style="display: flex; justify-content: space-between; align-items: center; 
                       padding: 0.75rem; background: rgba(255, 255, 255, 0.05); 
                       border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px;
@@ -422,7 +430,8 @@ export class BubbleDetailReactor {
                 ${Math.round(bubble.score * 100)}% ähnlich
               </span>
             </a>
-          `).join('')}
+          `;
+          }).join('')}
         </div>
       </div>
     `;

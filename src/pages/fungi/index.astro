@@ -1,20 +1,20 @@
 ---
 /**
- * 🍄 FUNGI INDEX PAGE
+ * 🍄 ENTITY INDEX PAGE
  * ===================
  * 
- * Main page showing all fungi with AMORPH morphs
+ * Main page showing all entities with AMORPH morphs
  * Loads real data from Convex
  * Uses MorphMapper for intelligent morph type selection
  */
 
 import BaseLayout from '@/amorph/core/layouts/BaseLayout.astro';
-import { fetchFungi } from '@/amorph/core/convex';
+import { fetchEntities } from '@/amorph/core/convex';
 
-// Fetch fungi data from Convex
-const fungi = await fetchFungi();
+// Fetch entity data from Convex
+const entities = await fetchEntities();
 
-console.log(`📊 Loaded ${fungi?.length || 0} fungi from Convex`);
+console.log(`📊 Loaded ${entities?.length || 0} entities from Convex`);
 
 /**
  * MorphMapper - Server-side version
@@ -244,7 +244,7 @@ class ServerMorphMapper {
     return priority;
   }
 
-  getMappedFields(fungus: any, options: any = {}) {
+  getMappedFields(entity: any, options: any = {}) {
     const {
       excludeFields = ['_id', '_creationTime', 'slug', 'seoName', 'imageUrls'],
       maxFields = 15,
@@ -255,7 +255,7 @@ class ServerMorphMapper {
 
     const fields: Array<{ fieldName: string; morphType: string; value: any; priority: number; fullPath: string }> = [];
 
-    for (const [key, value] of Object.entries(fungus)) {
+    for (const [key, value] of Object.entries(entity)) {
       if (excludeFields.includes(key)) continue;
       if (value === null || value === undefined) continue;
 
@@ -285,8 +285,8 @@ const morphMapper = new ServerMorphMapper();
 ---
 
 <BaseLayout 
-  title="Pilze - Funginomi AMORPH"
-  description="Morphologische Pilz-Datenbank mit perspektivischen Ansichten"
+  title="Entities - Funginomi AMORPH"
+  description="Morphological Entity Database with perspectival views"
   enableGlow={false}
   enableSearch={true}
   enableAnimation={true}
@@ -295,7 +295,7 @@ const morphMapper = new ServerMorphMapper();
   <header style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
 
       <p style="font-size: 0.74rem; color: rgba(255, 255, 255, 0.8);">
-        {fungi?.length || 0} Fungi - Open Source
+        {entities?.length || 0} Entities - Open Source
       </p>
     </div>
     
@@ -313,28 +313,28 @@ const morphMapper = new ServerMorphMapper();
   <!-- Bubble Host -->
   <bubble-host id="bubble-view-host" style="display: none;"></bubble-host>
 
-  <!-- Fungi Grid -->
-  <div class="fungi-grid" id="grid-view-host">
-    {fungi && fungi.length > 0 ? (
-      fungi.map((fungus: any) => (
-        <div class="fungus-card" data-slug={fungus.slug}>
+  <!-- Entity Grid -->
+  <div class="entity-grid" id="grid-view-host">
+    {entities && entities.length > 0 ? (
+      entities.map((entity: any) => (
+        <div class="entity-card" data-slug={entity.slug}>
           <div class="card-image">
             <image-morph 
-              src={`/images/fungi/${fungus.slug}.jpg`}
-              alt={fungus.commonName}
+              src={`/images/fungi/${entity.slug}.jpg`}
+              alt={entity.commonName}
             ></image-morph>
-            {fungus.taxonomy && (
+            {entity.taxonomy && (
               <div class="image-overlay">
-                {fungus.taxonomy.family && (
+                {entity.taxonomy.family && (
                   <div class="taxonomy-badge">
                     <span class="taxonomy-label">Familie</span>
-                    <span class="taxonomy-value">{fungus.taxonomy.family}</span>
+                    <span class="taxonomy-value">{entity.taxonomy.family}</span>
                   </div>
                 )}
-                {fungus.taxonomy.genus && (
+                {entity.taxonomy.genus && (
                   <div class="taxonomy-badge">
                     <span class="taxonomy-label">Gattung</span>
-                    <span class="taxonomy-value">{fungus.taxonomy.genus}</span>
+                    <span class="taxonomy-value">{entity.taxonomy.genus}</span>
                   </div>
                 )}
               </div>
@@ -344,13 +344,13 @@ const morphMapper = new ServerMorphMapper();
 
           <div 
             class="card-data" 
-            data-fungus={JSON.stringify(fungus)}
+            data-entity={JSON.stringify(entity)}
             data-use-mapper="true"
           >
             <!-- Morphs will be dynamically created by MorphMapper on client-side -->
           </div>
 
-          <a href={`/fungi/${fungus.slug}`} class="card-link">
+          <a href={`/fungi/${entity.slug}`} class="card-link">
             view fully →
           </a>
         </div>
@@ -358,7 +358,7 @@ const morphMapper = new ServerMorphMapper();
     ) : (
       <div class="empty-state">
         <p style="font-size: 1.5rem; color: rgba(255, 255, 255, 0.7); text-align: center;">
-          🍄 Keine Pilze gefunden
+          🍄 No entities found
         </p>
         <p style="color: rgba(255, 255, 255, 0.5); text-align: center; margin-top: 0.5rem;">
           Searching Database
@@ -370,7 +370,7 @@ const morphMapper = new ServerMorphMapper();
 
 <style>
   /* Wood Floor Background Card - Always visible */
-  .fungus-card {
+  .entity-card {
     background: url('/images/woodfloor/Moss_Woodsf_Laub.png');
     background-size: cover;
     background-position: center;
@@ -386,7 +386,7 @@ const morphMapper = new ServerMorphMapper();
   }
   
   /* Dark overlay for better readability */
-  .fungus-card::before {
+  .entity-card::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -396,20 +396,20 @@ const morphMapper = new ServerMorphMapper();
     transition: background 0.4s ease;
   }
   
-  .fungus-card > * {
+  .entity-card > * {
     position: relative;
     z-index: 2;
   }
 
-  .fungus-card:hover,
-  .fungus-card.touch-hover {
+  .entity-card:hover,
+  .entity-card.touch-hover {
     transform: translateY(-8px) scale(1.02);
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
     border-color: rgba(255, 255, 255, 0.2);
   }
   
-  .fungus-card:hover::before,
-  .fungus-card.touch-hover::before {
+  .entity-card:hover::before,
+  .entity-card.touch-hover::before {
     background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.9));
   }
 
@@ -644,8 +644,8 @@ const morphMapper = new ServerMorphMapper();
     margin-bottom: 2rem;
   }
 
-  /* Fungi Grid */
-  .fungi-grid {
+  /* Entity Grid */
+  .entity-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
     gap: 2.5rem;
@@ -696,12 +696,12 @@ const morphMapper = new ServerMorphMapper();
   
   /* Responsive */
   @media (max-width: 768px) {
-    .fungi-grid {
+    .entity-grid {
       grid-template-columns: 1fr;
       gap: 1.5rem;
     }
     
-    .fungus-card {
+    .entity-card {
       padding: 1rem;
     }
 
@@ -713,14 +713,14 @@ const morphMapper = new ServerMorphMapper();
   
   /* Dark Mode */
   @media (prefers-color-scheme: dark) {
-    .fungus-card {
+    .entity-card {
       /* Keep wood floor background visible in dark mode */
       color: rgba(255, 255, 255, 0.9);
     }
   }
 </style>
 
-<script define:vars={{ fungi }}>
+<script define:vars={{ entities }}>
   // Wait for AMORPH and hosts to load
   async function initViewToggle() {
     const amorph = window.amorph;
@@ -747,10 +747,10 @@ const morphMapper = new ServerMorphMapper();
       return;
     }
 
-    // DATENGETRIEBEN: Übergebe Fungi-Daten an BubbleHost
-    console.log('📊 Fungi data:', fungi);
-    bubbleHost.setData(fungi);
-    console.log(`✅ Passed ${fungi.length} fungi to BubbleHost`);
+    // DATENGETRIEBEN: Pass entity data to BubbleHost
+    console.log('📊 Entity data:', entities);
+    bubbleHost.setData(entities);
+    console.log(`✅ Passed ${entities.length} entities to BubbleHost`);
 
     // Enable connections by default for similarity visualization
     setTimeout(() => {
@@ -926,7 +926,7 @@ const morphMapper = new ServerMorphMapper();
       });
     });
 
-    console.log('✅ View toggle initialized with', fungi.length, 'fungi');
+    console.log('✅ View toggle initialized with', entities.length, 'entities');
     console.log('✅ Shared state: Search + Perspectives coordinated across views');
   }
 
@@ -944,7 +944,7 @@ const morphMapper = new ServerMorphMapper();
   import { SearchFilterController } from '/src/amorph/features/search-system/SearchFilterController.js';
   
   // Initialize search filter for Grid View
-  const searchFilter = new SearchFilterController('.fungi-grid', '.fungus-card');
+  const searchFilter = new SearchFilterController('.entity-grid', '.entity-card');
   
   console.log('🔍 SearchFilterController initialized for Grid View');
 </script>
@@ -1077,7 +1077,7 @@ const morphMapper = new ServerMorphMapper();
      */
     switchToDeepMode(reason = 'unknown') {
       // Get all visible cards (not hidden by search filter)
-      const cards = document.querySelectorAll('.fungus-card');
+      const cards = document.querySelectorAll('.entity-card');
       let updatedCount = 0;
       
       cards.forEach(card => {
@@ -1111,7 +1111,7 @@ const morphMapper = new ServerMorphMapper();
       console.log('[DataMorphModeSwitcher] 📄 Switching to SIMPLE mode (relevant fields)');
       
       // Get all cards
-      const cards = document.querySelectorAll('.fungus-card');
+      const cards = document.querySelectorAll('.entity-card');
       let updatedCount = 0;
       
       cards.forEach(card => {
@@ -1179,14 +1179,14 @@ const morphMapper = new ServerMorphMapper();
 
     containers.forEach(container => {
       try {
-        const fungusDataStr = container.getAttribute('data-fungus');
-        if (!fungusDataStr) return;
+        const entityDataStr = container.getAttribute('data-entity');
+        if (!entityDataStr) return;
 
-        const fungusData = JSON.parse(fungusDataStr);
+        const entityData = JSON.parse(entityDataStr);
         
         // Get mapped fields - NORMAL MODE: top 15 fields only
         // Search will expand to show ALL fields when active
-        const fields = mapper.getMappedFields(fungusData, {
+        const fields = mapper.getMappedFields(entityData, {
           maxFields: 15,  // Limit in normal view
           maxDepth: 1
         });
@@ -1194,7 +1194,7 @@ const morphMapper = new ServerMorphMapper();
         // Create and append morph elements
         fields.forEach(fieldConfig => {
           // Creating: ${fieldConfig.fieldName} → ${fieldConfig.morphType}
-          const morphElement = mapper.createMorphElement(fieldConfig, fungusData);
+          const morphElement = mapper.createMorphElement(fieldConfig, entityData);
           morphElement.setAttribute('data-priority', fieldConfig.priority);
           morphElement.setAttribute('data-morph-type', fieldConfig.morphType);
           morphElement.setAttribute('data-field-path', fieldConfig.fullPath);
@@ -1203,7 +1203,7 @@ const morphMapper = new ServerMorphMapper();
         });
         
         // Store full data for search expansion
-        container.dataset.fullData = fungusDataStr;
+        container.dataset.fullData = entityDataStr;
         
       } catch (error) {
         console.error('[MorphMapper] Error creating morphs:', error);
@@ -1270,13 +1270,13 @@ const morphMapper = new ServerMorphMapper();
     console.log('[MorphMapper] 🔍 Expanding cards to show ALL fields for search...');
     
     containers.forEach(container => {
-      const fungusDataStr = container.dataset.fullData;
-      if (!fungusDataStr) return;
+      const entityDataStr = container.dataset.fullData;
+      if (!entityDataStr) return;
       
-      const fungusData = JSON.parse(fungusDataStr);
+      const entityData = JSON.parse(entityDataStr);
       
       // Get ALL fields (no limit)
-      const allFields = mapper.getMappedFields(fungusData, {
+      const allFields = mapper.getMappedFields(entityData, {
         maxFields: null,  // Show everything during search
         maxDepth: 2       // Include nested data
       });
@@ -1286,7 +1286,7 @@ const morphMapper = new ServerMorphMapper();
       
       // Create morphs for ALL fields
       allFields.forEach(fieldConfig => {
-        const morphElement = mapper.createMorphElement(fieldConfig, fungusData);
+        const morphElement = mapper.createMorphElement(fieldConfig, entityData);
         morphElement.setAttribute('data-priority', fieldConfig.priority);
         morphElement.setAttribute('data-morph-type', fieldConfig.morphType);
         morphElement.setAttribute('data-field-path', fieldConfig.fullPath);
@@ -1310,13 +1310,13 @@ const morphMapper = new ServerMorphMapper();
         return;
       }
       
-      const fungusDataStr = container.dataset.fullData;
-      if (!fungusDataStr) return;
+      const entityDataStr = container.dataset.fullData;
+      if (!entityDataStr) return;
       
-      const fungusData = JSON.parse(fungusDataStr);
+      const entityData = JSON.parse(entityDataStr);
       
       // Get top 15 fields only
-      const topFields = mapper.getMappedFields(fungusData, {
+      const topFields = mapper.getMappedFields(entityData, {
         maxFields: 15,
         maxDepth: 1
       });
@@ -1328,7 +1328,7 @@ const morphMapper = new ServerMorphMapper();
         
         // Create morphs for top fields only
         topFields.forEach(fieldConfig => {
-          const morphElement = mapper.createMorphElement(fieldConfig, fungusData);
+          const morphElement = mapper.createMorphElement(fieldConfig, entityData);
           morphElement.setAttribute('data-priority', fieldConfig.priority);
           morphElement.setAttribute('data-morph-type', fieldConfig.morphType);
           morphElement.setAttribute('data-field-path', fieldConfig.fullPath);
@@ -1352,7 +1352,7 @@ const morphMapper = new ServerMorphMapper();
 <script type="module">
   // Touch-friendly hover effects for mobile scrolling
   function initTouchHover() {
-    const cards = document.querySelectorAll('.fungus-card');
+    const cards = document.querySelectorAll('.entity-card');
     let lastTouchedCard = null;
     
     cards.forEach(card => {

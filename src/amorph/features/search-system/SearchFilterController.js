@@ -2,13 +2,13 @@
  * 🔍 SEARCH FILTER CONTROLLER
  * ============================
  * 
- * Client-side controller that filters fungus cards based on Convex search results
+ * Client-side controller that filters entity cards based on Convex search results
  * Works with statically rendered Astro pages
  * 
  * Usage in Astro:
  * <script type="module">
  *   import { SearchFilterController } from '@/amorph/features/search-system/SearchFilterController.js';
- *   new SearchFilterController('.fungi-grid', '.fungus-card');
+ *   new SearchFilterController('.entity-grid', '.entity-card');
  * </script>
  * 
  * Features:
@@ -19,14 +19,14 @@
  */
 
 export class SearchFilterController {
-  constructor(containerSelector = '.fungi-grid', cardSelector = '.fungus-card') {
+  constructor(containerSelector = '.entity-grid', cardSelector = '.entity-card') {
     this.containerSelector = containerSelector;
     this.cardSelector = cardSelector;
     this.container = null;
     this.allCards = [];
     this.filteredSlugs = new Set();
     this.isFiltering = false;
-    this.matchedFields = {}; // Store matched fields per fungus
+    this.matchedFields = {}; // Store matched fields per entity
     this.currentQuery = '';
     this.styleElement = null;
     this.highlightTimer = null; // Debounce timer for highlighting
@@ -128,7 +128,10 @@ export class SearchFilterController {
     
     // Extract slugs from results
     this.filteredSlugs = new Set(
-      results.map(fungus => fungus.seoName || fungus.slug).filter(Boolean)
+      results.map(entity => {
+        const slugField = window.amorph?.domainConfig?.dataSource?.slugField || 'slug';
+        return entity[slugField];
+      }).filter(Boolean)
     );
     
     // Filter cards
@@ -233,16 +236,20 @@ export class SearchFilterController {
     if (card.dataset.slug) return card.dataset.slug;
     
     // Try to extract from link
-    const link = card.querySelector('a[href*="/fungi/"]');
+    const domain = window.amorph?.domainConfig?.instance?.domain || 'entity';
+    const link = card.querySelector(`a[href*="/${domain}/"]`);
     if (link) {
-      const match = link.href.match(/\/fungi\/([^/]+)/);
+      const regex = new RegExp(`\/${domain}\/([^/]+)`);
+      const match = link.href.match(regex);
       if (match) return match[1];
     }
     
     // Try to extract from image
     const img = card.querySelector('image-morph');
     if (img && img.src) {
-      const match = img.src.match(/\/fungi\/([^/.]+)/);
+      const domain = window.amorph?.domainConfig?.instance?.domain || 'entity';
+      const regex = new RegExp(`\/${domain}\/([^/.]+)`);
+      const match = img.src.match(regex);
       if (match) return match[1];
     }
     

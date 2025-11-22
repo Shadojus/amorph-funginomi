@@ -6,7 +6,7 @@
  * DOES NOT RENDER ITSELF - Creates morphs that render!
  * 
  * Features:
- * - Stores full fungus data
+ * - Stores full entity data
  * - Listens to perspective-changed events
  * - Creates morphs for active perspectives
  * - Falls back to default morphs (no perspectives)
@@ -356,7 +356,7 @@ export class PerspectiveCard extends LitElement {
     return html`
       <article class="card">
         <div class="card-header">
-          <h3 class="title">${this._parsedData.names?.common || 'Unknown Fungus'}</h3>
+          <h3 class="title">${this._parsedData.names?.common || 'Unknown Entity'}</h3>
           <p class="subtitle">${this._parsedData.names?.scientific || ''}</p>
         </div>
 

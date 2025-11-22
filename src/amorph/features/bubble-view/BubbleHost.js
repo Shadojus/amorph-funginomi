@@ -3,7 +3,7 @@
  * ==============
  * 
  * Host component for displaying data in bubble/force-directed view
- * DATENGETRIEBEN - bekommt Fungi-Daten, nicht DOM-Morphs!
+ * DATENGETRIEBEN - bekommt Entity-Daten, nicht DOM-Morphs!
  * 
  * Usage:
  * <bubble-host></bubble-host>
@@ -12,7 +12,7 @@
  * <bubble-host id="bubble-view-host"></bubble-host>
  * <script>
  *   const bubbleHost = document.getElementById('bubble-view-host');
- *   bubbleHost.setData(fungiData);
+ *   bubbleHost.setData(entityData);
  * </script>
  * 
  * Props:
@@ -75,7 +75,7 @@ class BubbleHost extends LitElement {
       this.amorph.on('perspective-changed', this.handlePerspectiveChanged.bind(this));
     }
 
-    // Listen to convex-search:completed (has results array with full fungus objects)
+    // Listen to convex-search:completed (has results array with full entity objects)
     // This is dispatched directly to window, not through AMORPH event system
     this.boundHandleSearchCompleted = this.handleSearchCompleted.bind(this);
     window.addEventListener('convex-search:completed', this.boundHandleSearchCompleted);
@@ -113,22 +113,22 @@ class BubbleHost extends LitElement {
   }
 
   /**
-   * Set data (Fungi objects from Convex)
+   * Set data (Entity objects from Convex)
    * Only CACHES data - does NOT create bubbles automatically!
    * Bubbles are created dynamically via search/perspective events
    */
   setData(data) {
     // Normalize data structure: flatten names.common/scientific to commonName/scientificName
-    const normalizeData = (fungi) => {
-      return fungi.map(fungus => ({
-        ...fungus,
-        commonName: fungus.names?.common || fungus.commonName,
-        scientificName: fungus.names?.scientific || fungus.scientificName
+    const normalizeData = (entities) => {
+      return entities.map(entity => ({
+        ...entity,
+        commonName: entity.names?.common || entity.commonName,
+        scientificName: entity.names?.scientific || entity.scientificName
       }));
     };
     
     this.data = normalizeData(Array.isArray(data) ? data : [data]);
-    console.log(`[BubbleHost] 📦 Data cached: ${this.data.length} fungi available for dynamic creation`);
+    console.log(`[BubbleHost] 📦 Data cached: ${this.data.length} entities available for dynamic creation`);
     
     // Pass to BubbleView for similarity calculations
     const waitForBubbleView = () => {
@@ -146,7 +146,7 @@ class BubbleHost extends LitElement {
   }
 
   /**
-   * Handle search completed - create bubbles for matched fungi
+   * Handle search completed - create bubbles for matched entities
    */
   handleSearchCompleted(event) {
     const detail = event.detail || {};
@@ -162,11 +162,11 @@ class BubbleHost extends LitElement {
     const matchedFields = {};
     
     if (detail.results && Array.isArray(detail.results)) {
-      detail.results.forEach(fungus => {
-        if (fungus.slug && fungus._id) {
-          matchedSlugs.push(fungus.slug);
-          scores[fungus.slug] = rawScores[fungus._id] || 0;
-          matchedFields[fungus.slug] = rawMatchedFields[fungus._id] || [];
+      detail.results.forEach(entity => {
+        if (entity.slug && entity._id) {
+          matchedSlugs.push(entity.slug);
+          scores[entity.slug] = rawScores[entity._id] || 0;
+          matchedFields[entity.slug] = rawMatchedFields[entity._id] || [];
         }
       });
     } else if (detail.matchedSlugs && Array.isArray(detail.matchedSlugs)) {
@@ -299,43 +299,43 @@ class BubbleHost extends LitElement {
       ['cultivationAndProcessing', 'chemicalAndProperties', 'medicinalAndHealth'];
 
     // Filter data to ONLY matched slugs
-    const matchedFungi = this.data.filter(fungus => slugSet.has(fungus.slug));
+    const matchedEntities = this.data.filter(entity => slugSet.has(entity.slug));
     
-    console.log(`[BubbleHost] 🎯 Creating ${matchedFungi.length} bubbles for matched slugs:`, Array.from(slugSet));
+    console.log(`[BubbleHost] 🎯 Creating ${matchedEntities.length} bubbles for matched slugs:`, Array.from(slugSet));
 
     // Map scores from Convex IDs to slugs (scores are keyed by _id, need to map to slug)
     const slugScores = {};
     const slugMatchedFields = {};
     
-    matchedFungi.forEach(fungus => {
+    matchedEntities.forEach(entity => {
       // Scores are keyed by _id in ConvexSearchReactor
-      const convexId = fungus._id;
+      const convexId = entity._id;
       if (scores[convexId] !== undefined) {
-        slugScores[fungus.slug] = scores[convexId];
+        slugScores[entity.slug] = scores[convexId];
       }
       if (matchedFields[convexId]) {
-        slugMatchedFields[fungus.slug] = matchedFields[convexId];
+        slugMatchedFields[entity.slug] = matchedFields[convexId];
       }
     });
     
     // Normalize scores to 0-1 range for sizing
     const maxScore = Math.max(...Object.values(slugScores), 1);
     
-    // Create BubbleMorph ONLY for matched fungi
-    matchedFungi.forEach((fungus, index) => {
+    // Create BubbleMorph ONLY for matched entities
+    matchedEntities.forEach((entity, index) => {
       // Calculate position (circular layout around user node) - RESPONSIVE
-      const angle = (index / matchedFungi.length) * Math.PI * 2;
+      const angle = (index / matchedEntities.length) * Math.PI * 2;
       const radius = Math.min(viewWidth, viewHeight) * radiusMultiplier;
       const x = viewWidth / 2 + Math.cos(angle) * radius;
       const y = viewHeight / 2 + Math.sin(angle) * radius;
 
       // Calculate size based on search score - RESPONSIVE RANGE
-      const rawScore = slugScores[fungus.slug] || maxScore * 0.1; // Default to 10% if no score
+      const rawScore = slugScores[entity.slug] || maxScore * 0.1; // Default to 10% if no score
       const normalizedScore = maxScore > 0 ? rawScore / maxScore : 0.5;
       const size = minSize + (normalizedScore * (maxSize - minSize)); // Responsive range
       
       // Calculate color based on number of matched fields
-      const fieldsCount = slugMatchedFields[fungus.slug]?.length || 0;
+      const fieldsCount = slugMatchedFields[entity.slug]?.length || 0;
       let color = '#90CAF9'; // Default blue
       if (fieldsCount >= 4) {
         color = '#4CAF50'; // Green - excellent match (4+ fields)
@@ -347,20 +347,20 @@ class BubbleHost extends LitElement {
 
       // Create bubble morph
       const bubbleMorph = document.createElement('bubble-morph');
-      bubbleMorph.fungusData = fungus;
+      bubbleMorph.entityData = entity;
       bubbleMorph.x = x;
       bubbleMorph.y = y;
       bubbleMorph.size = size; // Score-based sizing
       bubbleMorph.color = color; // Match-quality coloring
       bubbleMorph.searchScore = normalizedScore;
-      bubbleMorph.matchedFields = slugMatchedFields[fungus.slug] || []; // Pass matched fields!
-      bubbleMorph.setAttribute('data-slug', fungus.slug);
+      bubbleMorph.matchedFields = slugMatchedFields[entity.slug] || []; // Pass matched fields!
+      bubbleMorph.setAttribute('data-slug', entity.slug);
       bubbleMorph.activePerspectives = activePerspectives;
       
-      // Bubble created: ${fungus.slug}
+      // Bubble created: ${entity.slug}
       
       container.appendChild(bubbleMorph);
-      this.activeBubbles.set(fungus.slug, bubbleMorph);
+      this.activeBubbles.set(entity.slug, bubbleMorph);
     });
 
     console.log(`[BubbleHost] ✅ Created ${this.activeBubbles.size} BubbleMorphs with weighted sizes and colors`);

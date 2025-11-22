@@ -101,9 +101,9 @@ const TAG_TO_PERSPECTIVE = {
   'sustainable': 'environmentalAndConservation',
   'biodiversity': 'environmentalAndConservation',
   
-  // Taxonomy (for completeness)
-  'fungi': 'taxonomy',
-  'basidiomycota': 'taxonomy',
+  // Taxonomy (generic)
+  'taxonomy': 'taxonomy',
+  'classification': 'taxonomy',
   'scientific': 'taxonomy'
 };
 
@@ -1069,9 +1069,9 @@ export class MorphHeader extends LitElement {
           <div class="header-row top-row">
             <!-- Branding -->
             <div class="branding">
-              <h1 class="brand-title">Funginomi</h1>
+              <h1 class="brand-title">${window.amorph?.domainConfig?.instance?.name || 'AMORPH'}</h1>
               <p class="brand-subtitle">
-                Part of the <a href="https://bifroest.io" target="_blank" rel="noopener noreferrer">Bifröst</a>
+                Part of the <a href="${window.amorph?.domainConfig?.externalLinks?.bifroest || 'https://bifroest.io'}" target="_blank" rel="noopener noreferrer">Bifröst</a>
               </p>
             </div>
 

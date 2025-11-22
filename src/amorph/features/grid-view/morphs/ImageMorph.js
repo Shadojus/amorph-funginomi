@@ -5,8 +5,8 @@
  * 
  * Usage:
  * <image-morph 
- *   src="/images/mushroom.jpg" 
- *   alt="Shiitake Mushroom"
+ *   src="/images/entity.jpg" 
+ *   alt="Entity Name"
  *   aspect-ratio="16/9"
  *   lazy
  * ></image-morph>

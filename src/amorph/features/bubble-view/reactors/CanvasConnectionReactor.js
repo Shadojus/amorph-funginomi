@@ -5,17 +5,17 @@
  * Rendert alle Verbindungen zwischen Nodes im BubbleView
  * 
  * Features:
- * - Similarity connections (fungi <-> fungi)
- * - Semantic connections (query -> fungi)
- * - User-intent connections (user -> fungi)
+ * - Similarity connections (entity <-> entity)
+ * - Semantic connections (query -> entity)
+ * - User-intent connections (user -> entity)
  * - Weight-based line thickness
  * - Gradient coloring
  * - Hover highlighting
  * 
  * Connection Types:
  * - 'similarity': Bidirectional, green gradient
- * - 'semantic': Query to fungi, purple gradient
- * - 'user-intent': User to fungi, blue gradient
+ * - 'semantic': Query to entity, purple gradient
+ * - 'user-intent': User to entity, blue gradient
  * 
  * Config:
  * - minLineWidth: Minimum line width (default: 1)
@@ -95,7 +95,7 @@ export class CanvasConnectionReactor extends CanvasReactor {
   }
   
   /**
-   * Render similarity connection (fungi <-> fungi)
+   * Render similarity connection (entity <-> entity)
    */
   renderSimilarityConnection(ctx, from, to, conn) {
     const weight = conn.weight || 0;
@@ -126,7 +126,7 @@ export class CanvasConnectionReactor extends CanvasReactor {
   }
   
   /**
-   * Render semantic connection (query -> fungi)
+   * Render semantic connection (query -> entity)
    */
   renderSemanticConnection(ctx, from, to, conn) {
     const weight = conn.weight || 0;
@@ -158,7 +158,7 @@ export class CanvasConnectionReactor extends CanvasReactor {
   }
   
   /**
-   * Render user-intent connection (user -> fungi)
+   * Render user-intent connection (user -> entity)
    */
   renderUserIntentConnection(ctx, from, to, conn) {
     const weight = conn.weight || 0;

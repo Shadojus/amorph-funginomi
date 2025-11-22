@@ -52,7 +52,7 @@ export class BubbleView extends LitElement {
     // Data structures
     this.bubbles = new Map(); // slug -> bubble data
     this.connections = new Map(); // id -> connection data
-    this.cachedFungusData = new Map(); // slug -> full fungus data
+    this.cachedEntityData = new Map(); // slug -> full entity data
     this.activePerspectives = ['cultivation', 'culinary'];
     this.searchScores = new Map(); // slug → normalized score (0-1)
     this.searchMatchedFields = new Map(); // slug → array of matched field paths
@@ -247,21 +247,25 @@ export class BubbleView extends LitElement {
   }
   
   /**
-   * Set cached fungus data (called by BubbleHost)
+   * Set cached entity data (called by BubbleHost)
    */
-  setCachedData(fungiData) {
-    this.cachedFungusData = new Map();
-    fungiData.forEach(fungus => {
-      if (fungus.slug) {
-        this.cachedFungusData.set(fungus.slug, fungus);
-        console.log('[BubbleView] 📦 Caching fungus:', {
-          slug: fungus.slug,
-          commonName: fungus.commonName,
-          scientificName: fungus.scientificName
+  setCachedData(entitiesData) {
+    this.cachedEntityData = new Map();
+    const slugField = window.amorph?.domainConfig?.dataSource?.slugField || 'slug';
+    const nameField = window.amorph?.domainConfig?.dataSource?.nameField || 'name';
+    const secondaryNameField = window.amorph?.domainConfig?.dataSource?.secondaryNameField;
+    
+    entitiesData.forEach(entity => {
+      if (entity[slugField]) {
+        this.cachedEntityData.set(entity[slugField], entity);
+        console.log('[BubbleView] 📦 Caching entity:', {
+          slug: entity[slugField],
+          name: entity[nameField],
+          secondaryName: secondaryNameField ? entity[secondaryNameField] : undefined
         });
       }
     });
-    console.log('[BubbleView] 📦 Cached', this.cachedFungusData.size, 'fungi for dynamic bubble creation');
+    console.log('[BubbleView] 📦 Cached', this.cachedEntityData.size, 'entities for dynamic bubble creation');
   }
   
   /**
@@ -285,13 +289,17 @@ export class BubbleView extends LitElement {
     
     // Add each bubble morph to container and create canvas data
     bubbleMorphs.forEach((bubbleMorph, index) => {
-      const fungusData = bubbleMorph.fungusData;
-      if (!fungusData || !fungusData.slug) {
-        console.warn('[BubbleView] BubbleMorph missing fungusData or slug');
+      const entityData = bubbleMorph.entityData;
+      const slugField = window.amorph?.domainConfig?.dataSource?.slugField || 'slug';
+      const nameField = window.amorph?.domainConfig?.dataSource?.nameField || 'commonName';
+      const secondaryNameField = window.amorph?.domainConfig?.dataSource?.secondaryNameField || 'scientificName';
+      
+      if (!entityData || !entityData[slugField]) {
+        console.warn('[BubbleView] BubbleMorph missing entityData or slug');
         return;
       }
       
-      const slug = fungusData.slug;
+      const slug = entityData[slugField];
       
       // Add morph to DOM container (will be positioned by BubbleMorph itself)
       morphsContainer.appendChild(bubbleMorph);
@@ -299,14 +307,14 @@ export class BubbleView extends LitElement {
       // Store canvas bubble data for connections
       this.bubbles.set(slug, {
         slug,
-        label: fungusData.commonName || fungusData.scientificName || slug,
+        label: entityData[nameField] || entityData[secondaryNameField] || slug,
         x: bubbleMorph.x,
         y: bubbleMorph.y,
         vx: 0,
         vy: 0,
         size: bubbleMorph.size,
         color: this.hexToRgb(bubbleMorph.color),
-        data: fungusData,
+        data: entityData,
         morph: bubbleMorph
       });
     });
@@ -343,15 +351,15 @@ export class BubbleView extends LitElement {
   }
 
   /**
-   * Set fungi data
+   * Set entities data
    */
-  setFungiData(fungi) {
-    if (!fungi || !Array.isArray(fungi)) {
-      console.warn('[BubbleView] Invalid fungi data');
+  setEntitiesData(entities) {
+    if (!entities || !Array.isArray(entities)) {
+      console.warn('[BubbleView] Invalid entities data');
       return;
     }
     
-    console.log(`[BubbleView] 📊 Setting ${fungi.length} fungi`, fungi);
+    console.log(`[BubbleView] 📊 Setting ${entities.length} entities`, entities);
     
     const width = this.offsetWidth || 800;
     const height = this.offsetHeight || 600;
@@ -379,24 +387,28 @@ export class BubbleView extends LitElement {
     // Clear existing bubbles
     this.bubbles.clear();
     
-    // Create bubbles with responsive positions
-    fungi.forEach((fungus, index) => {
+    // Create bubbles with random positions
+    const slugField = window.amorph?.domainConfig?.dataSource?.slugField || 'slug';
+    const nameField = window.amorph?.domainConfig?.dataSource?.nameField || 'commonName';
+    const secondaryNameField = window.amorph?.domainConfig?.dataSource?.secondaryNameField || 'scientificName';
+    
+    entities.forEach((entity, index) => {
       // Extract slug from different possible locations
-      const slug = fungus.slug || fungus._id || fungus.id || `fungus-${index}`;
-      const label = fungus.names?.scientific || fungus.scientificName || fungus.names?.common || fungus.commonName || `Fungus ${index + 1}`;
+      const slug = entity[slugField] || entity._id || entity.id || `entity-${index}`;
+      const label = entity[nameField] || entity[secondaryNameField] || `Entity ${index + 1}`;
       
-      const angle = (index / fungi.length) * Math.PI * 2;
+      const angle = (index / entities.length) * Math.PI * 2;
       
       this.bubbles.set(slug, {
         slug: slug,
         label: label,
-        data: fungus,
+        data: entity,
         x: width / 2 + Math.cos(angle) * radius,
         y: height / 2 + Math.sin(angle) * radius,
         vx: 0,
         vy: 0,
         size: initialSize,  // Responsive initial size
-        color: this.getColorForPerspective(fungus),
+        color: this.getColorForPerspective(entity),
         isDragging: false
       });
       
@@ -422,7 +434,7 @@ export class BubbleView extends LitElement {
     this.requestUpdate();
   }
 
-  getColorForPerspective(fungus) {
+  getColorForPerspective(entity) {
     // Simple color assignment based on primary perspective
     const colors = {
       cultivation: { r: 34, g: 197, b: 94 },   // Green
@@ -480,8 +492,8 @@ export class BubbleView extends LitElement {
       }
       
       // 2. Perspective Data Quality (20% weight)
-      const fungusData = this.cachedFungusData.get(slug);
-      if (this.activePerspectives && this.activePerspectives.length > 0 && fungusData) {
+      const entityData = this.cachedEntityData.get(slug);
+      if (this.activePerspectives && this.activePerspectives.length > 0 && entityData) {
         const perspectiveMapping = {
           'taxonomy': 'taxonomy',
           'physicalCharacteristics': 'physicalCharacteristics',
@@ -501,7 +513,7 @@ export class BubbleView extends LitElement {
         const activePerspectiveKeys = this.activePerspectives.map(p => perspectiveMapping[p]).filter(Boolean);
         
         activePerspectiveKeys.forEach(perspectiveKey => {
-          const perspectiveData = fungusData[perspectiveKey];
+          const perspectiveData = entityData[perspectiveKey];
           if (perspectiveData && typeof perspectiveData === 'object') {
             // Count non-empty fields in this perspective
             const fields = Object.values(perspectiveData).filter(v => 
@@ -635,19 +647,19 @@ export class BubbleView extends LitElement {
         const bubble1 = bubbleArray[i];
         const bubble2 = bubbleArray[j];
         
-        // Get full fungus data from cache (populated by BubbleHost.setData)
-        const fungus1 = this.cachedFungusData.get(bubble1.slug);
-        const fungus2 = this.cachedFungusData.get(bubble2.slug);
+        // Get full entity data from cache (populated by BubbleHost.setData)
+        const entity1 = this.cachedEntityData.get(bubble1.slug);
+        const entity2 = this.cachedEntityData.get(bubble2.slug);
         
-        if (!fungus1 || !fungus2) {
+        if (!entity1 || !entity2) {
           console.warn('[BubbleView] Missing cached data for:', bubble1.slug, bubble2.slug);
           continue;
         }
         
         // Use HilbertSpaceSimilarity with active perspectives
         const similarity = HilbertSpaceSimilarity.calculate(
-          fungus1, 
-          fungus2, 
+          entity1, 
+          entity2, 
           activePerspectiveKeys.length > 0 ? activePerspectiveKeys : undefined
         );
         
@@ -688,7 +700,7 @@ export class BubbleView extends LitElement {
     const totalResults = event.detail?.totalResults || 0;
     const scores = event.detail?.scores || {}; // slug → numeric score
     const matchedFields = event.detail?.matchedFields || {}; // slug → array of field paths
-    const results = event.detail?.results || []; // array of fungus objects
+    const results = event.detail?.results || []; // array of entity objects
     
     console.log('[BubbleView] 🔍 Search completed:', { query, totalResults, hasQuery: !!query, scoresCount: Object.keys(scores).length });
     
@@ -711,8 +723,8 @@ export class BubbleView extends LitElement {
       // Process results to extract scores and normalize them
       const maxScore = Math.max(...Object.values(scores), 1);
       
-      results.forEach(fungus => {
-        const slug = fungus.slug;
+      results.forEach(entity => {
+        const slug = entity.slug;
         if (this.bubbles.has(slug)) {
           this.searchMatchedBubbles.add(slug);
           
