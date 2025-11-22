@@ -20,7 +20,9 @@
 - Click event: Opens BubbleDetailReactor dialog
 
 **Properties:**
-- `fungusData` - Complete fungus object from Convex
+## Key Properties
+
+- `entityData` - Complete entity object from Convex
 - `size` - Dynamic size (60-140px based on connection weight)
 - `x, y` - Position on canvas (managed by CanvasPhysicsReactor)
 - `color` - RGB color (search score or perspective-based)
@@ -83,8 +85,8 @@ These morphs are NOT instantiated directly. They are created by BubbleView:
 ```javascript
 // BubbleView creates bubble data
 this.bubbles.set(slug, {
-  fungusData: fungus,
-  slug: fungus.slug,
+  entityData: entity,
+  slug: entity.slug,
   x: initialX,
   y: initialY,
   size: initialSize,

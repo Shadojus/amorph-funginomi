@@ -52,6 +52,7 @@ export async function fetchEntities() {
       },
       images: [
         {
+          // Uses domain from convex backend - hardcoded per instance
           url: `/images/fungi/${entity.seoName}.jpg`,
           alt: `${entity.commonName} (${entity.latinName})`,
           caption: entity.commonName

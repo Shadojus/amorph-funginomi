@@ -94,10 +94,10 @@ Die wirkliche Innovation ist **nicht** "Pilze schön darstellen", sondern **"bel
 **Framework Refactoring (2025-11-22):**
 - ✅ **Domain Config System** - `domain.config.js` isolates all Funginomi-specific configuration
 - ✅ **Generic Data Adapter** - Supports Convex, REST, GraphQL backends
-- ✅ **MorphMapper** - Fully generic, uses `entity-data` attribute (was `fungus-data`)
+- ✅ **MorphMapper** - Fully generic, uses `entity-data` attribute
 - ✅ **HilbertSpaceSimilarity** - Generic entity comparison, uses DomainConfig for perspectives
-- ✅ **BubbleView** - Generic entity visualization (was fungi-specific)
-- ✅ **BubbleMorph** - Uses `entityData` property (was `fungusData`)
+- ✅ **BubbleView** - Generic entity visualization (fully domain-agnostic)
+- ✅ **BubbleMorph** - Uses `entityData` property (fully generic)
 - ✅ **SearchSystem** - Domain-agnostic, extracts slugs from DomainConfig
 - ✅ **AmorphSystem** - Injects DomainConfig, provides domain-aware helpers
 
@@ -237,11 +237,11 @@ Die wirkliche Innovation ist **nicht** "Pilze schön darstellen", sondern **"bel
 - ✅ **Searches rendered morphs** - Checks visible text in Shadow DOM
 - ✅ **Word boundary matching** - Präzise Start-of-Word Suche (`\b${query}`)
 - ✅ **Weighted scoring** - Tags: 100, Name: 50, DataMorph: 30
-- ✅ **Container-based filtering** - Versteckt ganze `.fungus-card` statt einzelner Morphs
+- ✅ **Container-based filtering** - Versteckt ganze `.entity-card` statt einzelner Morphs
 - ✅ **Respects AstroDataSearchReactor** - Won't hide containers shown by AstroDataSearchReactor
 
 **AstroDataSearchReactor.js (Data-based) ⭐ Priority Reactor:**
-- ✅ **Searches raw data** - Checks fungus-data attributes before rendering
+- ✅ **Searches raw data** - Checks entity-data attributes before rendering
 - ✅ **Deep object traversal** - Searches all nested properties recursively
 - ✅ **Field-aware weighting** - commonName/scientificName: 100, genus/family: 90, default: 20
 - ✅ **Finds hidden data** - Discovers data not yet rendered in morphs
@@ -561,7 +561,8 @@ const fungusData = JSON.parse(morph.getAttribute('fungus-data'));
 const value = this.getNestedValue(fungusData, 'taxonomy.kingdom');
 
 // Container-based filtering:
-document.querySelectorAll('.fungus-card').forEach(container => {
+// Container filtering:
+document.querySelectorAll('.entity-card').forEach(container => {
   container.style.display = hasMatch ? '' : 'none';
 });
 ```
@@ -618,7 +619,7 @@ renderField(field, depth=0)
 - ✅ Field-to-Perspective mapping (26+ fields)
 - ✅ Word boundary matching for precision
 - ✅ Container-based filtering
-- ✅ fungus-data attribute reading for inactive perspectives
+- ✅ entity-data attribute reading for inactive perspectives
 - ✅ Event system with consistent namespace
 - ✅ FIFO perspective management (max 4)
 - ✅ Smooth UX with debouncing
