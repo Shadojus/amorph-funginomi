@@ -659,7 +659,13 @@ export class MorphHeader extends LitElement {
       { name: 'researchAndInnovation', label: 'Innovation', icon: '🔬', color: '#0ea5e9' },
     ];
     
-    this.activePerspectives = [];
+    // 4 DEFAULT PERSPECTIVES - Pre-selected on page load
+    this.activePerspectives = [
+      { name: 'cultivationAndProcessing', label: 'Cultivation', icon: '🌱', color: '#3b82f6' },
+      { name: 'chemicalAndProperties', label: 'Chemical', icon: '🧪', color: '#ec4899' },
+      { name: 'medicinalAndHealth', label: 'Medicinal', icon: '⚕️', color: '#06b6d4' },
+      { name: 'culinaryAndNutritional', label: 'Culinary', icon: '🍳', color: '#22c55e' },
+    ];
     this.maxPerspectives = 4;
     this.showPerspectiveMenu = false;
     
@@ -698,6 +704,13 @@ export class MorphHeader extends LitElement {
     } else {
       console.warn('[MorphHeader] AMORPH System not found on window.amorph');
     }
+    
+    // Dispatch initial perspective-changed event with default perspectives
+    // This activates the 4 default perspectives on page load
+    setTimeout(() => {
+      this.dispatchPerspectiveChange();
+      console.log('[MorphHeader] ✅ Initialized with 4 default perspectives:', this.activePerspectives.map(p => p.name));
+    }, 100);
     
     // Listen for bubble-view-active event
     document.addEventListener('bubble-view-active', (e) => {
@@ -773,6 +786,12 @@ export class MorphHeader extends LitElement {
       this.totalMorphs = data.totalMorphs;
       this.matchedPerspectives = data.perspectiveMatchCounts || {};
       
+      // CRITICAL: If auto-activation is already in progress, don't start a new one
+      if (this._isAutoActivating) {
+        console.log('[MorphHeader] ⏭️ Auto-activation already in progress, skipping duplicate timer');
+        return;
+      }
+      
       // Clear previous auto-switch timer (debounce)
       if (this.autoSwitchTimer) {
         clearTimeout(this.autoSwitchTimer);
@@ -785,8 +804,14 @@ export class MorphHeader extends LitElement {
       if (matchedPerspectiveNames.length > 0) {
         // Debounce: Wait 400ms before auto-switching (user might still be typing)
         this.autoSwitchTimer = setTimeout(async () => {
-          console.log('[MorphHeader] ⏰ Auto-switch timer fired, activating perspectives...');
-          matchedPerspectiveNames.forEach(perspectiveName => {
+          console.log('[MorphHeader] ⏰ Auto-switch timer fired, checking for perspectives to activate...');
+          
+          // PERFORMANCE FIX: Only activate the FIRST missing perspective
+          // Activating all 7 causes a FIFO cascade loop
+          let activatedCount = 0;
+          for (const perspectiveName of matchedPerspectiveNames) {
+            if (activatedCount >= 1) break; // STOP after first activation
+            
             const perspective = this.perspectives.find(p => p.name === perspectiveName);
             const isAlreadyActive = this.activePerspectives.find(p => p.name === perspectiveName);
             console.log('[MorphHeader] Checking perspective:', {
@@ -797,19 +822,31 @@ export class MorphHeader extends LitElement {
             
             if (perspective && !isAlreadyActive) {
               console.log('[MorphHeader] Auto-activating perspective from search:', perspectiveName);
+              // Mark as auto-activation so SearchFilterController doesn't duplicate highlight
+              this._isAutoActivating = true;
               this.togglePerspective(perspective);
+              activatedCount++;
             }
-          });
+          }
           
-          // Wait for perspective changes and deep mode switches to complete
-          // Reduced to 400ms for faster search response
-          await new Promise(resolve => setTimeout(resolve, 400));
-          
-          // NOW trigger highlighting after all perspective switches have completed
-          console.log('[MorphHeader] 🎨 Triggering highlighting after perspective auto-activation');
-          window.dispatchEvent(new CustomEvent('data-morph:deep-mode-ready', {
-            detail: { query: data.query }
-          }));
+          // CRITICAL: Only dispatch deep-mode-ready if we actually activated a perspective
+          // Otherwise, SearchFilterController will handle highlighting naturally
+          if (activatedCount > 0) {
+            // Wait for perspective changes and deep mode switches to complete
+            await new Promise(resolve => setTimeout(resolve, 400));
+            
+            // NOW trigger highlighting after perspective switch completes
+            console.log('[MorphHeader] 🎨 Triggering highlighting after perspective auto-activation');
+            // Ensure flag is reset
+            this._isAutoActivating = false;
+            window.dispatchEvent(new CustomEvent('data-morph:deep-mode-ready', {
+              detail: { query: data.query }
+            }));
+          } else {
+            // No perspectives activated - let SearchFilterController handle highlighting naturally
+            console.log('[MorphHeader] ⏭️ No perspectives auto-activated - SearchFilterController will handle highlighting');
+            this._isAutoActivating = false;
+          }
         }, 400); // 400ms debounce - nearly unnoticeable but prevents accidental switches
       } else {
         // No perspectives to activate, trigger highlighting after deep mode completes
@@ -940,32 +977,49 @@ export class MorphHeader extends LitElement {
   }
 
   dispatchPerspectiveChange() {
-    const perspectiveIds = this.activePerspectives.map(p => p.name);
-    
-    console.log('[MorphHeader] Dispatching perspective change:', perspectiveIds);
-    
-    // Dispatch on window for PerspectiveHosts to listen
-    window.dispatchEvent(new CustomEvent('perspective-changed', {
-      detail: { perspectives: perspectiveIds },
-      bubbles: true,
-      composed: true
-    }));
-    
-    // Also dispatch on document for broader reach
-    document.dispatchEvent(new CustomEvent('perspective-changed', {
-      detail: { perspectives: perspectiveIds },
-      bubbles: true,
-      composed: true
-    }));
-    
-    // ALSO dispatch via AMORPH event system for Reactors
-    if (this.amorph) {
-      this.amorph.emit('perspectives:changed', {
-        perspectives: perspectiveIds
-      });
+    // PERFORMANCE FIX: Debounce to prevent cascade loops
+    if (this._perspectiveChangeDebounce) {
+      clearTimeout(this._perspectiveChangeDebounce);
     }
     
-    console.log('[MorphHeader] Active perspectives:', perspectiveIds);
+    this._perspectiveChangeDebounce = setTimeout(() => {
+      const perspectiveIds = this.activePerspectives.map(p => p.name);
+      
+      console.log('[MorphHeader] Dispatching perspective change:', perspectiveIds);
+    
+    // Store in AMORPH state for easy access
+    if (this.amorph) {
+      if (!this.amorph.state) this.amorph.state = {};
+      this.amorph.state.activePerspectives = this.activePerspectives;
+    }
+    
+    // Dispatch on window for PerspectiveHosts to listen (with FULL perspective objects)
+    // NOTE: Only dispatch once - bubbles:true means it will reach document listeners anyway
+    const eventDetail = { 
+      perspectives: this.activePerspectives
+    };
+    
+    // Mark as auto-activation if triggered by search
+    if (this._isAutoActivating) {
+      eventDetail.source = 'search-auto-activation';
+      this._isAutoActivating = false; // Reset flag
+    }
+    
+    window.dispatchEvent(new CustomEvent('perspective-changed', {
+      detail: eventDetail,
+      bubbles: true,
+      composed: true
+    }));
+    
+      // ALSO dispatch via AMORPH event system for Reactors
+      if (this.amorph) {
+        this.amorph.emit('perspectives:changed', {
+          perspectives: perspectiveIds
+        });
+      }
+      
+      console.log('[MorphHeader] Active perspectives:', perspectiveIds);
+    }, 50); // 50ms debounce - prevents cascade loops
   }
 
   // ==========================================

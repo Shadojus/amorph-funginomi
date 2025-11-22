@@ -93,9 +93,12 @@ export class SearchFilterController {
       const { query } = event.detail || {};
       console.log('[SearchFilterController] 🎨 Deep mode ready (MorphHeader), starting highlighting');
       
-      // Re-apply highlighting now that deep mode is rendered (debounced)
-      if (this.currentQuery) {
+      // Only re-highlight if we're not already highlighting
+      // This prevents clearing highlights during perspective auto-activation
+      if (this.currentQuery && !this._isHighlighting) {
         this.debouncedHighlight();
+      } else if (this._isHighlighting) {
+        console.log('[SearchFilterController] ⏭️ Skipping deep-mode-ready highlight (already in progress)');
       }
     });
     
@@ -112,13 +115,28 @@ export class SearchFilterController {
     
     // Listen for perspective changes to re-highlight newly visible morphs
     window.addEventListener('perspective-changed', (event) => {
-      // Small delay to let DataMorphs update their visibility first
-      setTimeout(() => {
-        if (this.currentQuery && this.currentQuery.trim().length >= 2) {
-          console.log('[SearchFilterController] 🎨 Re-highlighting after perspective change');
-          this.debouncedHighlight();
-        }
-      }, 200);
+      // Skip if no search is active
+      if (!this.currentQuery || this.currentQuery.trim().length < 2) return;
+      
+      const detail = event.detail || {};
+      
+      // For AUTO-ACTIVATION: Skip here, wait for deep-mode-ready (MorphHeader will trigger it)
+      // For MANUAL SWITCH: Re-highlight immediately
+      if (detail.source === 'search-auto-activation') {
+        console.log('[SearchFilterController] ⏭️ Auto-activation - waiting for deep-mode-ready to highlight + scroll');
+        return;
+      }
+      
+      // Cancel any pending highlights to prevent duplicates
+      if (this._perspectiveChangeTimeout) {
+        clearTimeout(this._perspectiveChangeTimeout);
+      }
+      
+      // MANUAL perspective switch while search is active → re-highlight + scroll
+      this._perspectiveChangeTimeout = setTimeout(() => {
+        console.log('[SearchFilterController] 🎨 Re-highlighting after MANUAL perspective change');
+        this.highlightMatches(); // This includes scroll
+      }, 600); // Delay to ensure morphs are fully visible
     });
     
     console.log('[SearchFilterController] ✅ Listening for search events');
@@ -354,10 +372,8 @@ export class SearchFilterController {
       clearTimeout(this.highlightTimer);
     }
     
-    // Clear old highlights immediately (fast operation)
-    this.clearHighlights();
-    
     // Schedule new highlighting after 300ms of no typing
+    // (clearHighlights will be called inside highlightMatches)
     this.highlightTimer = setTimeout(() => {
       this.highlightMatches();
     }, 300);
@@ -368,6 +384,17 @@ export class SearchFilterController {
    */
   highlightMatches() {
     if (!this.currentQuery) return;
+    
+    // CRITICAL: Prevent duplicate highlighting while one is already in progress
+    if (this._isHighlighting) {
+      console.log('[SearchFilterController] ⏭️ Skipping duplicate highlight (already in progress)');
+      return;
+    }
+    
+    this._isHighlighting = true;
+    
+    // Clear old highlights FIRST, before creating new ones
+    this.clearHighlights();
     
     const query = this.currentQuery.toLowerCase().trim();
     console.log(`[SearchFilterController] 🎨 Highlighting text containing: "${query}"`);
@@ -396,16 +423,35 @@ export class SearchFilterController {
       const morphs = card.querySelectorAll(allMorphSelectors.join(', '));
       
       morphs.forEach(morph => {
-        // Skip hidden elements
+        // Skip hidden elements (display:none = not in active perspective)
         if (morph.style.display === 'none') return;
+        
+        // CRITICAL: Skip morphs from inactive perspectives
+        // Check if morph has perspective attribute and if it's in active perspectives
+        const morphPerspective = morph.getAttribute('perspective');
+        if (morphPerspective) {
+          // Get active perspectives from AMORPH state
+          const activePerspectives = window.amorph?.state?.activePerspectives || [];
+          const activePerspectiveNames = activePerspectives.map(p => p.name || p);
+          
+          // Skip if this morph's perspective is not active
+          if (!activePerspectiveNames.includes(morphPerspective)) {
+            console.log(`[SearchFilterController] ⏭️ Skipping morph in inactive perspective: ${morphPerspective}`, morph);
+            return;
+          }
+        }
         
         // Highlight text within this element's shadow DOM or regular DOM
         const highlightedCount = this.highlightTextInElement(morph, query);
         
         if (highlightedCount > 0) {
+          console.log(`[SearchFilterController] ✅ Highlighted ${highlightedCount} matches in`, morph.tagName, morphPerspective || 'no-perspective');
+        }
+        
+        if (highlightedCount > 0) {
           totalHighlights += highlightedCount;
           
-          // Track first highlighted element per card
+          // Track first highlighted element per card (only from active perspectives!)
           if (!cardFirstHighlight) {
             cardFirstHighlight = morph;
           }
@@ -420,19 +466,119 @@ export class SearchFilterController {
     
     console.log(`[SearchFilterController] ✨ Highlighted ${totalHighlights} text matches in ${highlightedElements.length} cards`);
     
-    // Auto-scroll: scroll first highlighted element into view for each card
+    // Auto-scroll: scroll within card-data container ONLY (no page scroll)
     if (highlightedElements.length > 0) {
-      setTimeout(() => {
+      // Cancel any pending scroll from previous highlight
+      if (this._scrollTimeout) {
+        clearTimeout(this._scrollTimeout);
+      }
+      
+      // Wait for highlights to render in DOM, THEN scroll
+      this._scrollTimeout = setTimeout(() => {
+        let scrolledCount = 0;
+        
         highlightedElements.forEach(element => {
+          // Find the card-data container for this morph
           const cardData = element.closest('.card-data');
-          if (cardData) {
-            // Scroll the element into view within its card-data container
-            const elementTop = element.offsetTop;
-            cardData.scrollTop = Math.max(0, elementTop - 20); // 20px offset from top
+          if (!cardData) {
+            console.warn('[SearchFilterController] ⚠️ No card-data container found for element:', element);
+            return;
           }
+          
+          // Find the first highlight element (actual highlighted text) within this morph
+          let highlightElement = null;
+          
+          // Try regular DOM first
+          highlightElement = element.querySelector('.search-highlight-text');
+          console.log('[SearchFilterController] 🔍 Search in regular DOM:', {
+            found: !!highlightElement,
+            morphType: element.tagName,
+            hasShadowRoot: !!element.shadowRoot
+          });
+          
+          // If no highlight found directly, check shadow DOM
+          if (!highlightElement && element.shadowRoot) {
+            highlightElement = element.shadowRoot.querySelector('.search-highlight-text');
+            console.log('[SearchFilterController] 🔍 Search in shadow DOM:', {
+              found: !!highlightElement
+            });
+          }
+          
+          // If still not found, try within nested elements (including their shadow DOMs)
+          if (!highlightElement) {
+            const nestedElements = element.querySelectorAll('*');
+            console.log('[SearchFilterController] 🔍 Searching nested elements:', {
+              nestedCount: nestedElements.length,
+              nestedWithShadow: Array.from(nestedElements).filter(n => n.shadowRoot).length
+            });
+            
+            for (const nested of nestedElements) {
+              if (nested.shadowRoot) {
+                highlightElement = nested.shadowRoot.querySelector('.search-highlight-text');
+                if (highlightElement) {
+                  console.log('[SearchFilterController] ✅ Found in nested shadow DOM:', nested.tagName);
+                  break;
+                }
+              }
+            }
+          }
+          
+          // Use the highlight element if found, otherwise fall back to morph element
+          const scrollTarget = highlightElement || element;
+          
+          console.log('[SearchFilterController] 🎯 Scrolling to:', {
+            hasHighlightElement: !!highlightElement,
+            morphType: element.tagName,
+            targetElement: scrollTarget.tagName || 'SPAN'
+          });
+          
+          // Calculate position relative to card-data container using offsetTop
+          // This is more reliable than getBoundingClientRect for elements in complex layouts
+          let elementTop = 0;
+          let currentElement = scrollTarget;
+          
+          // Walk up the DOM tree to calculate total offset
+          while (currentElement && currentElement !== cardData) {
+            elementTop += currentElement.offsetTop || 0;
+            currentElement = currentElement.offsetParent;
+            
+            // Break if we've left the card-data container
+            if (currentElement && !cardData.contains(currentElement)) break;
+          }
+          
+          const containerHeight = cardData.clientHeight;
+          const elementHeight = scrollTarget.offsetHeight || 50; // Fallback to 50px
+          
+          // Center the element in the visible area
+          const scrollTarget_value = Math.max(0, elementTop - (containerHeight / 2) + (elementHeight / 2));
+          
+          console.log('[SearchFilterController] 📏 Scroll calculation:', {
+            elementTop,
+            containerHeight,
+            elementHeight,
+            scrollTarget: scrollTarget_value,
+            currentScroll: cardData.scrollTop
+          });
+          
+          // Smooth scroll within container
+          cardData.scrollTo({
+            top: scrollTarget_value,
+            behavior: 'smooth'
+          });
+          
+          scrolledCount++;
         });
-        console.log(`[SearchFilterController] 📍 Auto-scrolled ${highlightedElements.length} cards to first match`);
-      }, 200); // Slightly longer delay to ensure rendering is complete
+        
+        console.log(`[SearchFilterController] 📍 Auto-scrolled ${scrolledCount} cards to first highlight (container-only)`);
+        
+        // Reset highlighting flag after scroll completes
+        setTimeout(() => {
+          this._isHighlighting = false;
+        }, 600); // Extra delay for smooth scroll to complete
+      }, 500); // Longer delay to ensure highlights are fully rendered
+    } else {
+      // No highlights found, reset flag immediately
+      this._isHighlighting = false;
     }
   }
   
@@ -571,6 +717,8 @@ export class SearchFilterController {
    * Clear all highlights
    */
   clearHighlights() {
+    console.log('[SearchFilterController] 🧹 Clearing all highlights');
+    
     // Remove old-style morph highlights (if any)
     document.querySelectorAll('.search-highlight-morph').forEach(el => {
       el.classList.remove('search-highlight-morph');

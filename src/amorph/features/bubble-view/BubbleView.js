@@ -287,7 +287,8 @@ export class BubbleView extends LitElement {
     // Clear existing bubble morphs in container
     morphsContainer.innerHTML = '';
     
-    // Add each bubble morph to container and create canvas data
+    // PERFORMANCE FIX: Don't re-append morphs (they're already in BubbleHost container)
+    // Just create canvas data references - appendChild would trigger duplicate registration
     bubbleMorphs.forEach((bubbleMorph, index) => {
       const entityData = bubbleMorph.entityData;
       const slugField = window.amorph?.domainConfig?.dataSource?.slugField || 'slug';
@@ -301,10 +302,7 @@ export class BubbleView extends LitElement {
       
       const slug = entityData[slugField];
       
-      // Add morph to DOM container (will be positioned by BubbleMorph itself)
-      morphsContainer.appendChild(bubbleMorph);
-      
-      // Store canvas bubble data for connections
+      // Store canvas bubble data for connections (no DOM manipulation needed)
       this.bubbles.set(slug, {
         slug,
         label: entityData[nameField] || entityData[secondaryNameField] || slug,

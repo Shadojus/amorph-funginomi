@@ -407,9 +407,14 @@ export class DataMorph extends LitElement {
     // DEEP MODE WITHOUT FIELD: Extract ALL perspectives
     if (this.mode === 'deep' && !this.field) {
       const extracted = {};
-      const searchPerspectives = this.activePerspectives.length > 0 
-        ? this.activePerspectives 
-        : allPerspectives;
+      
+      // NO PERSPECTIVES = NO DATA (don't show everything!)
+      if (this.activePerspectives.length === 0) {
+        this.currentData = {};
+        return;
+      }
+      
+      const searchPerspectives = this.activePerspectives;
       
       for (const perspectiveName of searchPerspectives) {
         const perspectiveData = this.entityData[perspectiveName];
@@ -441,10 +446,14 @@ export class DataMorph extends LitElement {
         extracted['root'] = this.entityData[fieldName];
       }
       
-      // Also check all perspectives (if perspectives are active)
-      const searchPerspectives = this.activePerspectives.length > 0 
-        ? this.activePerspectives 
-        : allPerspectives;
+      // Only check ACTIVE perspectives (no fallback to all)
+      if (this.activePerspectives.length === 0) {
+        // No perspectives = no perspective data shown (only root data)
+        this.currentData = extracted;
+        return;
+      }
+      
+      const searchPerspectives = this.activePerspectives;
       
       for (const perspectiveName of searchPerspectives) {
         const perspectiveData = this.entityData[perspectiveName];
@@ -473,9 +482,13 @@ export class DataMorph extends LitElement {
         }
       } else {
         // Field doesn't start with perspective name - search in active perspectives
-        const searchPerspectives = this.activePerspectives.length > 0 
-          ? this.activePerspectives 
-          : allPerspectives;
+        // NO PERSPECTIVES = NO DATA
+        if (this.activePerspectives.length === 0) {
+          this.currentData = extracted;
+          return;
+        }
+        
+        const searchPerspectives = this.activePerspectives;
         
         for (const perspectiveName of searchPerspectives) {
           const perspectiveData = this.entityData[perspectiveName];

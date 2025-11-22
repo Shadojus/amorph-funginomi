@@ -337,9 +337,9 @@ export const advancedSearch = query({
         }
         
         // Check other taxonomy fields
-        const taxonomyFields = ['kingdom', 'phylum', 'class', 'order', 'species'];
+        const taxonomyFields = ['kingdom', 'phylum', 'class', 'order', 'species'] as const;
         for (const field of taxonomyFields) {
-          const match = matches(fungus.taxonomy[field]);
+          const match = matches(fungus.taxonomy[field as keyof typeof fungus.taxonomy]);
           if (match.matched) {
             totalScore += weights.default * match.matchCount;
             matchedPerspectives.add("taxonomy");
@@ -360,6 +360,12 @@ export const advancedSearch = query({
         { key: "commercialAndMarket", data: fungus.commercialAndMarket },
         { key: "environmentalAndConservation", data: fungus.environmentalAndConservation },
         { key: "researchAndInnovation", data: fungus.researchAndInnovation },
+      ];
+
+      // Check each perspective
+      for (const perspective of perspectives) {
+        if (!perspective.data) continue;
+        
         // Check each field in perspective
         for (const [field, value] of Object.entries(perspective.data)) {
           const match = matches(value);
@@ -373,11 +379,6 @@ export const advancedSearch = query({
             // Multi-term bonus: more terms matched = higher score
             const multiplier = match.exactMatch ? 2 : 1;
             totalScore += weight * match.matchCount * multiplier;
-          }
-        }
-            // Get weight for this field
-            const weight = weights[field as keyof typeof weights] || weights.default;
-            totalScore += weight;
           }
         }
       }

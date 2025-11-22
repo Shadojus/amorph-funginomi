@@ -81,6 +81,12 @@ export class ConvexSearchReactor {
    * Setup Event Listeners
    */
   setupEventListeners() {
+    // Prevent duplicate listeners if already set up
+    if (this.handleSearchChange) {
+      console.log('[ConvexSearchReactor] ⚠️ Listeners already set up, skipping...');
+      return;
+    }
+    
     // Listen for search input changes (via AMORPH event system)
     this.handleSearchChange = this.onSearchChange.bind(this);
     amorph.on('search:input', this.handleSearchChange);
@@ -162,6 +168,12 @@ export class ConvexSearchReactor {
     try {
       const startTime = performance.now();
       
+      // Extract perspective names from perspective objects
+      const activePerspectives = amorph.state?.activePerspectives || [];
+      const perspectiveNames = activePerspectives.map(p => 
+        typeof p === 'string' ? p : p.name || p
+      );
+      
       // Fetch from API
       const response = await fetch(this.config.apiEndpoint, {
         method: 'POST',
@@ -170,7 +182,7 @@ export class ConvexSearchReactor {
         },
         body: JSON.stringify({
           query: query.trim(),
-          perspectives: amorph.state?.activePerspectives || [],
+          perspectives: perspectiveNames,
         }),
         signal: this.abortController.signal,
       });

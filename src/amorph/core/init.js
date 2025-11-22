@@ -109,6 +109,38 @@ export { amorph, morphMapper };
 window.amorph = amorph;
 window.amorph.morphMapper = morphMapper;
 
+// Auto-enable essential reactors ONCE after page load
+if (typeof window !== 'undefined') {
+  // Wait for initial morphs to be registered
+  setTimeout(() => {
+    // Report total registered morphs
+    const allMorphs = Array.from(document.querySelectorAll('[data-morph="true"]'));
+    console.log(`📦 Registered ${allMorphs.length} morphs (silent mode for performance)`);
+    
+    // Enable PerspectiveReactor - should always be active
+    amorph.enableReactor('perspective');
+    console.log('✅ PerspectiveReactor enabled (auto)');
+    
+    // Enable ConvexSearchReactor (only once!)
+    if (!amorph.state.enabledReactors.has('convex-search')) {
+      amorph.enableReactor('convex-search');
+      console.log('✅ ConvexSearchReactor enabled (auto)');
+    }
+    
+    // Batch apply reactors to all existing morphs
+    if (allMorphs.length > 0) {
+      console.log(`🔄 Batch applying reactors to ${allMorphs.length} morphs...`);
+      
+      // Apply PerspectiveReactor in batch
+      const perspectiveReactor = amorph.state.enabledReactors.get('perspective');
+      if (perspectiveReactor && allMorphs.length > 0) {
+        perspectiveReactor.apply(allMorphs);
+        console.log(`✅ PerspectiveReactor applied to ${allMorphs.length} morphs`);
+      }
+    }
+  }, 500);
+}
+
 // System Info ausgeben
 console.log('🔮 AMORPH System loaded! (Feature-only structure)');
 console.log('✅ Available as window.amorph');

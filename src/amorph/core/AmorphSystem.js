@@ -325,28 +325,34 @@ export class AmorphSystem {
     }
     
     this.morphs.add(element);
-    this.log(`📦 Morph registered: ${element.dataset.morphId} (type: ${element.dataset.morphType || 'unknown'})`);
     
-    // Apply alle aktiven Reactors zu diesem Morph
-    this.state.enabledReactors.forEach((reactorInstance, reactorName) => {
-      const reactorConfig = ReactorsConfig[reactorName];
-      
-      // Check ob Reactor auf diesen Morph-Type wirkt
-      if (this.reactorSupportsType(reactorConfig?.morphTypes, element.dataset.morphType)) {
-        try {
-          reactorInstance.apply([element]);
-        } catch (err) {
-          this.error(`Failed to apply reactor "${reactorName}" to new morph:`, err);
-        }
-      }
-    });
-    
-    // Emit event
-    await this.streamPublish('morph:created', {
-      id: element.id || element.dataset?.morphId || `morph-${Date.now()}`,
-      type: element.dataset?.morphType || element.tagName,
-      element: element.tagName
-    });
+    // PERFORMANCE OPTIMIZATION: Silent registration
+    // - No console logging (too many morphs)
+    // - No event publishing (causes overhead)
+    // - No reactor application (done in batch later)
+    // 
+    // this.log(`📦 Morph registered: ${element.dataset.morphId} (type: ${element.dataset.morphType || 'unknown'})`);
+    // 
+    // // Apply alle aktiven Reactors zu diesem Morph
+    // this.state.enabledReactors.forEach((reactorInstance, reactorName) => {
+    //   const reactorConfig = ReactorsConfig[reactorName];
+    //   
+    //   // Check ob Reactor auf diesen Morph-Type wirkt
+    //   if (this.reactorSupportsType(reactorConfig?.morphTypes, element.dataset.morphType)) {
+    //     try {
+    //       reactorInstance.apply([element]);
+    //     } catch (err) {
+    //       this.error(`Failed to apply reactor "${reactorName}" to new morph:`, err);
+    //     }
+    //   }
+    // });
+    // 
+    // // Emit event
+    // await this.streamPublish('morph:created', {
+    //   id: element.id || element.dataset?.morphId || `morph-${Date.now()}`,
+    //   type: element.dataset?.morphType || element.tagName,
+    //   element: element.tagName
+    // });
   }
   
   /**
@@ -354,12 +360,17 @@ export class AmorphSystem {
    */
   async unregisterMorph(element) {
     this.morphs.delete(element);
-    this.log(`📦 Morph unregistered: ${element.dataset?.morphId}`);
     
-    // Emit event
-    await this.streamPublish('morph:destroyed', {
-      id: element.id || element.dataset?.morphId || element.tagName
-    });
+    // PERFORMANCE OPTIMIZATION: Silent unregistration
+    // - No console logging (too many morphs being destroyed/recreated)
+    // - No event publishing (causes overhead)
+    // 
+    // this.log(`📦 Morph unregistered: ${element.dataset?.morphId}`);
+    // 
+    // // Emit event
+    // await this.streamPublish('morph:destroyed', {
+    //   id: element.id || element.dataset?.morphId || element.tagName
+    // });
   }
   
   /**

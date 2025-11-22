@@ -28,8 +28,31 @@ export class PerspectiveReactor {
     this.activePerspectives = [];
     this.styleSheet = null;
     this.appliedMorphs = new Set();
+    this._boundHandler = null;
     
     console.log('[PerspectiveReactor] Initialized');
+    
+    // Listen to perspective-changed events
+    this._boundHandler = this.handlePerspectiveChange.bind(this);
+    window.addEventListener('perspective-changed', this._boundHandler);
+    console.log('[PerspectiveReactor] 👂 Listening to perspective-changed events');
+  }
+  
+  /**
+   * Handle perspective change event
+   */
+  handlePerspectiveChange(event) {
+    const perspectives = event.detail?.perspectives || [];
+    console.log('[PerspectiveReactor] 🎭 Perspective changed:', perspectives.map(p => p.name || p));
+    
+    // Update active perspectives
+    this.activePerspectives = perspectives;
+    
+    // Re-apply to all morphs
+    const allMorphs = Array.from(document.querySelectorAll('[data-morph="true"]'));
+    if (allMorphs.length > 0) {
+      this.apply(allMorphs);
+    }
   }
 
   /**
@@ -46,12 +69,13 @@ export class PerspectiveReactor {
     
     this.injectStyles();
     
-    // If no perspectives active, show all morphs
+    // NO PERSPECTIVES = NO HIGHLIGHTING (clean state)
     if (this.activePerspectives.length === 0) {
       morphs.forEach(morph => {
-        morph.classList.remove('reactor-perspective-dimmed');
+        morph.classList.remove('reactor-perspective-dimmed', 'reactor-perspective-highlighted');
         morph.style.removeProperty('--perspective-color');
       });
+      console.log('[PerspectiveReactor] 🧹 No perspectives active - cleaned all highlights');
       return morphs.length;
     }
     
@@ -137,6 +161,11 @@ export class PerspectiveReactor {
       morph.style.removeProperty('--perspective-color');
       this.appliedMorphs.delete(morph);
     });
+    
+    // Remove event listener
+    if (this._boundHandler) {
+      window.removeEventListener('perspective-changed', this._boundHandler);
+    }
     
     console.log('[PerspectiveReactor] Cleaned up');
   }

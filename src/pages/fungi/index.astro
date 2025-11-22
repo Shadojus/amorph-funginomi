@@ -827,11 +827,16 @@ const morphMapper = new ServerMorphMapper();
     const perspectiveHandler = (event) => {
       const perspectives = event.detail?.perspectives || [];
       
-      console.log('🔄 Perspective changed:', perspectives);
+      console.log('🔄 Perspective changed:', perspectives.map(p => p.name || p));
       
       // Update active perspective order
       perspectiveOrder.length = 0;
       perspectiveOrder.push(...perspectives.map(p => p.name || p));
+      
+      // Re-render morphs for active perspectives (data-driven!)
+      if (window._renderMorphsForPerspectives) {
+        window._renderMorphsForPerspectives(perspectives);
+      }
       
       // Show/hide and reorder DataMorphs based on active perspectives
       updateDataMorphVisibility();
@@ -841,6 +846,7 @@ const morphMapper = new ServerMorphMapper();
     window.addEventListener('perspective-changed', perspectiveHandler);
     
     console.log('✅ Perspective listeners registered');
+    console.log('⏳ Waiting for MorphHeader to dispatch default perspectives...');
 
     // View Toggle functionality with coordinated state
     const viewBtns = document.querySelectorAll('.view-btn');
@@ -1138,7 +1144,18 @@ const morphMapper = new ServerMorphMapper();
       console.log(`[DataMorphModeSwitcher] ✅ Updated ${updatedCount} cards to deep mode (hidden ${cards.length - updatedCount} duplicate morphs)`);
       
       // Dispatch event to notify highlighting system
+      // CRITICAL: Only dispatch if auto-activation is NOT in progress
+      // If auto-activation is running, MorphHeader will dispatch after it completes
       setTimeout(() => {
+        const morphHeader = document.querySelector('morph-header');
+        const isAutoActivating = morphHeader?._isAutoActivating || false;
+        
+        if (isAutoActivating) {
+          console.log('[DataMorphModeSwitcher] ⏭️ Skipping deep-mode-ready dispatch - auto-activation in progress');
+          return;
+        }
+        
+        console.log('[DataMorphModeSwitcher] 📤 Dispatching deep-mode-ready');
         window.dispatchEvent(new CustomEvent('data-morph:deep-mode-ready', {
           detail: { reason }
         }));
@@ -1216,99 +1233,148 @@ const morphMapper = new ServerMorphMapper();
 
     // Find all card-data containers that need dynamic morphs
     const containers = document.querySelectorAll('.card-data[data-use-mapper="true"]');
-    let totalMorphsCreated = 0;
+    
+    // Store containers for later rendering
+    window._cardContainers = containers;
+    
+    // Track if morphs have been created for each container
+    const initializedContainers = new WeakSet();
+    
+    // Function to render morphs based on active perspectives
+    function renderMorphsForPerspectives(activePerspectives = []) {
+      console.log(`[MorphMapper] 🎨 Updating visibility for ${activePerspectives.length} perspectives`);
+      
+      let totalMorphsCreated = 0;
+      let totalMorphsShown = 0;
+      let totalMorphsHidden = 0;
+      
+      containers.forEach(container => {
+        try {
+          const entityDataStr = container.getAttribute('data-entity');
+          if (!entityDataStr) return;
 
-    containers.forEach(container => {
-      try {
-        const entityDataStr = container.getAttribute('data-entity');
-        if (!entityDataStr) return;
+          const entityData = JSON.parse(entityDataStr);
+          
+          // Get active perspective names
+          const activePerspectiveNames = activePerspectives.map(p => p.name || p);
+          
+          // FIRST TIME: Create ALL morphs from ALL perspectives (hidden by default)
+          if (!initializedContainers.has(container)) {
+            console.log('[MorphMapper] 🆕 First load - creating all morphs');
+            
+            // Get ALL available perspectives from entity data
+            const allPerspectives = [
+              'taxonomy', 'physicalCharacteristics', 'safetyAndIdentification',
+              'ecologyAndHabitat', 'culinaryAndNutritional', 'medicinalAndHealth',
+              'cultivationAndProcessing', 'chemicalAndProperties', 'culturalAndHistorical',
+              'commercialAndMarket', 'environmentalAndConservation', 'researchAndInnovation'
+            ];
+            
+            allPerspectives.forEach(perspectiveName => {
+              const perspectiveData = entityData[perspectiveName];
+              
+              if (perspectiveData && typeof perspectiveData === 'object') {
+                const perspectiveFields = mapper.getMappedFields(perspectiveData, {
+                  maxFields: null,
+                  maxDepth: 2
+                });
+                
+                perspectiveFields.forEach(field => {
+                  const fieldPath = `${perspectiveName}.${field.fullPath}`;
+                  const morphElement = mapper.createMorphElement(field, field.value || entityData);
+                  morphElement.setAttribute('data-priority', field.priority);
+                  morphElement.setAttribute('data-morph-type', field.morphType);
+                  morphElement.setAttribute('data-field-path', fieldPath);
+                  morphElement.setAttribute('data-perspective', perspectiveName);
+                  morphElement.setAttribute('perspective', perspectiveName); // CRITICAL: for PerspectiveReactor color bars
+                  morphElement.style.display = 'none'; // Hidden by default
+                  container.appendChild(morphElement);
+                  totalMorphsCreated++;
+                });
+              }
+            });
+            
+            initializedContainers.add(container);
+            container.dataset.fullData = entityDataStr;
+          }
+          
+          // SHOW/HIDE morphs based on active perspectives (CSS only - super fast!)
+          const allMorphs = Array.from(container.querySelectorAll('[data-perspective]'));
+          
+          if (activePerspectives.length === 0) {
+            // Hide all morphs
+            allMorphs.forEach(morph => {
+              morph.style.display = 'none';
+              totalMorphsHidden++;
+            });
+          } else {
+            // Show morphs from active perspectives, hide others
+            allMorphs.forEach(morph => {
+              const morphPerspective = morph.getAttribute('perspective'); // Use 'perspective' not 'data-perspective'
+              if (activePerspectiveNames.includes(morphPerspective)) {
+                morph.style.display = '';
+                totalMorphsShown++;
+              } else {
+                morph.style.display = 'none';
+                totalMorphsHidden++;
+              }
+            });
+          }
+          
+        } catch (error) {
+          console.error('[MorphMapper] Error updating morphs:', error);
+        }
+      });
 
-        const entityData = JSON.parse(entityDataStr);
-        
-        // Get mapped fields - NORMAL MODE: top 15 fields only
-        // Search will expand to show ALL fields when active
-        const fields = mapper.getMappedFields(entityData, {
-          maxFields: 15,  // Limit in normal view
-          maxDepth: 1
-        });
-        
-        // Create and append morph elements
-        fields.forEach(fieldConfig => {
-          // Creating: ${fieldConfig.fieldName} → ${fieldConfig.morphType}
-          const morphElement = mapper.createMorphElement(fieldConfig, entityData);
-          morphElement.setAttribute('data-priority', fieldConfig.priority);
-          morphElement.setAttribute('data-morph-type', fieldConfig.morphType);
-          morphElement.setAttribute('data-field-path', fieldConfig.fullPath);
-          container.appendChild(morphElement);
-          totalMorphsCreated++;
-        });
-        
-        // Store full data for search expansion
-        container.dataset.fullData = entityDataStr;
-        
-      } catch (error) {
-        console.error('[MorphMapper] Error creating morphs:', error);
+      if (totalMorphsCreated > 0) {
+        console.log(`[MorphMapper] ✅ Created ${totalMorphsCreated} morphs (one-time initialization)`);
       }
-    });
-
-    console.log(`[MorphMapper] ✅ Created ${totalMorphsCreated} morphs across ${containers.length} cards`);
+      console.log(`[MorphMapper] 👁️ Visibility update: ${totalMorphsShown} shown, ${totalMorphsHidden} hidden (CSS only - instant)`);
+    }
+    
+    // Store render function globally for perspective changes
+    window._renderMorphsForPerspectives = renderMorphsForPerspectives;
+    
+    // DON'T render yet - wait for MorphHeader to dispatch default perspectives
+    console.log('[MorphMapper] ⏳ Waiting for perspective-changed event...');
     
     // Debounce for card expansion/collapse (prevent re-render on every keystroke)
     let expansionTimer = null;
     let collapseTimer = null;
     let isExpanded = false;
     
-    // Listen for search events to expand cards
+    // PERFORMANCE FIX: Don't expand cards on search - morphs already exist and are visible/hidden by CSS
+    // Highlighting works on visible morphs only (SearchFilterController handles this)
+    // This prevents creating hundreds of morphs from ALL 12 perspectives on every search
     window.addEventListener('convex-search:completed', (event) => {
-      const { query } = event.detail;
-      
-      // Clear existing timers
-      if (expansionTimer) {
-        clearTimeout(expansionTimer);
-      }
-      if (collapseTimer) {
-        clearTimeout(collapseTimer);
-      }
-      
-      if (query && query.trim().length >= 2) {
-        // Only expand if not already expanded (prevent redundant re-renders)
-        if (!isExpanded) {
-          expansionTimer = setTimeout(() => {
-            expandCardsForSearch(containers, mapper);
-            isExpanded = true;
-          }, 500); // Wait 500ms after typing stops
-        }
-      } else if (isExpanded) {
-        // Only collapse if currently expanded AND query is too short
-        // Debounced to prevent freezing when deleting last characters
-        collapseTimer = setTimeout(() => {
-          collapseCardsToNormal(containers);
-          isExpanded = false;
-        }, 500);
-      }
+      // No-op - morphs already exist, SearchFilterController will highlight visible ones
+      console.log('[MorphMapper] 🎯 Search completed - using existing morphs (no expansion needed)');
     });
     
     window.addEventListener('convex-search:reset', () => {
-      if (expansionTimer) {
-        clearTimeout(expansionTimer);
-      }
-      if (collapseTimer) {
-        clearTimeout(collapseTimer);
-      }
-      
-      // Only collapse if expanded
-      if (isExpanded) {
-        collapseTimer = setTimeout(() => {
-          collapseCardsToNormal(containers);
-          isExpanded = false;
-        }, 300);
-      }
+      // No-op - morphs stay as they are, perspectives control visibility
+      console.log('[MorphMapper] 🔄 Search reset - morphs remain (CSS controls visibility)');
     });
   }
   
-  // Expand cards to show ALL fields during search
+  // Expand cards to show ALL fields during search (from ALL perspectives)
   function expandCardsForSearch(containers, mapper) {
-    console.log('[MorphMapper] 🔍 Expanding cards to show ALL fields for search...');
+    console.log('[MorphMapper] 🔍 Expanding cards to show ALL fields from ALL perspectives...');
+    
+    const allPerspectives = [
+      'taxonomy',
+      'physicalCharacteristics',
+      'ecologyAndHabitat',
+      'culinaryAndNutritional',
+      'medicinalAndHealth',
+      'cultivationAndProcessing',
+      'safetyAndIdentification',
+      'chemicalAndProperties',
+      'culturalAndHistorical',
+      'commercialAndMarket',
+      'environmentalAndConservation',
+      'researchAndInnovation'
+    ];
     
     containers.forEach(container => {
       const entityDataStr = container.dataset.fullData;
@@ -1316,31 +1382,59 @@ const morphMapper = new ServerMorphMapper();
       
       const entityData = JSON.parse(entityDataStr);
       
-      // Get ALL fields (no limit)
-      const allFields = mapper.getMappedFields(entityData, {
-        maxFields: null,  // Show everything during search
-        maxDepth: 2       // Include nested data
-      });
-      
       // Remove existing morphs
       container.innerHTML = '';
       
+      const allFields = [];
+      
+      // Extract fields from ALL perspectives for search
+      allPerspectives.forEach(perspectiveName => {
+        const perspectiveData = entityData[perspectiveName];
+        
+        if (perspectiveData && typeof perspectiveData === 'object') {
+          const fields = mapper.getMappedFields(perspectiveData, {
+            maxFields: null,
+            maxDepth: 2
+          });
+          
+          fields.forEach(field => {
+            field.perspective = perspectiveName;
+            allFields.push(field);
+          });
+        }
+      });
+      
+      // Sort by priority
+      allFields.sort((a, b) => b.priority - a.priority);
+      
       // Create morphs for ALL fields
       allFields.forEach(fieldConfig => {
-        const morphElement = mapper.createMorphElement(fieldConfig, entityData);
+        const morphElement = mapper.createMorphElement(fieldConfig, fieldConfig.value || entityData);
         morphElement.setAttribute('data-priority', fieldConfig.priority);
         morphElement.setAttribute('data-morph-type', fieldConfig.morphType);
         morphElement.setAttribute('data-field-path', fieldConfig.fullPath);
+        morphElement.setAttribute('data-perspective', fieldConfig.perspective);
         morphElement.classList.add('search-expanded');
         container.appendChild(morphElement);
       });
     });
   }
   
-  // Collapse cards back to top 15 fields
+  // Collapse cards back to active perspectives
   function collapseCardsToNormal(containers) {
-    console.log('[MorphMapper] 📄 Collapsing cards to normal view (top 15 fields)...');
+    console.log('[MorphMapper] 📄 Collapsing cards back to active perspectives...');
     
+    // Get active perspectives from window event system
+    const activePerspectives = window.amorph?.state?.activePerspectives || [];
+    
+    // Re-render with active perspectives
+    if (window._renderMorphsForPerspectives) {
+      window._renderMorphsForPerspectives(activePerspectives);
+    }
+  }
+  
+  // Legacy collapse function (kept for compatibility)
+  function collapseCardsToNormalLegacy(containers) {
     const mapper = window.amorph.morphMapper;
     
     containers.forEach(container => {
