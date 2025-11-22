@@ -2,7 +2,7 @@
 
 **Last Updated:** 22. November 2025
 
-**Framework Note:** Der Core ist **domain-agnostisch**. Er enthält keine Pilz-spezifische Logik. AmorphSystem, Observers, und EventBridge funktionieren mit beliebigen strukturierten Daten.
+**Framework Note:** Der Core ist **domain-agnostisch**. Er enthält keine domain-spezifische Logik. AmorphSystem, Observers, und EventBridge funktionieren mit beliebigen strukturierten Daten.
 
 ## Structure
 
@@ -11,6 +11,7 @@ core/
 ├── amorph.config.js         # System configuration
 ├── AmorphSystem.js          # Central registry & coordination
 ├── convex.ts                # Convex client for SSR data fetching
+├── domain.config.js         # Domain-specific configuration (Funginomi)
 ├── init.js                  # System initialization
 ├── morphs.config.js         # Morph type configurations
 ├── PixieRenderer.js         # Canvas renderer
@@ -19,6 +20,15 @@ core/
 ├── RedisEventBus.js         # Legacy event bus
 ├── layouts/
 │   └── BaseLayout.astro     # Base Astro layout
+├── observers/
+│   ├── ArchObserver.js      # Architecture observer
+│   ├── BaseObserver.js      # Base observer class
+│   ├── GlobalObserver.js    # Global events observer
+│   ├── HostObserver.js      # Host components observer
+│   ├── LayoutObserver.js    # Layout observer
+│   ├── MorphObserver.js     # Morph lifecycle observer
+│   ├── PerformanceObserver.js # Performance monitoring
+│   └── ReactorObserver.js   # Reactor events observer
 └── CLAUDE.md                # This file
 ```
 
@@ -27,13 +37,15 @@ core/
 Der `core/` Ordner enthält die Kern-Komponenten des AMORPH Systems:
 
 1. **AmorphSystem.js** - Das Gehirn des Systems (Registry, Events, State)
-2. **RedisEventBridge.js** - Event Bus mit Redis Streams & Consumer Groups
-3. **RedisEventBus.js** - Legacy Event Bus
-4. **PixieRenderer.js** - Canvas Renderer für Bubble View
-5. **convex.ts** - Convex Client für SSR Data Fetching
-6. **init.js** - System Initialization & Bootstrap
-7. **layouts/** - Astro Layout Components (BaseLayout.astro)
-8. **Config Files** - amorph.config.js, reactors.config.js, morphs.config.js
+2. **domain.config.js** - Domain Configuration (Funginomi-specific)
+3. **RedisEventBridge.js** - Event Bus mit Redis Streams & Consumer Groups
+4. **RedisEventBus.js** - Legacy Event Bus
+5. **PixieRenderer.js** - Canvas Renderer für Bubble View
+6. **convex.ts** - Convex Client für SSR Data Fetching
+7. **init.js** - System Initialization & Bootstrap
+8. **observers/** - 8 Stream Observers für State Management
+9. **layouts/** - Astro Layout Components (BaseLayout.astro)
+10. **Config Files** - amorph.config.js, reactors.config.js, morphs.config.js
 
 ## 🔗 Related Components
 
@@ -570,64 +582,111 @@ console.log('🔮 AMORPH System Ready!', amorph.getSystemInfo());
 
 ---
 
-## styles/tokens.js - Global Design System
+## domain.config.js - Domain Configuration **[FUNGINOMI INSTANCE]**
 
-### Funktion
+### Verantwortlichkeiten
 
-Globale Design Tokens als CSS Custom Properties für alle Morphs:
-- ✅ Funktioniert in Shadow DOM (Lit Components)
-- ✅ 12 Perspektiven-Farben
-- ✅ Spacing, Typography, Shadows, Transitions
-- ✅ Dark Mode Support
-- ✅ Utility Classes
+Domain-specific configuration for the Funginomi instance:
+- ✅ Instance metadata (name, domain, description)
+- ✅ Data source configuration (Convex table, field mappings)
+- ✅ Perspective definitions (12 fungi perspectives)
+- ✅ UI configuration (grid/card styles, labels)
+- ✅ External links (Bifröst integration)
 
-### Verwendung in Morphs
+### Structure
 
 ```javascript
-import { LitElement, html, css } from 'lit';
-import { globalStyles } from '../../arch/styles/tokens.js';
+export default {
+  instance: {
+    name: 'Funginomi',
+    domain: 'fungi',  // Used in routes (/fungi/[slug])
+    description: 'Comprehensive fungi knowledge base',
+    logo: '/images/logo-funginomi.svg'
+  },
+  
+  dataSource: {
+    type: 'convex',
+    table: 'fungi',
+    nameField: 'commonName',
+    slugField: 'seoName',
+    descriptionField: 'description'
+  },
+  
+  perspectives: [
+    {
+      id: 'taxonomy',
+      name: 'Taxonomy',
+      icon: '🧬',
+      color: '#ef4444',
+      description: 'Scientific classification'
+    },
+    // ... 11 more perspectives
+  ],
+  
+  ui: {
+    grid: {
+      containerClass: '.entity-grid',
+      cardClass: '.entity-card'
+    },
+    labels: {
+      connectedEntities: 'Connected Entities'
+    }
+  },
+  
+  externalLinks: {
+    bifroest: 'https://bifroest.io'
+  }
+};
+```
 
-export class MyMorph extends LitElement {
-  static styles = [
-    globalStyles,  // ← Global Tokens
-    css`
-      .my-element {
-        padding: var(--space-md);
-        border-radius: var(--radius-md);
-        color: var(--color-text-light);
-        font-family: var(--font-sans);
-        transition: var(--transition-base);
-      }
-    `
-  ];
+**Key Principle:** This file contains ALL instance-specific configuration. To create a new instance with a different domain, only this file needs to be changed - the framework code remains untouched.
+
+---
+
+## observers/ - Stream Observers (8 Observers)
+
+### Verantwortlichkeiten
+
+Stream-based observers for Redis Streams event processing:
+- ✅ **BaseObserver.js** - Abstract base class for all observers
+- ✅ **MorphObserver.js** - Morph lifecycle events
+- ✅ **ReactorObserver.js** - Reactor state changes
+- ✅ **HostObserver.js** - Host component events
+- ✅ **GlobalObserver.js** - Global system events
+- ✅ **ArchObserver.js** - Architecture events
+- ✅ **LayoutObserver.js** - Layout events
+- ✅ **PerformanceObserver.js** - Performance monitoring
+
+### Architecture
+
+All observers:
+1. Extend BaseObserver
+2. Define `eventTypes` they listen to
+3. Implement `handleMessage(message)` method
+4. Poll Redis Streams via XREADGROUP
+5. Auto-acknowledge processed messages
+
+**Example:**
+```javascript
+import { BaseObserver } from './BaseObserver.js';
+
+export class MorphObserver extends BaseObserver {
+  eventTypes = ['morph:registered', 'morph:unregistered', 'morph:updated'];
+  
+  async handleMessage(message) {
+    const { event, data } = message;
+    
+    switch (event) {
+      case 'morph:registered':
+        console.log('New morph registered:', data.element);
+        break;
+      // ...
+    }
+  }
 }
 ```
 
-### Verfügbare Tokens
-
-**Colors:**
-- `--color-culinary` → `#22c55e`
-- `--color-medicinal` → `#ef4444`
-- `--color-cultivation` → `#f59e0b`
-- etc. (alle 12 Perspektiven)
-
-**Spacing:**
-- `--space-xs` → `4px`
-- `--space-sm` → `8px`
-- `--space-md` → `16px`
-- `--space-lg` → `24px`
-
-**Typography:**
-- `--font-sans` → System Font Stack
-- `--font-size-sm` → `14px`
-- `--font-weight-semibold` → `600`
-
-**Shadows:**
-- `--shadow-sm`, `--shadow-md`, `--shadow-lg`
-
-**Transitions:**
-- `--transition-fast` → `150ms ease`
-- `--transition-base` → `250ms ease`
+See `observers/CLAUDE.md` for full documentation.
 
 ---
 

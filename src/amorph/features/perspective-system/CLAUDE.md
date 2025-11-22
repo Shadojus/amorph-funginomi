@@ -6,7 +6,7 @@
 
 **Domain-agnostic multi-dimensional data filtering system** with FIFO queue (max 4 active).
 
-**Framework Concept:** Das Perspektiven-System ist NICHT "für Pilze" gebaut. Es ist ein generisches Tag-basiertes Filtersystem, das beliebige Datenstrukturen aus verschiedenen Blickwinkeln betrachten kann. Die 12 Perspektiven in Funginomi (Culinary, Medicinal, etc.) sind domain-spezifische Konfiguration - andere Instanzen (Phytonomi) haben andere Perspektiven.
+**Framework Concept:** Das Perspektiven-System ist ein generisches Tag-basiertes Filtersystem, das beliebige Datenstrukturen aus verschiedenen Blickwinkeln betrachten kann. Die Perspektiven sind domain-spezifische Konfiguration - jede Instance definiert ihre eigenen Perspektiven basierend auf ihrer Domäne.
 
 **Key Principle:** Perspektiven sind **dynamisch konfigurierbar** und basieren auf Property-Tags, nicht auf hardcodierten Logiken. Das System filtert/highlightet Morphs basierend auf deren Tags, unabhängig von der Domäne.
 
@@ -51,20 +51,15 @@ Dims irrelevant morphs when perspective is active. Uses CSS opacity.
 
 ---
 
-## 12 Perspectives
+## Perspectives
 
-1. taxonomy
-2. physicalCharacteristics
-3. ecologyAndHabitat
-4. culinaryAndNutritional
-5. medicinalAndHealth
-6. cultivationAndProcessing
-7. safetyAndIdentification
-8. chemicalAndProperties
-9. culturalAndHistorical
-10. commercialAndMarket
-11. environmentalAndConservation
-12. researchAndInnovation
+Perspectives are configured per instance via `domain.config.js`. Each instance defines:
+- Perspective names (identifiers)
+- Labels (display text)
+- Icons (visual representation)
+- Colors (UI theming)
+
+The system supports any number of perspectives based on domain requirements.
 
 ## Event System
 

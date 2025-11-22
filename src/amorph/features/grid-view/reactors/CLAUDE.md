@@ -6,7 +6,7 @@
 
 **Domain-agnostic visual effects system.** These reactors add visual effects and behaviors to morphs without modifying their internal logic or knowing about the domain.
 
-**Framework Principle:** Reactors sind vollkommen generisch. GlowReactor kann beliebige HTML-Elemente highlighten (Pilz-Karten, Pflanzen-Karten, Produkt-Karten), FilterReactor kann beliebige Listen filtern, SortReactor kann beliebige Collections sortieren. Zero domain knowledge.
+**Framework Principle:** Reactors sind vollkommen generisch. GlowReactor kann beliebige HTML-Elemente highlighten (Entity-Karten, Produkt-Karten, Listen-Items), FilterReactor kann beliebige Listen filtern, SortReactor kann beliebige Collections sortieren. Zero domain knowledge.
 
 ## Available Reactors
 

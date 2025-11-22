@@ -6,7 +6,7 @@
 
 **Domain-agnostic similarity visualization system** with Canvas rendering, physics simulation, user node connections, and relationship-focused detail dialog.
 
-**Framework Concept:** BubbleView visualisiert **Ähnlichkeitsbeziehungen zwischen Entitäten**, nicht "Pilze". Es funktioniert mit beliebigen Daten - Pilze, Pflanzen, Produkte, Personen, Papers, etc. Die Hilbert-Space-Similarity berechnet Distanzen basierend auf gemeinsamen Properties, unabhängig von der Domäne.
+**Framework Concept:** BubbleView visualisiert **Ähnlichkeitsbeziehungen zwischen Entitäten**. Es funktioniert mit beliebigen strukturierten Daten - Produkte, Personen, Papers, Locations, etc. Die Hilbert-Space-Similarity berechnet Distanzen basierend auf gemeinsamen Properties, unabhängig von der Domäne.
 
 **Key Principle:** Das System zeigt **"WHY entities are connected"** (gemeinsame Eigenschaften, Ähnlichkeiten), nicht "comprehensive data dumps". Die Detail-Ansicht fokussiert auf Beziehungen, nicht auf alle Datenfelder.
 
@@ -84,7 +84,7 @@ Individual bubble component with:
   - 🍳 Flavor profile
   - 🧪 Chemical compounds
 - **Wood floor background** with gradient overlay
-- **Link to full detail page** (/fungi/[slug])
+- **Link to full detail page** (/[collection]/[slug])
 
 **Design Philosophy:**
 BubbleView dialog explains WHY bubbles are connected and shows relationships, NOT comprehensive data (that's GridView's job).
@@ -149,7 +149,7 @@ Renders central user node with weighted connection lines to all bubbles.
 ## Services
 
 ### HilbertSpaceSimilarity.js
-Calculates similarity between fungi using Hilbert space transformations. Used for:
+Calculates similarity between entities using Hilbert space transformations. Used for:
 - Connection weight calculation
 - Bubble positioning
 - Similarity matrix updates
@@ -157,7 +157,7 @@ Calculates similarity between fungi using Hilbert space transformations. Used fo
 **Features:**
 - Perspective-aware similarity scoring
 - Characteristic property weighting
-- Multi-dimensional fungus comparison
+- Multi-dimensional entity comparison
 
 ## Usage
 

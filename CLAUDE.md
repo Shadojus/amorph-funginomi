@@ -6,9 +6,9 @@
 
 **AMORPH ist ein Framework-Prototyp für generische datengetriebene Visualisierungen.**
 
-Die wirkliche Innovation ist **nicht** "Pilze schön darstellen", sondern **"beliebige strukturierte Daten automatisch sinnvoll visualisieren"**. Das ist der Kern, der wertvoll ist.
+Die wirkliche Innovation ist **"beliebige strukturierte Daten automatisch sinnvoll visualisieren"**. Das ist der Kern, der wertvoll ist.
 
-**Funginomi** ist die erste Instanz dieses Frameworks - eine Pilz-Enzyklopädie als Proof-of-Concept. Weitere Wissensseiten (z.B. Phytonomi für Pflanzen) werden folgen und über Redis Streams Daten austauschen.
+**Funginomi** ist die erste Instanz dieses Frameworks - eine Knowledge-Base als Proof-of-Concept. Weitere Instanzen mit anderen Domänen werden folgen und über Redis Streams Daten austauschen.
 
 **Ziel:** Alle CLAUDE.md Dateien auf dem neuesten Stand:
 - ✅ **Jungfräulich** - Für neue Claude-Sessions verständlich
@@ -25,13 +25,13 @@ Die wirkliche Innovation ist **nicht** "Pilze schön darstellen", sondern **"bel
 - ✅ **MorphMapper** - Intelligent type detection (ZERO hardcoded mappings!)
   - Erkennt automatisch: Numbers, Ranges, Booleans, Arrays, Objects, URLs, Coordinates
   - Wählt passende Visualisierung basierend auf Datenstruktur
-  - **Domain-agnostisch** - funktioniert für Pilze, Pflanzen, Produkte, etc.
+  - **Domain-agnostisch** - funktioniert für beliebige strukturierte Daten
 
 - ✅ **BubbleView** - Generic similarity visualization (Native Canvas 2D)
   - Hilbert-Space similarity calculations
   - Physics-based layout
   - UserNode connections für personalisierte Beziehungen
-  - **Keine Pilz-Logik** - arbeitet mit beliebigen Entitäten
+  - **Keine domain-spezifische Logik** - arbeitet mit beliebigen Entitäten
 
 - ✅ **GridView** - Responsive card layout
   - Automatische Morph-Generierung aus Datenfeldern
@@ -41,11 +41,11 @@ Die wirkliche Innovation ist **nicht** "Pilze schön darstellen", sondern **"bel
 - ✅ **Perspective System** - Multi-dimensional data filtering
   - Generisches Tag-basiertes Perspektiven-System
   - FIFO queue (max 4 aktiv)
-  - **Domain-konfigurierbar** - 12 Perspektiven für Funginomi, beliebig erweiterbar
+  - **Domain-konfigurierbar** - Perspektiven-Anzahl pro Instance definierbar
 
 - ✅ **Event-Driven Architecture** - Redis Streams für Cross-Domain Data Exchange
   - Features kommunizieren über Events, nicht direkte Abhängigkeiten
-  - **Multi-Instance-Ready** - Funginomi, Phytonomi, etc. können Daten austauschen
+  - **Multi-Instance-Ready** - Mehrere Instanzen können Daten austauschen
   - Observer-Pattern für Stream-based State Management
 
 ## 🌐 Multi-Instance Architecture (Roadmap)
@@ -54,8 +54,8 @@ Die wirkliche Innovation ist **nicht** "Pilze schön darstellen", sondern **"bel
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│ FUNGINOMI   │     │ PHYTONOMI   │     │ FURTHER...  │
-│ (Mushrooms) │     │ (Plants)    │     │ (...)       │
+│ INSTANCE 1  │     │ INSTANCE 2  │     │ INSTANCE N  │
+│ (Domain A)  │     │ (Domain B)  │     │ (Domain X)  │
 └──────┬──────┘     └──────┬──────┘     └──────┬──────┘
        │                   │                   │
        │    Redis Streams  │                   │
@@ -73,26 +73,26 @@ Die wirkliche Innovation ist **nicht** "Pilze schön darstellen", sondern **"bel
 - MorphMapper - Funktioniert mit beliebigen Datenstrukturen
 
 **Instance-Specific:**
-- `convex/schema.ts` - Domain-spezifisches Schema (fungi vs. plants vs. ...)
-- Perspektiven-Konfiguration - 12 für Funginomi, andere für Phytonomi
+- `convex/schema.ts` - Domain-spezifisches Schema (je nach Domäne)
+- Perspektiven-Konfiguration - Domain-spezifisch (Anzahl und Typen variieren)
 - Design Tokens - Instance-spezifisches Branding
 
 **Cross-Instance Features:**
-- User fügt Pilz zu Sammlung hinzu → Event via Redis
-- Phytonomi zeigt "wächst auf Bäumen der Art X" → Cross-Reference
-- Bifröst.io aggregiert alle Knowledge-Bases in eine Suche
+- User fügt Entity zu Collection hinzu → Event via Redis
+- Instance 2 zeigt "related to Entity X from Instance 1" → Cross-Reference
+- Aggregator (Bifröst.io) vereint alle Knowledge-Bases in eine Suche
 
-## 📊 Funginomi Instance (Aktueller Stand)
+## 📊 Current Instance Implementation
 
-**Funginomi = AMORPH Framework + Pilz-Domäne**
+**Current Instance = AMORPH Framework + Domain Configuration**
 
-- ✅ **Convex Backend** - 6 Beispiel-Pilze (Beauveria, Cordyceps, Fomitopsis, etc.)
-- ✅ **12 Perspektiven** - Culinary, Medicinal, Chemical, Ecology, Safety, etc.
-- ✅ **BubbleDetailReactor** - Relationship-focused dialog statt data dump
-- ✅ **Server-side Search** - Auto-perspective switching
+- ✅ **Convex Backend** - Example entities with rich structured data
+- ✅ **Multiple Perspectives** - Domain-specific views configured via domain.config.js
+- ✅ **BubbleDetailReactor** - Relationship-focused dialog for entity connections
+- ✅ **Server-side Search** - Auto-perspective switching based on matched fields
 
 **Framework Refactoring (2025-11-22):**
-- ✅ **Domain Config System** - `domain.config.js` isolates all Funginomi-specific configuration
+- ✅ **Domain Config System** - `domain.config.js` isolates all instance-specific configuration
 - ✅ **Generic Data Adapter** - Supports Convex, REST, GraphQL backends
 - ✅ **MorphMapper** - Fully generic, uses `entity-data` attribute
 - ✅ **HilbertSpaceSimilarity** - Generic entity comparison, uses DomainConfig for perspectives
@@ -135,7 +135,7 @@ Die wirkliche Innovation ist **nicht** "Pilze schön darstellen", sondern **"bel
   - 🍳 Flavor profile (culinaryAndNutritional perspective)
   - 🧪 Chemical compounds (chemicalAndProperties perspective)
 - ✅ **Wood floor background** with dark gradient overlay
-- ✅ **Link to full detail page** - `/fungi/[slug]` for comprehensive data
+- ✅ **Link to full detail page** - `/[collection]/[slug]` for comprehensive data
 - ✅ **Design Philosophy** - Shows WHY bubbles are connected (relationships), NOT comprehensive data (that's GridView)
 
 **Canvas Fixes:**
@@ -264,7 +264,7 @@ Die wirkliche Innovation ist **nicht** "Pilze schön darstellen", sondern **"bel
 ### 2. ⭐ MorphHeader Enhancement (NEW!)
 
 **Branding & Progressive Compression:**
-- ✅ **Branding** - "Funginomi" Titel + "Part of the Bifröst" Link zu https://bifroest.io
+- ✅ **Branding** - Instance title + "Part of the Bifröst" Link zu https://bifroest.io
 - ✅ **Max 2 Reihen** - Perspektiven-Buttons wrappen maximal in 2 Reihen
 - ✅ **Progressive Komprimierung**:
   - Inaktive Buttons: Keine Icons, kleiner Text (0.7rem, 0.4rem padding)
@@ -284,7 +284,7 @@ Die wirkliche Innovation ist **nicht** "Pilze schön darstellen", sondern **"bel
 - ✅ **FIFO management** - Removes oldest when adding 5th perspective
 
 **Flow:**
-1. User types "beauveria" → AstroDataSearchReactor finds match in taxonomy
+1. User types search query → AstroDataSearchReactor finds match in data fields
 2. AstroDataSearchReactor shows container 1, hides others
 3. SearchReactor finds 0 morphs but sees container 1 has no `reactor-astro-search-hidden` class
 4. SearchReactor respects AstroDataSearchReactor's decision → container 1 stays visible!
@@ -416,7 +416,7 @@ amorph.on('search:completed', callback);
 **Status:** ✅ UPDATED
 
 **Wichtigste Änderungen:**
-- fungi/[slug].astro komplett neu dokumentiert
+- [collection]/[slug].astro komplett neu dokumentiert
 - Deep Recursive Rendering erklärt
 - flattenObject() Funktion mit Beispielen
 - renderField() mit visueller Hierarchie
@@ -424,7 +424,7 @@ amorph.on('search:completed', callback);
 
 **Neu hinzugefügt:**
 ```
-## fungi/[slug].astro [KOMPLETT NEU 2025-11-15]
+## [collection]/[slug].astro [KOMPLETT NEU 2025-11-15]
 ### Architektur
 - PerspectiveHost pro Perspektive
 - Deep Recursive Flattening (maxDepth=5)
@@ -554,11 +554,11 @@ amorph.on('amorph:search:completed', callback); // BROKEN!
 // Word boundary matching:
 const regex = new RegExp(`\\b${query}`, 'i');
 
-// fungus-data attribute reading:
-const fungusData = JSON.parse(morph.getAttribute('fungus-data'));
+// entity-data attribute reading:
+const entityData = JSON.parse(morph.getAttribute('entity-data'));
 
 // Nested object navigation:
-const value = this.getNestedValue(fungusData, 'taxonomy.kingdom');
+const value = this.getNestedValue(entityData, 'taxonomy.kingdom');
 
 // Container-based filtering:
 // Container filtering:
@@ -670,8 +670,8 @@ src/amorph/morphs/global/CLAUDE.md
       └── Event Dispatching
 
 src/pages/CLAUDE.md
-  ├── fungi/index.astro
-  └── fungi/[slug].astro ⭐ KOMPLETT NEU
+  ├── [collection]/index.astro
+  └── [collection]/[slug].astro ⭐ KOMPLETT NEU
       ├── Deep Recursive Rendering
       ├── flattenObject()
       └── renderField()

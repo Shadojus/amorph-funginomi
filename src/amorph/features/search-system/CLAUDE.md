@@ -83,14 +83,14 @@ Client-side controller that filters static Astro cards and highlights precise da
 **Features:**
 - Listens to `convex-search:completed` events
 - Shows/hides cards with smooth animations
-- **Precise data-based highlighting** - Parses `fungus-data` JSON attribute
+- **Precise data-based highlighting** - Parses `entity-data` JSON attribute
 - **Only highlights matching values** - Not entire containers
 - **Scroll-to-view** - First match scrolls to center (smooth, 300ms delay)
 - Works with Shadow DOM (DataMorph web components)
 - Updates BubbleView with filtered data
 
 **Highlighting Strategy:**
-1. Parse `fungus-data` JSON from each `data-morph` element
+1. Parse `entity-data` JSON from each `data-morph` element
 2. Extract nested field values via `getNestedValue(obj, "path.to.field")`
 3. Convert to searchable string (arrays → comma-separated, objects → JSON)
 4. Check if value contains query (case-insensitive)
@@ -155,11 +155,12 @@ Both reactors publish matched perspectives:
 ## Field-to-Perspective Mapping
 
 ```javascript
-'secondaryMetabolites' → 'chemicalAndProperties'
-'nutritionalValue' → 'culinaryAndNutritional'
-'medicinalProperties' → 'medicinalAndHealth'
-'kingdom' → 'taxonomy'
-// ... 26+ mappings total
+// Field mappings are configured per instance in domain.config.js
+// Example structure:
+'fieldName' → 'perspectiveName'
+'attribute' → 'perspective'
+'property' → 'category'
+// Mappings are domain-specific
 ```
 
 ## Usage

@@ -6,13 +6,13 @@
 
 **AMORPH ist ein Framework für generische datengetriebene Visualisierungen.**
 
-Dies ist das Root-Verzeichnis des AMORPH Systems - ein domain-agnostisches morphologisches UI-Framework. Die erste Instanz ist **Funginomi** (Pilz-Enzyklopädie), weitere folgen (Phytonomi für Pflanzen, etc.).
+Dies ist das Root-Verzeichnis des AMORPH Systems - ein domain-agnostisches morphologisches UI-Framework. Die aktuelle Instanz ist eine Knowledge-Base, weitere Instanzen für andere Domänen werden folgen.
 
 **Philosophie:** 
 - **Data-Driven UI** - Morphs generieren sich automatisch aus Datenstruktur
-- **Domain-Agnostic** - Keine hardcodierten Pilz-spezifischen Logik
+- **Domain-Agnostic** - Keine hardcodierten domain-spezifischen Logik
 - **Event-Driven** - Features kommunizieren über Events, nicht direkte Dependencies
-- **Multi-Instance** - Redis Streams ermöglichen Cross-Domain Data Exchange
+- **Multi-Instance** - Redis Streams ermöglichen Cross-Instance Data Exchange
 
 **Tech Stack:** Astro + Lit + Vanilla JS Reactors + Convex + Canvas 2D + Redis Streams
 
@@ -201,7 +201,7 @@ import '/src/amorph/init.js';
 
 ### 2. Datenfluss (DATENGETRIEBEN)
 ```
-Convex → Astro (fungi) → Host.setData() → createMorphsFromData() → Morphs im DOM → AMORPH Registry
+Convex → Astro (entities) → Host.setData() → createMorphsFromData() → Morphs im DOM → AMORPH Registry
 ```
 
 ### 3. Reactor System (PLUG & PLAY)
@@ -283,7 +283,7 @@ Siehe: `STREAM_OBSERVER_SYSTEM.md` für Details
 
 ### ✅ TEIL 4: Dual Search System (2025-11-17)
 - **SearchReactor**: Morph-basierte Suche in gerenderten Shadow DOM Elementen
-- **AstroDataSearchReactor**: Data-basierte Suche in rohen fungus-data Attributen
+- **AstroDataSearchReactor**: Data-basierte Suche in rohen entity-data Attributen
 - **Priority System**: AstroDataSearchReactor hat Vorrang (class-based coordination)
 - **Field Weighting**: Intelligente Scoring für commonName (100), scientificName (100), genus (90), etc.
 - **26+ Field Mappings**: Auto-Perspektiven-Aktivierung basierend auf gefundenen Feldern
@@ -291,7 +291,7 @@ Siehe: `STREAM_OBSERVER_SYSTEM.md` für Details
 - **Container Management**: Beide Reactors koordinieren via `reactor-astro-search-hidden` class
 
 ### ✅ TEIL 5: MorphHeader Enhancement (2025-11-17)
-- **Branding**: "Funginomi" Titel + "Part of the Bifröst" Link
+- **Branding**: Instance title + "Part of the Bifröst" Link
 - **Progressive Komprimierung**: Inaktive Buttons schrumpfen (kein Icon, kleiner Text)
 - **Max 2 Reihen**: Perspektiven-Buttons wrappen in max 2 Reihen
 - **Responsive Design**: Branding kleiner auf Mobile (nicht versteckt)

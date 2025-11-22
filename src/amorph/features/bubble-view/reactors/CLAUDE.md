@@ -6,7 +6,7 @@
 
 **Domain-agnostic physics and rendering system** for BubbleView canvas-based visualization.
 
-**Framework Principle:** Die Canvas-Reactoren kennen keine Pilze. CanvasPhysicsReactor simuliert Physik für beliebige "Nodes" (könnten Pilze, Pflanzen, Sterne, etc. sein), CanvasConnectionReactor zeichnet Verbindungen zwischen beliebigen Entitäten, BubbleDetailReactor zeigt Beziehungen zwischen beliebigen Objekten.
+**Framework Principle:** Die Canvas-Reactoren sind domain-agnostisch. CanvasPhysicsReactor simuliert Physik für beliebige "Nodes" (können beliebige Entitäten sein), CanvasConnectionReactor zeichnet Verbindungen zwischen beliebigen Entitäten, BubbleDetailReactor zeigt Beziehungen zwischen beliebigen Objekten.
 
 ## Canvas Reactors (Canvas 2D Specific)
 

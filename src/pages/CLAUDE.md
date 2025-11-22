@@ -1,14 +1,14 @@
-# 📄 PAGES - Astro Pages & Routes (Funginomi Instance)
+# 📄 PAGES - Astro Pages & Routes (Instance-Specific)
 
 **Last Updated:** 22. November 2025
 
-**⚠️ INSTANCE-SPECIFIC:** Diese Pages sind **Funginomi-spezifisch**. Das AMORPH Framework selbst ist page-agnostic. Andere Instanzen haben andere Routes (z.B. `/plants/[slug]` für Phytonomi), aber nutzen die gleichen Features (GridView, BubbleView, PerspectiveSystem).
+**⚠️ INSTANCE-SPECIFIC:** Diese Pages sind instance-spezifisch. Das AMORPH Framework selbst ist page-agnostic. Jede Instance definiert ihre eigenen Routes basierend auf ihrer Domäne, nutzt aber die gleichen Features (GridView, BubbleView, PerspectiveSystem).
 
 ## Übersicht
 
-Alle Astro Pages der Funginomi AMORPH App:
-- ✅ **fungi/index.astro**: Hauptseite mit Grid & Bubble View (framework-powered)
-- ✅ **fungi/[slug].astro**: Detail-Seite für einzelnen Pilz (framework-powered)
+Alle Astro Pages der aktuellen Instance:
+- ✅ **[collection]/index.astro**: Hauptseite mit Grid & Bubble View (framework-powered)
+- ✅ **[collection]/[slug].astro**: Detail-Seite für einzelne Entity (framework-powered)
 - ✅ **[slug].astro**: Top-level slug route
 - ✅ **api/search.ts**: Server-side search API endpoint (Convex-specific)
 
@@ -18,10 +18,10 @@ Alle Astro Pages der Funginomi AMORPH App:
 pages/
 ├── [slug].astro              # Top-level dynamic route
 ├── api/
-│   └── search.ts             # POST /api/search - Convex search endpoint
-├── fungi/
-│   ├── index.astro           # Main fungi listing page
-│   └── [slug].astro          # Individual fungus detail page
+│   └── search.ts             # POST /api/search - Search endpoint
+├── [collection]/             # Instance-specific collection route
+│   ├── index.astro           # Main listing page
+│   └── [slug].astro          # Individual entity detail page
 └── CLAUDE.md                 # This file
 ```
 
@@ -50,17 +50,17 @@ Convex (SSR) → Astro Page → BaseLayout → Morphs → AMORPH System
 
 ---
 
-## fungi/index.astro
+## [collection]/index.astro
 
 ### Funktion
 
-**Hauptseite der Pilz-Datenbank** mit zwei Ansichten:
+**Hauptseite der Entity-Datenbank** mit zwei Ansichten:
 - ✅ **Grid View**: Standard-Ansicht (default)
 - ✅ **Bubble View**: Force-directed Graph Visualization
 
 ### Features
 
-- ✅ Lädt alle Fungi von Convex (SSR)
+- ✅ Lädt alle Entities von Convex (SSR)
 - ✅ View Toggle (Grid ↔ Bubble)
 - ✅ BubbleHost mit data-driven Morph Creation
 - ✅ GridHost für Standard-Ansicht
@@ -69,14 +69,14 @@ Convex (SSR) → Astro Page → BaseLayout → Morphs → AMORPH System
 ### Data Flow
 
 ```
-1. Convex (SSR) → fetchFungi()
-2. Astro → fungi array (3 Pilze)
-3. BubbleHost.setData(fungi)
+1. Convex (SSR) → fetchEntities()
+2. Astro → entities array
+3. BubbleHost.setData(entities)
 4. BubbleHost → createMorphsFromData()
-5. Morphs → data-group Attribute (fungus-0, fungus-1, fungus-2)
+5. Morphs → data-group Attribute (entity-0, entity-1, entity-2...)
 6. BubbleView.setMorphs()
 7. BubbleView → initializeBubbles() (gruppiert nach data-group)
-8. Result: 3 Fungi → 12 Morphs → 3 Bubbles
+8. Result: N Entities → M Morphs → N Bubbles
 ```
 
 ### Code Structure
@@ -84,13 +84,13 @@ Convex (SSR) → Astro Page → BaseLayout → Morphs → AMORPH System
 ```astro
 ---
 import BaseLayout from '@/amorph/arch/layouts/BaseLayout.astro';
-import { fetchFungi } from '@/amorph/arch/convex';
+import { fetchEntities } from '@/amorph/arch/convex';
 
-const fungi = await fetchFungi();
+const entities = await fetchEntities();
 ---
 
 <BaseLayout 
-  title="Pilze - Funginomi AMORPH"
+  title="Entities - Instance Name"
   enableGlow={true}
   enableSearch={true}
   enableAnimation={true}
@@ -106,17 +106,17 @@ const fungi = await fetchFungi();
 
   <!-- Grid Host (visible by default) -->
   <grid-host id="grid-view-host">
-    {fungi.map((fungus) => (
+    {entities.map((entity) => (
       <!-- Grid items -->
     ))}
   </grid-host>
 </BaseLayout>
 
-<script define:vars={{ fungi }}>
+<script define:vars={{ entities }}>
   // View switching logic
   // Data injection for BubbleHost
   const bubbleHost = document.getElementById('bubble-view-host');
-  bubbleHost.setData(fungi);
+  bubbleHost.setData(entities);
 </script>
 ```
 
@@ -128,14 +128,14 @@ const fungi = await fetchFungi();
 
 ---
 
-## fungi/[slug].astro **[KOMPLETT NEU 2025-11-15]**
+## [collection]/[slug].astro **[KOMPLETT NEU 2025-11-15]**
 
 ### Funktion
 
 **Detail-Seite mit PerspectiveHost Architektur** und Deep Recursive Rendering:
-- ✅ Dynamic Route (`/fungi/pholiota-adiposa`)
-- ✅ Lädt einzelnen Pilz von Convex via Slug
-- ✅ **12 PerspectiveHosts** (ein Host pro Perspektive)
+- ✅ Dynamic Route (`/[collection]/[slug]`)
+- ✅ Lädt einzelne Entity von Convex via Slug
+- ✅ **Multiple PerspectiveHosts** (ein Host pro Perspektive)
 - ✅ **Deep Recursive Rendering** (automatisch alle Daten, 5 Levels tief)
 - ✅ **FIFO-Logik** (max 4 Perspektiven gleichzeitig)
 - ✅ **Event-Driven** (perspective-changed Events)
@@ -147,7 +147,7 @@ Convex (SSR)
     ↓
 [slug].astro
     ↓
-fungi object with 12 perspectives
+entity object with perspectives
     ↓
 flattenObject(perspectiveData, maxDepth=5)
     ↓
@@ -155,7 +155,7 @@ Array<{ type, label, key, value/values/children }>
     ↓
 renderField(field, depth)
     ↓
-<perspective-host perspective="medicinalAndHealth">
+<perspective-host perspective="perspectiveName">
     <tag-morph>, <text-morph>, nested sections
 </perspective-host>
 ```
@@ -259,47 +259,37 @@ function renderField(field, depth = 0) {
 }
 ```
 
-### Perspectives Array (EXAKTE Schema-Feldnamen!)
+### Perspectives Array (Instance-Specific)
 
 ```javascript
-const perspectives = [
-  { id: 'taxonomy', title: 'Taxonomy', icon: '🧬', color: '#ef4444', data: fungus.taxonomy },
-  { id: 'physicalCharacteristics', title: 'Physical', icon: '👁️', color: '#f97316', data: fungus.physicalCharacteristics },
-  { id: 'ecologyAndHabitat', title: 'Ecology', icon: '🌍', color: '#eab308', data: fungus.ecologyAndHabitat },
-  { id: 'culinaryAndNutritional', title: 'Culinary', icon: '🍳', color: '#22c55e', data: fungus.culinaryAndNutritional },
-  { id: 'medicinalAndHealth', title: 'Medicinal', icon: '⚕️', color: '#06b6d4', data: fungus.medicinalAndHealth },
-  { id: 'cultivationAndProcessing', title: 'Cultivation', icon: '🌱', color: '#3b82f6', data: fungus.cultivationAndProcessing },
-  { id: 'safetyAndIdentification', title: 'Safety', icon: '⚠️', color: '#8b5cf6', data: fungus.safetyAndIdentification },
-  { id: 'chemicalAndProperties', title: 'Chemical', icon: '🧪', color: '#ec4899', data: fungus.chemicalAndProperties },
-  { id: 'culturalAndHistorical', title: 'Cultural', icon: '📜', color: '#d946ef', data: fungus.culturalAndHistorical },
-  { id: 'commercialAndMarket', title: 'Commercial', icon: '💰', color: '#14b8a6', data: fungus.commercialAndMarket },
-  { id: 'environmentalAndConservation', title: 'Environment', icon: '🌿', color: '#10b981', data: fungus.environmentalAndConservation },
-  { id: 'researchAndInnovation', title: 'Innovation', icon: '🔬', color: '#0ea5e9', data: fungus.researchAndInnovation }
-];
+// Perspectives are loaded from domain.config.js
+const perspectives = DomainConfig.perspectives.map(p => ({
+  id: p.name,
+  title: p.label,
+  icon: p.icon,
+  color: p.color,
+  data: entity[p.name] // Access entity data by perspective field name
+}));
 ```
 
 ### Data Flow
 
 ```
-1. URL → /fungi/pholiota-adiposa
-2. Astro.params.slug → "pholiota-adiposa"
-3. fetchFungus(slug) → Convex Query (mit korrekten Feldnamen!)
-4. fungus object → 12 perspective data objects
+1. URL → /[collection]/[slug]
+2. Astro.params.slug → "entity-slug"
+3. fetchEntity(slug) → Convex Query
+4. entity object → N perspective data objects
 5. perspectives.map() → Create PerspectiveHost for each
 6. flattenObject(p.data) → Recursive flattening (maxDepth=5)
 7. renderField(field, depth) → Morphs mit visual hierarchy
-8. Result: 12 PerspectiveHosts mit datengetriebenen Morphs
+8. Result: N PerspectiveHosts mit datengetriebenen Morphs
 ```
 
 ### Default Perspectives (Initial State)
 
 ```javascript
-const defaultPerspectives = [
-  'taxonomy', 
-  'ecologyAndHabitat', 
-  'culinaryAndNutritional', 
-  'safetyAndIdentification'
-];
+// Default perspectives are configured in domain.config.js
+const defaultPerspectives = DomainConfig.defaultPerspectives || [];
 
 window.addEventListener('DOMContentLoaded', () => {
   window.dispatchEvent(new CustomEvent('perspective-changed', {
@@ -313,23 +303,23 @@ window.addEventListener('DOMContentLoaded', () => {
 
 ```astro
 ---
-import BaseLayout from '@/amorph/arch/layouts/BaseLayout.astro';
-import { fetchFungus } from '@/amorph/arch/convex';
+import BaseLayout from '@/amorph/core/layouts/BaseLayout.astro';
+import { fetchEntity } from '@/amorph/core/convex';
 
 const { slug } = Astro.params;
-const fungusData = await fetchFungus(slug);
+const entityData = await fetchEntity(slug);
 
-if (!fungusData) {
-  return Astro.redirect('/fungi');
+if (!entityData) {
+  return Astro.redirect('/[collection]');
 }
 ---
 
-<BaseLayout title={`${fungusData.commonName} - Funginomi`}>
+<BaseLayout title={`${entityData.commonName} - Instance Name`}>
   <!-- Hero Section -->
   <section class="hero">
-    <img src={fungusData.imageUrl} alt={fungusData.commonName} />
-    <h1>{fungusData.commonName}</h1>
-    <p class="latin-name">{fungusData.latinName}</p>
+    <img src={entityData.imageUrl} alt={entityData.name} />
+    <h1>{entityData.name}</h1>
+    <p class="subtitle">{entityData.subtitle || ''}</p>
   </section>
 
   <!-- Perspective Tabs -->
@@ -402,8 +392,8 @@ import BaseLayout from '@/amorph/arch/layouts/BaseLayout.astro';
   <section class="section">
     <h2>📦 Atomic Morphs</h2>
     <div class="morph-grid">
-      <name-morph primary="Amanita muscaria"></name-morph>
-      <image-morph src="/images/fungi.jpg"></image-morph>
+      <name-morph primary="Entity Name"></name-morph>
+      <image-morph src="/images/entity.jpg"></image-morph>
       <tag-morph tag="edible"></tag-morph>
       <text-morph text="Lorem ipsum..."></text-morph>
       <!-- etc. -->
@@ -436,11 +426,13 @@ import BaseLayout from '@/amorph/arch/layouts/BaseLayout.astro';
 ## Routing
 
 ```
-/                          → (redirect to /fungi)
-/fungi                     → fungi/index.astro
-/fungi/steinpilz           → fungi/[slug].astro
-/fungi/mandelpilz          → fungi/[slug].astro
+/                          → (redirect to main listing)
+/[collection]              → [collection]/index.astro
+/[collection]/[slug]       → [collection]/[slug].astro
 /demo                      → demo.astro
+
+// Routes are instance-specific
+// Routes are instance-specific (current uses /[collection]/)
 ```
 
 ---
@@ -460,7 +452,7 @@ Alle Pages folgen diesen Patterns:
 ```astro
 ---
 import { fetchFungi } from '@/amorph/arch/convex';
-const data = await fetchFungi();
+const data = await fetchEntities();
 ---
 ```
 
@@ -476,7 +468,7 @@ const data = await fetchFungi();
 ### 4. **Event Publishing**
 ```javascript
 await amorph.streamPublish('global:view-changed', { viewMode: 'bubble' });
-await amorph.streamPublish('layout:rendered', { layoutName: 'fungi-index' });
+await amorph.streamPublish('layout:rendered', { layoutName: 'entity-index' });
 ```
 
 ---
@@ -500,13 +492,13 @@ await amorph.streamPublish('layout:rendered', { layoutName: 'fungi-index' });
 
 ### Meta Tags
 Alle Pages haben:
-- `<title>` mit Pilzname
+- `<title>` mit Entity-Name
 - `<meta name="description">` mit Beschreibung
 - Open Graph Tags (für Social Media)
 - JSON-LD Structured Data (für Google)
 
 ### URLs
-- SEO-friendly Slugs (`/fungi/steinpilz` statt `/fungi/123`)
+- SEO-friendly Slugs (`/[collection]/[slug]` statt `/[collection]/123`)
 - Canonical URLs
 - Sitemap (via Astro)
 

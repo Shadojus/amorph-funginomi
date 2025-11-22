@@ -11,11 +11,11 @@
 ## Available Morphs
 
 ### BubbleMorph.js
-**Fungus bubbles in the canvas**
-- Circular representation of fungi
+**Entity bubbles in the canvas**
+- Circular representation of entities
 - Size based on connection weight to UserNode
 - Color based on search score or perspective
-- Contains fungus slug, size, position (x, y)
+- Contains entity slug, size, position (x, y)
 - Rendered as canvas circles with fill/stroke
 - Click event: Opens BubbleDetailReactor dialog
 
@@ -29,7 +29,7 @@
 
 ### ConnectionMorph.js
 **Lines connecting bubbles**
-- Represents similarity between fungi
+- Represents similarity between entities
 - Thickness based on connection weight
 - Color gradient based on strength
 - Rendered as canvas lines (ctx.stroke)

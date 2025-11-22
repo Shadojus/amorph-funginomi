@@ -17,26 +17,26 @@ Calculates similarity using vector space projections inspired by Hilbert spaces.
 ### Features
 
 **Multi-dimensional similarity:**
-- Physical characteristics (cap, stipe, spores)
-- Ecological factors (habitat, season, substrate)
-- Culinary properties (taste, texture, preparation)
-- Medicinal compounds (active ingredients)
-- Cultivation requirements (temperature, humidity, substrate)
+- Physical characteristics (appearance, structure, form)
+- Environmental factors (habitat, conditions, context)
+- Functional properties (attributes, behaviors, capabilities)
+- Compositional elements (components, ingredients, materials)
+- Operational requirements (conditions, parameters, constraints)
 
 **Perspective weighting:**
 - Dynamically weights dimensions based on active perspectives
-- Example: "culinary" perspective boosts taste/texture similarity
-- Example: "medicinal" perspective boosts compound similarity
+- Example: Active perspective boosts relevant dimension weights
+- Example: Different perspectives highlight different similarity aspects
 
 ### Algorithm
 
-1. **Vector Extraction**: Convert fungus object to feature vectors
+1. **Vector Extraction**: Convert entity object to feature vectors
    ```javascript
    {
-     physical: [capDiameter, stipeLength, ...],
-     ecological: [habitatEncoding, seasonEncoding, ...],
-     culinary: [tasteEncoding, textureEncoding, ...],
-     medicinal: [compoundPresence, ...]
+     physical: [size, dimensions, structure, ...],
+     contextual: [environmentEncoding, conditionEncoding, ...],
+     functional: [attributeEncoding, capabilityEncoding, ...],
+     compositional: [componentPresence, ...]
    }
    ```
 
@@ -45,10 +45,10 @@ Calculates similarity using vector space projections inspired by Hilbert spaces.
 3. **Perspective Weighting**: Multiply dimensions by perspective weights
    ```javascript
    weights = {
-     physical: perspectives.includes('morphology') ? 2.0 : 1.0,
-     ecological: perspectives.includes('ecology') ? 2.0 : 1.0,
-     culinary: perspectives.includes('culinary') ? 2.0 : 1.0,
-     medicinal: perspectives.includes('medicinal') ? 2.0 : 1.0
+     physical: perspectives.includes('physical') ? 2.0 : 1.0,
+     contextual: perspectives.includes('contextual') ? 2.0 : 1.0,
+     functional: perspectives.includes('functional') ? 2.0 : 1.0,
+     compositional: perspectives.includes('compositional') ? 2.0 : 1.0
    }
    ```
 
@@ -66,11 +66,11 @@ import { HilbertSpaceSimilarity } from './services/HilbertSpaceSimilarity.js';
 
 const similarity = new HilbertSpaceSimilarity();
 
-// Calculate similarity between two fungi
+// Calculate similarity between two entities
 const score = similarity.calculateSimilarity(
-  fungus1, 
-  fungus2, 
-  ['culinary', 'medicinal'] // Active perspectives
+  entity1, 
+  entity2, 
+  ['perspective1', 'perspective2'] // Active perspectives
 );
 
 // score: 0.0 - 1.0
@@ -85,8 +85,8 @@ const score = similarity.calculateSimilarity(
 ```javascript
 // In BubbleView.updateSimilarityMatrix()
 const similarity = this.hilbertSimilarity.calculateSimilarity(
-  bubble1.fungusData,
-  bubble2.fungusData,
+  bubble1.entityData,
+  bubble2.entityData,
   this.activePerspectives
 );
 

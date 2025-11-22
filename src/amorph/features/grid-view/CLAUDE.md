@@ -6,7 +6,7 @@
 
 **Domain-agnostic grid-based layout** for displaying entity cards with intelligent data-driven morph rendering.
 
-**Framework Concept:** GridView ist NICHT "für Pilze" gebaut. Es ist ein generisches Card-Layout, das beliebige strukturierte Daten (Pilze, Pflanzen, Produkte, Personen) visualisieren kann. Die MorphMapper-Intelligenz entscheidet automatisch, welche Visualisierung für welchen Datentyp passend ist.
+**Framework Concept:** GridView ist ein generisches Card-Layout für beliebige strukturierte Daten. Die MorphMapper-Intelligenz entscheidet automatisch, welche Visualisierung für welchen Datentyp passend ist, basierend auf der Datenstruktur (nicht auf Feldnamen).
 
 **✨ LATEST (2025-11-22):**
 - 🧑‍💻 **MorphMapper** - Fully data-driven morph type detection (NO hardcoded mappings!)

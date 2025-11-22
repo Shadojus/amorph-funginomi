@@ -6,7 +6,7 @@
 
 **Domain-agnostic data visualization components.** Each morph represents a **data structure type** (not a domain concept) and handles its own rendering, styling, and interactions.
 
-**Framework Principle:** Morphs sind NICHT "für Pilze". NameMorph zeigt beliebige Namen (Pilze, Pflanzen, Produkte), TagMorph zeigt beliebige Tags (Farben, Kategorien, Eigenschaften), RangeMorph zeigt beliebige Ranges (Größe, Preis, Temperatur). Die Morphs kennen keine Pilz-Felder.
+**Framework Principle:** Morphs sind domain-agnostisch. NameMorph zeigt beliebige Namen (Entitäten, Produkte, Personen), TagMorph zeigt beliebige Tags (Kategorien, Eigenschaften, Merkmale), RangeMorph zeigt beliebige Ranges (Größe, Preis, Temperatur, Gewicht). Die Morphs kennen keine domain-spezifischen Felder.
 
 ## Available Morphs
 

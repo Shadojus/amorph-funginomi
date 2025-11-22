@@ -2,7 +2,7 @@
 
 **Last Updated:** 22. November 2025
 
-**Framework Note:** MorphHeader ist **konfigurierbar** für verschiedene Instanzen. Die Perspektiven-Buttons, Branding, und Search-Integration sind über Props/Config anpassbar. Funginomi zeigt 12 Pilz-Perspektiven, Phytonomi würde andere Perspektiven zeigen.
+**Framework Note:** MorphHeader ist **konfigurierbar** für verschiedene Instanzen. Die Perspektiven-Buttons, Branding, und Search-Integration sind über Props/Config anpassbar. Jede Instance definiert ihre eigenen Perspektiven basierend auf ihrer Domäne.
 
 ## Structure
 
@@ -101,23 +101,15 @@ Mobile (< 768px):
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-### 12 Perspektiven (EXAKTE Schema-Feldnamen!)
+### Perspectives Configuration
 
 ```javascript
-this.perspectives = [
-  { name: 'taxonomy', label: 'Taxonomy', icon: '🧬', color: '#ef4444' },
-  { name: 'physicalCharacteristics', label: 'Physical', icon: '👁️', color: '#f97316' },
-  { name: 'ecologyAndHabitat', label: 'Ecology', icon: '🌍', color: '#eab308' },
-  { name: 'culinaryAndNutritional', label: 'Culinary', icon: '🍳', color: '#22c55e' },
-  { name: 'medicinalAndHealth', label: 'Medicinal', icon: '⚕️', color: '#06b6d4' },
-  { name: 'cultivationAndProcessing', label: 'Cultivation', icon: '🌱', color: '#3b82f6' },
-  { name: 'safetyAndIdentification', label: 'Safety', icon: '⚠️', color: '#8b5cf6' },
-  { name: 'chemicalAndProperties', label: 'Chemical', icon: '🧪', color: '#ec4899' },
-  { name: 'culturalAndHistorical', label: 'Cultural', icon: '📜', color: '#d946ef' },
-  { name: 'commercialAndMarket', label: 'Commercial', icon: '💰', color: '#14b8a6' },
-  { name: 'environmentalAndConservation', label: 'Environment', icon: '🌿', color: '#10b981' },
-  { name: 'researchAndInnovation', label: 'Innovation', icon: '🔬', color: '#0ea5e9' }
-];
+// Perspectives are loaded from domain.config.js
+// Each instance defines its own perspectives
+this.perspectives = DomainConfig.perspectives || [];
+
+// Example structure:
+// { name: 'perspective1', label: 'Label', icon: '🔍', color: '#color' }
 ```
 
 ### Auto-Perspective Switching ⭐ NEW (2025-11-17)

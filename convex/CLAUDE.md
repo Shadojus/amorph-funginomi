@@ -1,18 +1,17 @@
-# 🗄️ CONVEX - Database & Backend (Funginomi Instance)
+# 🗄️ CONVEX - Database & Backend (Instance-Specific)
 
 **Last Updated:** 22. November 2025
 
-**⚠️ DOMAIN-SPECIFIC:** Dieses Schema ist **Funginomi-spezifisch** (Pilze). Das AMORPH Framework selbst ist domain-agnostisch. Andere Instanzen (Phytonomi für Pflanzen, etc.) haben ihre eigenen Schemas mit unterschiedlichen Feldern, aber die gleiche AMORPH-Architektur.
+**⚠️ DOMAIN-SPECIFIC:** Dieses Schema ist instance-spezifisch. Das AMORPH Framework selbst ist domain-agnostisch. Jede Instance definiert ihr eigenes Schema mit domain-spezifischen Feldern, aber alle nutzen die gleiche AMORPH-Architektur.
 
 ## Structure
 
 ```
 convex/
-├── fungi.ts                      # Fungi queries & mutations
+├── [domain].ts                   # Domain queries & mutations
 ├── schema.ts                     # Database schema definition
 ├── seed.ts                       # Main seed orchestrator
-├── seed_beauveria_bassiana.ts    # Beauveria bassiana data
-├── seed_cordyceps_militaris.ts   # Cordyceps militaris data
+├── seed_entity_*.ts              # Entity seed data files
 ├── seed_fomitopsis_betulina.ts   # Fomitopsis betulina data
 ├── seed_hericium_erinaceus.ts    # Hericium erinaceus data
 ├── seed_hypsizygus_tessellatus.ts # Hypsizygus tessellatus data
@@ -29,10 +28,10 @@ convex/
 
 ## Übersicht
 
-Convex Backend für Funginomi AMORPH:
-- ✅ **Schema**: Vollständiges Pilz-Datenmodell (1155 Zeilen!)
-- ✅ **Queries**: fungi.ts mit allen Abfrage-Funktionen
-- ✅ **Seed Scripts**: 6 Beispiel-Pilze (Beauveria, Cordyceps, Fomitopsis, Hericium, Hypsizygus, Pholiota)
+Convex Backend für aktuelle AMORPH Instance:
+- ✅ **Schema**: Vollständiges domain-spezifisches Datenmodell
+- ✅ **Queries**: Domain queries mit allen Abfrage-Funktionen
+- ✅ **Seed Scripts**: Beispiel-Entities für Entwicklung
 - ✅ **Local Backend**: Läuft lokal mit `npx convex dev`
 
 ---
@@ -42,7 +41,7 @@ Convex Backend für Funginomi AMORPH:
 ```
 Convex Local Backend (Node.js)
     ↓
-Schema (fungi table)
+Schema (entities table)
     ↓
 Queries (list, getById, getBySlug, search)
     ↓
@@ -57,9 +56,9 @@ AMORPH Morphs (Client)
 
 ### NOEMI-Enhanced Convex Schema v3.0
 
-**Komplexeste Schema der App** (1155 Zeilen):
-- Zentrale `fungi` Tabelle mit **allen** Datenfeldern
-- 12 Perspektiven vollständig modelliert
+**Domain-spezifisches Schema:**
+- Zentrale Entity-Tabelle mit **allen** Datenfeldern
+- Perspektiven vollständig modelliert
 - Rich Citations & Source Tracking
 - Optimiert für schnelle Queries UND tiefe Analyse
 
@@ -76,11 +75,11 @@ AMORPH Morphs (Client)
 }
 ```
 
-#### 2. **Taxonomy**
+#### 2. **Taxonomy** (Example - Domain-Specific)
 ```typescript
 taxonomy: {
-  kingdom: string,    // Fungi
-  phylum: string,     // Basidiomycota
+  kingdom: string,    // Domain-specific value
+  phylum: string,     // Domain-specific value
   class: string,      // Agaricomycetes
   order: string,      // Agaricales
   family: string,     // Agaricaceae
