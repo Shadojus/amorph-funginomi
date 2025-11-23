@@ -75,32 +75,46 @@ export class RangeMorph extends LitElement {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.5);
+        font-size: 11px;
         padding: 0 4px;
         gap: 0.5rem;
+      }
+      
+      .range-label-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      }
+      
+      .range-label-text {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
       .range-value {
         font-variant-numeric: tabular-nums;
-        font-weight: 600;
+        font-weight: 700;
         display: flex;
         align-items: baseline;
         gap: 2px;
-        color: rgba(34, 197, 94, 0.9);
+        color: rgba(16, 185, 129, 1);
         white-space: nowrap;
+        font-size: 13px;
       }
 
       .range-value.optimal { 
-        color: #22c55e;
+        color: rgba(16, 185, 129, 1);
         font-weight: 700;
-        text-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+        text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
       }
 
       .range-unit {
         color: inherit;
-        opacity: 0.7;
-        font-size: 0.65rem;
+        opacity: 0.8;
+        font-size: 10px;
       }
     `
   ];

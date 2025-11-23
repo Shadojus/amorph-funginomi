@@ -20,6 +20,6 @@
     "isolatedModules": true,
     "noEmit": true
   },
-  "include": ["./**/*", "seed_fomitopsis_betulina.ts", "seed_hericium_erinaceus.ts", "seed_cordyceps_militaris.ts"],
+  "include": ["./**/*", "../.archive/seed_fomitopsis_bet../.archive/seed_hericium_erinaceus.tserinaceus.ts", "../.archive/seed_cordyceps_militaris.ts", "../.archive/seed_beauveria_bassiana.ts", "../.archive/schemaArchived.ts", "../.archive/seed_hypsizygus_tessellatus.ts", "../.archive/seed_pholiota_adiposa.ts"],
   "exclude": ["./_generated"]
 }

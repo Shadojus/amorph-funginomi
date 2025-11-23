@@ -25,6 +25,7 @@ import { globalStyles } from './tokens.js';
 
 export class MapMorph extends LitElement {
   static properties = {
+    data: { type: Array },
     locations: { type: Array },
     zoom: { type: Number },
     center: { type: Object },
@@ -37,111 +38,79 @@ export class MapMorph extends LitElement {
     css`
       :host {
         display: block;
-        padding: var(--space-lg);
-        border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-    }
+        font-family: var(--font-sans);
+      }
 
-    .map-label {
-      font-size: 14px;
-      font-weight: 500;
-      color: white;
-      margin-bottom: 12px;
-    }
+      .map-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+        padding: 16px;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.12) 100%);
+        border-radius: 12px;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+      }
 
-    .map-container {
-      width: 100%;
-      height: 300px;
-      border-radius: 8px;
-      overflow: hidden;
-      position: relative;
-      background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-    }
+      .location-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.9);
+        transition: all 0.2s ease;
+      }
 
-    .map-marker {
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      background: #ef4444;
-      border: 2px solid white;
-      border-radius: 50%;
-      transform: translate(-50%, -100%);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
+      .location-item:hover {
+        background: rgba(16, 185, 129, 0.2);
+        transform: translateY(-2px);
+      }
 
-    .map-marker:hover {
-      transform: translate(-50%, -100%) scale(1.3);
-      z-index: 10;
-    }
+      .location-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+      }
 
-    .map-marker::after {
-      content: '';
-      position: absolute;
-      bottom: -8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 6px solid transparent;
-      border-right: 6px solid transparent;
-      border-top: 8px solid #ef4444;
-    }
+      .location-name {
+        flex: 1;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
-    .map-tooltip {
-      position: absolute;
-      background: rgba(0, 0, 0, 0.9);
-      color: white;
-      padding: 8px 12px;
-      border-radius: 4px;
-      font-size: 12px;
-      pointer-events: none;
-      white-space: nowrap;
-      z-index: 100;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-    }
-
-    .map-tooltip.visible {
-      opacity: 1;
-    }
-
-    .map-controls {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .map-btn {
-      width: 32px;
-      height: 32px;
-      background: rgba(255, 255, 255, 0.9);
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .map-btn:hover {
-      background: white;
-    }
+      .map-empty {
+        padding: 20px;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 12px;
+      }
     `
   ];
 
   constructor() {
     super();
+    this.data = [];
     this.locations = [];
     this.zoom = 10;
     this.center = { lat: 51.505, lng: -0.09 };
     this.perspectives = [];
     this.label = '';
+  }
+
+  normalizeData() {
+    const source = this.data || this.locations;
+    if (!Array.isArray(source) || source.length === 0) return [];
+
+    return source.map(item => {
+      const lat = item.location?.latitude || item.location?.lat || item.lat || 0;
+      const lng = item.location?.longitude || item.location?.lng || item.lng || 0;
+      // Extract name from various possible fields
+      const name = item.region || item.name || item.location?.region || item.location?.name || item.label || 'Unknown Location';
+      return { lat, lng, name };
+    }).filter(loc => loc.lat !== 0 || loc.lng !== 0);
   }
 
   connectedCallback() {
@@ -186,81 +155,44 @@ export class MapMorph extends LitElement {
   }
 
   /**
-   * Convert lat/lng to pixel position (simple projection)
+   * Convert lat/lng to SVG coordinates (Mercator projection)
    */
-  latLngToPixel(lat, lng) {
-    const mapWidth = 400;
-    const mapHeight = 300;
-    
-    // Mercator projection (simplified)
-    const x = ((lng + 180) / 360) * mapWidth;
+  latLngToSVG(lat, lng, width = 400, height = 200) {
+    // Mercator projection
+    const x = ((lng + 180) / 360) * width;
     const latRad = (lat * Math.PI) / 180;
     const mercN = Math.log(Math.tan(Math.PI / 4 + latRad / 2));
-    const y = (mapHeight / 2) - (mapWidth * mercN) / (2 * Math.PI);
+    const y = (height / 2) - (width * mercN) / (2 * Math.PI);
     
-    return { x, y };
+    return { x: Math.max(0, Math.min(width, x)), y: Math.max(0, Math.min(height, y)) };
   }
 
   /**
-   * Handle zoom in
+   * Generate simplified world map path
    */
-  zoomIn() {
-    this.zoom = Math.min(18, this.zoom + 1);
-  }
-
-  /**
-   * Handle zoom out
-   */
-  zoomOut() {
-    this.zoom = Math.max(1, this.zoom - 1);
-  }
-
-  /**
-   * Show tooltip
-   */
-  showTooltip(e, location) {
-    const tooltip = this.shadowRoot.querySelector('.map-tooltip');
-    if (tooltip) {
-      tooltip.textContent = location.name;
-      tooltip.style.left = e.offsetX + 10 + 'px';
-      tooltip.style.top = e.offsetY - 30 + 'px';
-      tooltip.classList.add('visible');
-    }
-  }
-
-  /**
-   * Hide tooltip
-   */
-  hideTooltip() {
-    const tooltip = this.shadowRoot.querySelector('.map-tooltip');
-    if (tooltip) {
-      tooltip.classList.remove('visible');
-    }
+  getWorldPath() {
+    // Simplified continents outline (very basic)
+    return `
+      M 50,80 L 120,70 L 180,85 L 200,75 L 220,80 L 240,70 L 260,75 L 280,80 L 290,90 L 280,100 L 260,105 L 240,100 L 220,105 L 200,100 L 180,105 L 160,100 L 140,105 L 120,100 L 100,105 L 80,100 L 60,95 Z
+      M 50,120 L 80,115 L 100,120 L 120,115 L 140,120 L 160,125 L 180,120 L 200,125 L 220,130 L 240,125 L 260,130 L 280,135 L 300,130 L 320,135 L 340,140 L 340,155 L 320,160 L 300,155 L 280,160 L 260,155 L 240,160 L 220,155 L 200,160 L 180,155 L 160,160 L 140,155 L 120,160 L 100,155 L 80,160 L 60,155 L 50,150 Z
+    `;
   }
 
   render() {
+    const items = this.normalizeData();
+    
+    if (items.length === 0) {
+      return html`<div class="map-empty">No locations</div>`;
+    }
+    
     return html`
-      ${this.label ? html`<div class="map-label">${this.label}</div>` : ''}
-      
       <div class="map-container">
-        ${this.locations.map(location => {
-          const pos = this.latLngToPixel(location.lat, location.lng);
-          return html`
-            <div 
-              class="map-marker"
-              style="left: ${pos.x}px; top: ${pos.y}px;"
-              @mouseenter=${(e) => this.showTooltip(e, location)}
-              @mouseleave=${this.hideTooltip}
-            ></div>
-          `;
-        })}
-        
-        <div class="map-tooltip"></div>
-        
-        <div class="map-controls">
-          <button class="map-btn" @click=${this.zoomIn}>+</button>
-          <button class="map-btn" @click=${this.zoomOut}>−</button>
-        </div>
+        ${items.map(loc => html`
+          <div class="location-item" title="${loc.lat.toFixed(2)}, ${loc.lng.toFixed(2)}">
+            <span class="location-icon">📍</span>
+            <span class="location-name">${loc.name}</span>
+          </div>
+        `)}
       </div>
     `;
   }

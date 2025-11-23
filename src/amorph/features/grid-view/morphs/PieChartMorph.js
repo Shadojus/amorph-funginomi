@@ -22,6 +22,9 @@ export class PieChartMorph extends LitElement {
       :host {
         display: block;
         font-family: var(--font-sans);
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: var(--radius-md);
+        padding: var(--space-md);
       }
 
       .pie-container {
@@ -32,11 +35,12 @@ export class PieChartMorph extends LitElement {
 
       .pie-chart {
         position: relative;
-        width: 80px;
-        height: 80px;
+        width: 100px;
+        height: 100px;
         border-radius: 50%;
         background: conic-gradient(from 0deg, var(--segments));
         flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       }
 
       .pie-center {
@@ -44,49 +48,62 @@ export class PieChartMorph extends LitElement {
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 50px;
-        height: 50px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
-        background: rgba(15, 23, 42, 0.95);
+        background: rgba(0, 0, 0, 0.8);
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        font-size: var(--font-size-xs);
-        color: rgba(255, 255, 255, 0.6);
+        font-size: 18px;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+      }
+      
+      .pie-center-label {
+        font-size: 9px;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
       .pie-legend {
         display: flex;
         flex-direction: column;
-        gap: var(--space-xs);
+        gap: 8px;
         flex: 1;
       }
 
       .legend-item {
         display: flex;
         align-items: center;
-        gap: var(--space-xs);
-        font-size: var(--font-size-xs);
+        gap: 8px;
+        font-size: 12px;
       }
 
       .legend-color {
-        width: 12px;
-        height: 12px;
-        border-radius: 2px;
+        width: 14px;
+        height: 14px;
+        border-radius: 3px;
         flex-shrink: 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       }
 
       .legend-label {
         flex: 1;
-        color: rgba(255, 255, 255, 0.7);
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
       }
 
       .legend-value {
-        color: rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.7);
         font-variant-numeric: tabular-nums;
+        font-weight: 700;
       }
     `
   ];
@@ -152,7 +169,10 @@ export class PieChartMorph extends LitElement {
     return html`
       <div class="pie-container">
         <div class="pie-chart" style="--segments: ${gradient}">
-          <div class="pie-center">${segments.length}</div>
+          <div class="pie-center">
+            ${total.toFixed(0)}
+            <div class="pie-center-label">Total</div>
+          </div>
         </div>
         <div class="pie-legend">
           ${segments.map(seg => html`

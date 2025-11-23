@@ -22,49 +22,65 @@ export class SparklineMorph extends LitElement {
       :host {
         display: block;
         font-family: var(--font-sans);
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: var(--radius-md);
+        padding: var(--space-md);
       }
 
       .sparkline-container {
         display: flex;
         align-items: center;
-        gap: var(--space-sm);
+        gap: var(--space-md);
       }
 
       svg {
         width: 100%;
-        height: 40px;
+        height: 60px;
         flex: 1;
       }
 
       .sparkline-path {
         fill: none;
-        stroke: var(--color-culinary);
-        stroke-width: 2;
+        stroke: rgba(16, 185, 129, 0.9);
+        stroke-width: 2.5;
         stroke-linecap: round;
         stroke-linejoin: round;
+        filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.4));
       }
 
       .sparkline-area {
         fill: url(#sparkline-gradient);
-        opacity: 0.3;
+        opacity: 0.4;
       }
 
       .sparkline-stats {
         display: flex;
         flex-direction: column;
-        gap: 2px;
-        font-size: 10px;
-        color: rgba(255, 255, 255, 0.5);
-        min-width: 40px;
+        gap: 6px;
+        font-size: 11px;
+        min-width: 50px;
         text-align: right;
+      }
+      
+      .stat-label {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .stat-value {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 700;
+        font-size: 13px;
       }
 
       .trend-up {
-        color: var(--color-culinary);
+        color: rgba(16, 185, 129, 1);
       }
 
       .trend-down {
-        color: var(--color-safety);
+        color: rgba(239, 68, 68, 1);
       }
     `
   ];
@@ -151,17 +167,26 @@ export class SparklineMorph extends LitElement {
         <svg viewBox="0 0 100 100" preserveAspectRatio="none">
           <defs>
             <linearGradient id="sparkline-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" style="stop-color: var(--color-culinary); stop-opacity: 0.5" />
-              <stop offset="100%" style="stop-color: var(--color-culinary); stop-opacity: 0" />
+              <stop offset="0%" style="stop-color: rgba(16, 185, 129, 1); stop-opacity: 0.6" />
+              <stop offset="100%" style="stop-color: rgba(16, 185, 129, 1); stop-opacity: 0" />
             </linearGradient>
           </defs>
           <path class="sparkline-area" d="${areaPath}" />
           <path class="sparkline-path" d="${linePath}" />
         </svg>
         <div class="sparkline-stats">
-          <div>${max.toFixed(0)}</div>
-          <div class="${trendClass}">${trendIcon}${Math.abs(trend).toFixed(0)}%</div>
-          <div>${min.toFixed(0)}</div>
+          <div>
+            <div class="stat-label">Max</div>
+            <div class="stat-value">${max.toFixed(0)}</div>
+          </div>
+          <div>
+            <div class="stat-label">Trend</div>
+            <div class="stat-value ${trendClass}">${trendIcon}${Math.abs(trend).toFixed(0)}%</div>
+          </div>
+          <div>
+            <div class="stat-label">Min</div>
+            <div class="stat-value">${min.toFixed(0)}</div>
+          </div>
         </div>
       </div>
     `;

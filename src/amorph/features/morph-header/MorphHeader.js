@@ -646,25 +646,25 @@ export class MorphHeader extends LitElement {
     // State - Match schema perspectives
     this.perspectives = [
       { name: 'taxonomy', label: 'Taxonomy', icon: '🧬', color: '#ef4444' },
-      { name: 'physicalCharacteristics', label: 'Physical', icon: '👁️', color: '#f97316' },
-      { name: 'ecologyAndHabitat', label: 'Ecology', icon: '🌍', color: '#eab308' },
-      { name: 'culinaryAndNutritional', label: 'Culinary', icon: '🍳', color: '#22c55e' },
-      { name: 'medicinalAndHealth', label: 'Medicinal', icon: '⚕️', color: '#06b6d4' },
-      { name: 'cultivationAndProcessing', label: 'Cultivation', icon: '🌱', color: '#3b82f6' },
-      { name: 'safetyAndIdentification', label: 'Safety', icon: '⚠️', color: '#8b5cf6' },
-      { name: 'chemicalAndProperties', label: 'Chemical', icon: '🧪', color: '#ec4899' },
-      { name: 'culturalAndHistorical', label: 'Cultural', icon: '📜', color: '#d946ef' },
-      { name: 'commercialAndMarket', label: 'Commercial', icon: '💰', color: '#14b8a6' },
-      { name: 'environmentalAndConservation', label: 'Environment', icon: '🌿', color: '#10b981' },
-      { name: 'researchAndInnovation', label: 'Innovation', icon: '🔬', color: '#0ea5e9' },
+      { name: 'morphology', label: 'Physical', icon: '👁️', color: '#f97316' },
+      { name: 'ecologicalNetwork', label: 'Ecology', icon: '🌍', color: '#eab308' },
+      { name: 'culinaryDimensions', label: 'Culinary', icon: '🍳', color: '#22c55e' },
+      { name: 'medicinalIntelligence', label: 'Medicinal', icon: '⚕️', color: '#06b6d4' },
+      { name: 'cultivationIntelligence', label: 'Cultivation', icon: '🌱', color: '#3b82f6' },
+      { name: 'sensoryProfile', label: 'Sensory', icon: '⚠️', color: '#8b5cf6' },
+      { name: 'chemicalUniverse', label: 'Chemical', icon: '🧪', color: '#ec4899' },
+      { name: 'culturalDimensions', label: 'Cultural', icon: '📜', color: '#d946ef' },
+      { name: 'economicDimensions', label: 'Economic', icon: '💰', color: '#14b8a6' },
+      { name: 'environmentalIntelligence', label: 'Environment', icon: '🌿', color: '#10b981' },
+      { name: 'knowledgeConnections', label: 'Knowledge', icon: '🔬', color: '#0ea5e9' },
     ];
     
     // 4 DEFAULT PERSPECTIVES - Pre-selected on page load
     this.activePerspectives = [
-      { name: 'cultivationAndProcessing', label: 'Cultivation', icon: '🌱', color: '#3b82f6' },
-      { name: 'chemicalAndProperties', label: 'Chemical', icon: '🧪', color: '#ec4899' },
-      { name: 'medicinalAndHealth', label: 'Medicinal', icon: '⚕️', color: '#06b6d4' },
-      { name: 'culinaryAndNutritional', label: 'Culinary', icon: '🍳', color: '#22c55e' },
+      { name: 'cultivationIntelligence', label: 'Cultivation', icon: '🌱', color: '#3b82f6' },
+      { name: 'chemicalUniverse', label: 'Chemical', icon: '🧪', color: '#ec4899' },
+      { name: 'medicinalIntelligence', label: 'Medicinal', icon: '⚕️', color: '#06b6d4' },
+      { name: 'culinaryDimensions', label: 'Culinary', icon: '🍳', color: '#22c55e' },
     ];
     this.maxPerspectives = 4;
     this.showPerspectiveMenu = false;
@@ -750,16 +750,13 @@ export class MorphHeader extends LitElement {
     this.enabledReactors = info.enabledReactors || [];
     this.totalMorphs = info.morphCount || 0;
     
-    // Initialize with 3 most interesting perspectives for users
-    const defaultPerspectiveNames = [
-      'cultivationAndProcessing',    // How to grow them
-      'chemicalAndProperties',       // Chemical composition
-      'medicinalAndHealth',          // Health benefits
-    ];
+    // Randomly select 2 perspectives from available ones (excluding taxonomy which is always interesting)
+    const availablePerspectives = this.perspectives.filter(p => p.name !== 'taxonomy');
+    const shuffled = [...availablePerspectives].sort(() => Math.random() - 0.5);
+    const randomTwo = shuffled.slice(0, 2);
     
-    this.activePerspectives = defaultPerspectiveNames
-      .map(name => this.perspectives.find(p => p.name === name))
-      .filter(Boolean);
+    // Start with 2 random perspectives
+    this.activePerspectives = randomTwo;
     
     // Dispatch initial perspective change
     if (this.activePerspectives.length > 0) {

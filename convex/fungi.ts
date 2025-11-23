@@ -76,7 +76,6 @@ export const search = query({
       const searchableText = [
         fungus.commonName,
         fungus.latinName,
-        fungus.description,
         fungus.seoName,
       ]
         .filter(Boolean)
@@ -349,17 +348,17 @@ export const advancedSearch = query({
 
       // Deep search all perspective objects
       const perspectives = [
-        { key: "physicalCharacteristics", data: fungus.physicalCharacteristics },
-        { key: "safetyAndIdentification", data: fungus.safetyAndIdentification },
-        { key: "ecologyAndHabitat", data: fungus.ecologyAndHabitat },
-        { key: "culinaryAndNutritional", data: fungus.culinaryAndNutritional },
-        { key: "medicinalAndHealth", data: fungus.medicinalAndHealth },
-        { key: "cultivationAndProcessing", data: fungus.cultivationAndProcessing },
-        { key: "chemicalAndProperties", data: fungus.chemicalAndProperties },
-        { key: "culturalAndHistorical", data: fungus.culturalAndHistorical },
-        { key: "commercialAndMarket", data: fungus.commercialAndMarket },
-        { key: "environmentalAndConservation", data: fungus.environmentalAndConservation },
-        { key: "researchAndInnovation", data: fungus.researchAndInnovation },
+        { key: "morphology", data: fungus.morphology },
+        { key: "sensoryProfile", data: fungus.sensoryProfile },
+        { key: "ecologicalNetwork", data: fungus.ecologicalNetwork },
+        { key: "culinaryDimensions", data: fungus.culinaryDimensions },
+        { key: "medicinalIntelligence", data: fungus.medicinalIntelligence },
+        { key: "cultivationIntelligence", data: fungus.cultivationIntelligence },
+        { key: "chemicalUniverse", data: fungus.chemicalUniverse },
+        { key: "culturalDimensions", data: fungus.culturalDimensions },
+        { key: "economicDimensions", data: fungus.economicDimensions },
+        { key: "environmentalIntelligence", data: fungus.environmentalIntelligence },
+        { key: "knowledgeConnections", data: fungus.knowledgeConnections },
       ];
 
       // Check each perspective

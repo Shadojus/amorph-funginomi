@@ -133,35 +133,97 @@ export class MorphMapper {
       // Array of objects → NUR für klar strukturierte Chart-Daten
       if (itemType === 'object' && firstItem !== null) {
         const keys = Object.keys(firstItem);
-        const isSimpleObject = keys.length >= 2 && keys.length <= 3; // Genau 2-3 Felder
         
-        // Prüfe ob ALLE Items die gleiche Struktur haben
-        const allSameStructure = value.every(item => {
-          if (typeof item !== 'object' || item === null) return false;
-          const itemKeys = Object.keys(item);
-          return itemKeys.length === keys.length && 
-                 itemKeys.every(k => keys.includes(k));
-        });
+        // MAP CHECK FIRST: [{location: {latitude, longitude}, ...}] or [{lat, lon, ...}]
+        if (keys.includes('location') && firstItem.location && 
+            typeof firstItem.location === 'object' &&
+            (firstItem.location.latitude !== undefined || firstItem.location.lat !== undefined)) {
+          return 'map-morph';
+        }
+        // Direct lat/lon format: [{lat, lon, ...}]
+        if ((keys.includes('lat') || keys.includes('latitude')) && 
+            (keys.includes('lon') || keys.includes('lng') || keys.includes('longitude'))) {
+          return 'map-morph';
+        }
         
-        if (isSimpleObject && allSameStructure) {
-          // Radar Chart: axis/dimension/label + value/score (3-6 items)
-          if (value.length >= 3 && value.length <= 6 &&
-              (keys.includes('axis') || keys.includes('dimension') || keys.includes('label')) &&
-              (keys.includes('value') || keys.includes('score') || keys.includes('rating'))) {
+        // TIMELINE CHECK: [{dayOffset, stage, ...}] or [{day_start, phase, ...}] or [{date, event, ...}]
+        if ((keys.includes('dayOffset') || keys.includes('day_start') || keys.includes('day_end') || 
+             keys.includes('date') || keys.includes('timestamp') || keys.includes('year')) &&
+            (keys.includes('stage') || keys.includes('phase') || keys.includes('label') || 
+             keys.includes('event') || keys.includes('tasks'))) {
+          return 'timeline-morph';
+        }
+        
+        // Chart detection: Focus on REQUIRED fields only, ignore extra metadata fields
+        // This allows rich objects like {category, strength, evidence_level, mechanisms} to work
+        
+        // Radar Chart: category/axis/dimension + value/score/strength/intensity (3-12 items, flexible structure)
+        const hasRadarLabel = keys.includes('axis') || keys.includes('dimension') || 
+                              keys.includes('category') || keys.includes('factor');
+        const hasRadarValue = keys.includes('value') || keys.includes('score') || 
+                              keys.includes('rating') || keys.includes('strength') || 
+                              keys.includes('intensity') || keys.includes('difficulty');
+        
+        if (value.length >= 3 && value.length <= 12 && hasRadarLabel && hasRadarValue) {
+          // Verify all items have these required fields (ignore extra fields)
+          const allHaveRequiredFields = value.every(item => {
+            const itemKeys = Object.keys(item);
+            const hasLabel = itemKeys.includes('axis') || itemKeys.includes('dimension') || 
+                            itemKeys.includes('category') || itemKeys.includes('factor');
+            const hasValue = itemKeys.includes('value') || itemKeys.includes('score') || 
+                            itemKeys.includes('rating') || itemKeys.includes('strength') || 
+                            itemKeys.includes('intensity') || itemKeys.includes('difficulty');
+            return hasLabel && hasValue;
+          });
+          
+          if (allHaveRequiredFields) {
+            console.log(`[MorphMapper] ✅ radar-chart-morph: Array with ${value.length} items`);
             return 'radar-chart-morph';
           }
+        }
+        
+        // Pie Chart: category/type/name + count/percentage/value/dominance (2-8 items, flexible structure)
+        const hasPieLabel = keys.includes('category') || keys.includes('type') || 
+                           keys.includes('name') || keys.includes('hex') || keys.includes('color');
+        const hasPieValue = keys.includes('count') || keys.includes('percentage') || 
+                           keys.includes('value') || keys.includes('dominance') || keys.includes('proportion');
+        
+        if (value.length >= 2 && value.length <= 8 && hasPieLabel && hasPieValue) {
+          const allHaveRequiredFields = value.every(item => {
+            const itemKeys = Object.keys(item);
+            const hasLabel = itemKeys.includes('category') || itemKeys.includes('type') || 
+                            itemKeys.includes('name') || itemKeys.includes('hex') || itemKeys.includes('color');
+            const hasValue = itemKeys.includes('count') || itemKeys.includes('percentage') || 
+                            itemKeys.includes('value') || itemKeys.includes('dominance') || itemKeys.includes('proportion');
+            return hasLabel && hasValue;
+          });
           
-          // Pie Chart: category/type/name + count/percentage/value (2-6 items)
-          if (value.length >= 2 && value.length <= 6 &&
-              (keys.includes('category') || keys.includes('type') || keys.includes('name')) &&
-              (keys.includes('count') || keys.includes('percentage') || keys.includes('value'))) {
+          if (allHaveRequiredFields) {
+            console.log(`[MorphMapper] ✅ pie-chart-morph: Array with ${value.length} items`);
             return 'pie-chart-morph';
           }
+        }
+        
+        // Bar Chart: label/name/nutrient/compound + value/amount/concentration (3-15 items, flexible structure)
+        const hasBarLabel = keys.includes('label') || keys.includes('month') || keys.includes('period') || 
+                           keys.includes('nutrient') || keys.includes('compound') || keys.includes('name') ||
+                           keys.includes('substrate') || keys.includes('factor');
+        const hasBarValue = keys.includes('value') || keys.includes('amount') || keys.includes('concentration') ||
+                           keys.includes('suitability') || keys.includes('score') || keys.includes('amount_g_per_100g');
+        
+        if (value.length >= 3 && value.length <= 15 && hasBarLabel && hasBarValue) {
+          const allHaveRequiredFields = value.every(item => {
+            const itemKeys = Object.keys(item);
+            const hasLabel = itemKeys.includes('label') || itemKeys.includes('month') || itemKeys.includes('period') || 
+                            itemKeys.includes('nutrient') || itemKeys.includes('compound') || itemKeys.includes('name') ||
+                            itemKeys.includes('substrate') || itemKeys.includes('factor');
+            const hasValue = itemKeys.includes('value') || itemKeys.includes('amount') || itemKeys.includes('concentration') ||
+                            itemKeys.includes('suitability') || itemKeys.includes('score') || itemKeys.includes('amount_g_per_100g');
+            return hasLabel && hasValue;
+          });
           
-          // Bar Chart: label/month/period + value/amount (3-8 items)
-          if (value.length >= 3 && value.length <= 8 &&
-              (keys.includes('label') || keys.includes('month') || keys.includes('period')) &&
-              (keys.includes('value') || keys.includes('amount'))) {
+          if (allHaveRequiredFields) {
+            console.log(`[MorphMapper] ✅ bar-chart-morph: Array with ${value.length} items`);
             return 'bar-chart-morph';
           }
         }
@@ -209,8 +271,19 @@ export class MorphMapper {
         return 'progress-morph';
       }
 
-      // Small flat objects (≤5 fields) → KeyValueMorph (kompakt)
+      // Special: Score objects (all numeric values 0-10) → Convert to Radar Chart!
+      // e.g., {antibacterial: 5, antiviral: 3, antifungal: 4, ...}
       const entries = Object.entries(value);
+      const allNumericScores = entries.length >= 3 && entries.length <= 12 && 
+        entries.every(([k, v]) => typeof v === 'number' && v >= 0 && v <= 10);
+      
+      if (allNumericScores) {
+        // This is a score object - treat as radar-chart-morph compatible!
+        // We'll convert it to [{axis, value}, ...] format in createMorphElement
+        return 'radar-chart-morph';
+      }
+      
+      // Small flat objects (≤5 fields) → KeyValueMorph (kompakt)
       const primitiveFields = entries.filter(([_, v]) => 
         typeof v !== 'object' || v === null
       );
@@ -388,6 +461,10 @@ export class MorphMapper {
 
     const fields = [];
 
+    // ❌ REMOVED HARDCODED CHECKS - Now FULLY data-driven!
+    // MorphMapper now relies ONLY on data structure analysis in getMorphByValueAnalysis()
+    // No more hardcoded field name checks like "nutritionalProfile" or "cultivationTimeline"
+
     for (const [key, value] of Object.entries(dataObject)) {
       // Skip excluded fields (imageUrl and taxonomy shown separately in card-image)
       if (excludeFields.includes(key)) continue;
@@ -448,7 +525,8 @@ export class MorphMapper {
     const needsWrapper = [
       'name-morph', 'text-morph', 'tag-morph',
       'range-morph', 'progress-morph', 'key-value-morph',
-      'bar-chart-morph', 'pie-chart-morph', 'sparkline-morph', 'radar-chart-morph'
+      'bar-chart-morph', 'pie-chart-morph', 'sparkline-morph', 'radar-chart-morph',
+      'timeline-morph', 'map-morph'
     ];
     const wrapper = needsWrapper.includes(morphType) ? document.createElement('div') : null;
     
@@ -547,7 +625,28 @@ export class MorphMapper {
       element.data = value;
       
     } else if (morphType === 'radar-chart-morph') {
-      // Array of [{axis, value}, ...]
+      // Array of [{axis, value}, ...] OR score object {key: score, ...}
+      // If it's an object, convert to array format
+      if (!Array.isArray(value) && typeof value === 'object' && value !== null) {
+        const converted = Object.entries(value).map(([k, v]) => ({
+          axis: this.formatFieldName(k),
+          value: typeof v === 'number' ? v : 0
+        }));
+        element.data = converted;
+      } else {
+        element.data = value;
+      }
+      
+    } else if (morphType === 'timeline-morph') {
+      // Array of [{dayOffset, stage, label}, ...]
+      element.data = value;
+      
+    } else if (morphType === 'map-morph') {
+      // Array of [{location: {latitude, longitude}, name}, ...]
+      element.data = value;
+      
+    } else if (morphType === 'progress-morph') {
+      // Progress/ratings object
       element.data = value;
       
     } else {

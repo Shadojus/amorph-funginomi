@@ -37,27 +37,31 @@ export class ProgressMorph extends LitElement {
 
       .progress-bar {
         flex: 1;
-        height: 8px;
+        height: 12px;
         background: rgba(255, 255, 255, 0.1);
         border-radius: var(--radius-full);
         overflow: hidden;
         min-width: 60px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
       }
 
       .progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, var(--color-culinary), var(--color-cultivation));
+        background: linear-gradient(90deg, rgba(16, 185, 129, 0.8), rgba(16, 185, 129, 1));
         border-radius: var(--radius-full);
         transition: width var(--transition-base);
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
       }
 
       .progress-label {
-        font-size: 0.7rem;
-        color: rgba(255, 255, 255, 0.6);
-        min-width: 35px;
+        font-size: 13px;
+        font-weight: 700;
+        color: rgba(16, 185, 129, 1);
+        min-width: 45px;
         text-align: right;
         font-variant-numeric: tabular-nums;
         flex-shrink: 0;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
       }
     `
   ];

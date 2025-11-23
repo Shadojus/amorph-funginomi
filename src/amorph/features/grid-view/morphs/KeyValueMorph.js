@@ -36,20 +36,22 @@ export class KeyValueMorph extends LitElement {
       }
 
       .kv-key {
-        color: rgba(255, 255, 255, 0.5);
-        font-size: 0.7rem;
-        text-transform: capitalize;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
       .kv-value {
-        color: rgba(255, 255, 255, 0.9);
-        font-weight: var(--font-weight-medium);
+        color: rgba(255, 255, 255, 0.95);
+        font-weight: 700;
         word-wrap: break-word;
         overflow-wrap: break-word;
-        font-size: 0.8rem;
+        font-size: 13px;
       }
 
       .kv-value.boolean {

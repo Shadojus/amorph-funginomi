@@ -1,6 +1,6 @@
 {
   "extends": "astro/tsconfigs/strict",
-  "include": ["src/**/*", "convex/**/*"],
+  "include": ["src/**/*", "convex/**/*", ".archive/seed_hericium_erinaceus.ts", ".archive/seed_fomitopsis_betulina.ts", ".archive/seed_cordyceps_militaris.ts", ".archive/seed_beauveria_bassiana.ts", ".archive/schemaArchived.ts", ".archive/seed_hypsizygus_tessellatus.ts", ".archive/seed_pholiota_adiposa.ts"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
     "jsx": "react-jsx",

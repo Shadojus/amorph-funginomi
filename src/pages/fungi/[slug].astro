@@ -26,8 +26,33 @@ function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): a
       continue;
     }
     
-    // Array of objects → render each object
+    // Array of objects - check if it's chart-ready data (BEFORE breaking it apart!)
     if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+      const firstItem = value[0];
+      const keys = Object.keys(firstItem);
+      
+      // Radar Chart: axis + value (nutritionalProfile)
+      if ((keys.includes('axis') || keys.includes('dimension') || keys.includes('label')) &&
+          (keys.includes('value') || keys.includes('score') || keys.includes('rating'))) {
+        results.push({ type: 'chart', label, key: fullKey, value: value });
+        continue;
+      }
+      
+      // Timeline: dayOffset/date + stage/label (cultivationTimeline)
+      if ((keys.includes('dayOffset') || keys.includes('date') || keys.includes('timestamp')) &&
+          (keys.includes('stage') || keys.includes('label') || keys.includes('event'))) {
+        results.push({ type: 'timeline', label, key: fullKey, value: value });
+        continue;
+      }
+      
+      // Map: location object with coordinates (geographicDistribution)
+      if (keys.includes('location') && firstItem.location && 
+          (firstItem.location.latitude !== undefined || firstItem.location.lat !== undefined)) {
+        results.push({ type: 'map', label, key: fullKey, value: value });
+        continue;
+      }
+      
+      // Otherwise, render each object individually (existing behavior)
       value.forEach((item, idx) => {
         const subItems = flattenObject(item, `${fullKey}[${idx}]`, maxDepth, currentDepth + 1);
         results.push(...subItems);
@@ -73,16 +98,16 @@ function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): a
 
 const perspectives = [
   { id: 'taxonomy', title: 'Taxonomy', icon: '🧬', color: '#ef4444', data: entity.taxonomy },
-  { id: 'physicalCharacteristics', title: 'Physical', icon: '👁️', color: '#f97316', data: entity.physicalCharacteristics },
-  { id: 'ecologyAndHabitat', title: 'Ecology', icon: '🌍', color: '#eab308', data: entity.ecologyAndHabitat },
-  { id: 'culinaryAndNutritional', title: 'Culinary', icon: '🍳', color: '#22c55e', data: entity.culinaryAndNutritional },
-  { id: 'medicinalAndHealth', title: 'Medicinal', icon: '⚕️', color: '#06b6d4', data: entity.medicinalAndHealth },
-  { id: 'cultivationAndProcessing', title: 'Cultivation', icon: '🌱', color: '#3b82f6', data: entity.cultivationAndProcessing },
-  { id: 'safetyAndIdentification', title: 'Safety', icon: '⚠️', color: '#8b5cf6', data: entity.safetyAndIdentification },
-  { id: 'chemicalAndProperties', title: 'Chemical', icon: '🧪', color: '#ec4899', data: entity.chemicalAndProperties },
-  { id: 'culturalAndHistorical', title: 'Cultural', icon: '📜', color: '#d946ef', data: entity.culturalAndHistorical },
-  { id: 'commercialAndMarket', title: 'Commercial', icon: '💰', color: '#14b8a6', data: entity.commercialAndMarket },
-  { id: 'environmentalAndConservation', title: 'Environment', icon: '🌿', color: '#10b981', data: entity.environmentalAndConservation },
+  { id: 'morphology', title: 'Physical', icon: '👁️', color: '#f97316', data: entity.morphology },
+  { id: 'ecologicalNetwork', title: 'Ecology', icon: '🌍', color: '#eab308', data: entity.ecologicalNetwork },
+  { id: 'culinaryDimensions', title: 'Culinary', icon: '🍳', color: '#22c55e', data: entity.culinaryDimensions },
+  { id: 'medicinalIntelligence', title: 'Medicinal', icon: '⚕️', color: '#06b6d4', data: entity.medicinalIntelligence },
+  { id: 'cultivationIntelligence', title: 'Cultivation', icon: '🌱', color: '#3b82f6', data: entity.cultivationIntelligence },
+  { id: 'sensoryProfile', title: 'Sensory', icon: '⚠️', color: '#8b5cf6', data: entity.sensoryProfile },
+  { id: 'chemicalUniverse', title: 'Chemical', icon: '🧪', color: '#ec4899', data: entity.chemicalUniverse },
+  { id: 'culturalDimensions', title: 'Cultural', icon: '📜', color: '#d946ef', data: entity.culturalDimensions },
+  { id: 'economicDimensions', title: 'Economic', icon: '💰', color: '#14b8a6', data: entity.economicDimensions },
+  { id: 'environmentalIntelligence', title: 'Environment', icon: '🌿', color: '#10b981', data: entity.environmentalIntelligence },
   { id: 'researchAndInnovation', title: 'Innovation', icon: '🔬', color: '#0ea5e9', data: entity.researchAndInnovation }
 ];
 ---
@@ -159,6 +184,33 @@ const perspectives = [
                 );
               }
               
+              if (f.type === 'chart') {
+                return (
+                  <div class="morph-wrapper chart-wrapper" style={marginStyle}>
+                    <label class="morph-label">{f.label}</label>
+                    <radar-chart-morph data={JSON.stringify(f.value)}></radar-chart-morph>
+                  </div>
+                );
+              }
+              
+              if (f.type === 'timeline') {
+                return (
+                  <div class="morph-wrapper timeline-wrapper" style={marginStyle}>
+                    <label class="morph-label">{f.label}</label>
+                    <timeline-morph data={JSON.stringify(f.value)}></timeline-morph>
+                  </div>
+                );
+              }
+              
+              if (f.type === 'map') {
+                return (
+                  <div class="morph-wrapper map-wrapper" style={marginStyle}>
+                    <label class="morph-label">{f.label}</label>
+                    <map-morph data={JSON.stringify(f.value)}></map-morph>
+                  </div>
+                );
+              }
+              
               if (f.type === 'section') {
                 return (
                   <div class="nested-section" style={marginStyle}>
@@ -213,6 +265,13 @@ const perspectives = [
     margin-bottom: 1rem;
   }
 
+  .chart-wrapper,
+  .timeline-wrapper,
+  .map-wrapper {
+    min-height: 300px;
+    padding: 2rem;
+  }
+
   .morph-label {
     display: block;
     font-size: 0.875rem;
@@ -264,7 +323,7 @@ const perspectives = [
 <script>
   import '@/amorph/features/perspective-system/PerspectiveHost.js';
 
-  const defaultPerspectives = ['taxonomy', 'ecologyAndHabitat', 'culinaryAndNutritional', 'safetyAndIdentification'];
+  const defaultPerspectives = ['taxonomy', 'ecologicalNetwork', 'culinaryDimensions', 'sensoryProfile'];
   
   window.addEventListener('DOMContentLoaded', () => {
     window.dispatchEvent(new CustomEvent('perspective-changed', {

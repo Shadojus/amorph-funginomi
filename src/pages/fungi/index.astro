@@ -92,6 +92,20 @@ class ServerMorphMapper {
       // Array of objects - NUR für strukturierte Chart-Daten
       if (itemType === 'object' && firstItem !== null) {
         const keys = Object.keys(firstItem);
+        
+        // MAP CHECK FIRST (geographicDistribution): [{location: {latitude, longitude}, name}]
+        if (keys.includes('location') && firstItem.location && 
+            typeof firstItem.location === 'object' &&
+            (firstItem.location.latitude !== undefined || firstItem.location.lat !== undefined)) {
+          return 'map-morph';
+        }
+        
+        // TIMELINE CHECK (cultivationTimeline): [{dayOffset, stage, label, ...}]
+        if ((keys.includes('dayOffset') || keys.includes('date') || keys.includes('timestamp')) &&
+            (keys.includes('stage') || keys.includes('label') || keys.includes('event'))) {
+          return 'timeline-morph';
+        }
+        
         const isSimpleObject = keys.length >= 2 && keys.length <= 3;
         
         const allSameStructure = value.every((item: any) => {
@@ -101,8 +115,9 @@ class ServerMorphMapper {
         });
         
         if (isSimpleObject && allSameStructure) {
+          // RADAR CHART (nutritionalProfile): [{axis, value}]
           if (value.length >= 3 && value.length <= 6 &&
-              (keys.includes('axis') || keys.includes('dimension') || keys.includes('label')) &&
+              (keys.includes('axis') || keys.includes('dimension')) &&
               (keys.includes('value') || keys.includes('score') || keys.includes('rating'))) {
             return 'radar-chart-morph';
           }
@@ -254,6 +269,55 @@ class ServerMorphMapper {
     } = options;
 
     const fields: Array<{ fieldName: string; morphType: string; value: any; priority: number; fullPath: string }> = [];
+
+    // SPECIAL: Extract chart-ready fields from nested objects FIRST
+    if (currentDepth === 0) {
+      // Check culinaryAndNutritional.nutritionalProfile
+      if (entity.culinaryAndNutritional?.nutritionalProfile) {
+        fields.push({
+          fieldName: 'nutritionalProfile',
+          fullPath: 'culinaryAndNutritional.nutritionalProfile',
+          morphType: 'radar-chart-morph',
+          value: entity.culinaryAndNutritional.nutritionalProfile,
+          priority: 800 // High priority for visual data
+        });
+      }
+
+      // Check cultivationAndProcessing.cultivationTimeline
+      if (entity.cultivationAndProcessing?.cultivationTimeline) {
+        fields.push({
+          fieldName: 'cultivationTimeline',
+          fullPath: 'cultivationAndProcessing.cultivationTimeline',
+          morphType: 'timeline-morph',
+          value: entity.cultivationAndProcessing.cultivationTimeline,
+          priority: 750
+        });
+      }
+
+      // Check ecologyAndHabitat.geographicDistribution
+      if (entity.ecologyAndHabitat?.geographicDistribution && 
+          Array.isArray(entity.ecologyAndHabitat.geographicDistribution) &&
+          entity.ecologyAndHabitat.geographicDistribution[0]?.location) {
+        fields.push({
+          fieldName: 'geographicDistribution',
+          fullPath: 'ecologyAndHabitat.geographicDistribution',
+          morphType: 'map-morph',
+          value: entity.ecologyAndHabitat.geographicDistribution,
+          priority: 700
+        });
+      }
+
+      // Check ratings
+      if (entity.ratings) {
+        fields.push({
+          fieldName: 'ratings',
+          fullPath: 'ratings',
+          morphType: 'progress-morph',
+          value: entity.ratings,
+          priority: 650
+        });
+      }
+    }
 
     for (const [key, value] of Object.entries(entity)) {
       if (excludeFields.includes(key)) continue;
@@ -1264,10 +1328,10 @@ const morphMapper = new ServerMorphMapper();
             
             // Get ALL available perspectives from entity data
             const allPerspectives = [
-              'taxonomy', 'physicalCharacteristics', 'safetyAndIdentification',
-              'ecologyAndHabitat', 'culinaryAndNutritional', 'medicinalAndHealth',
-              'cultivationAndProcessing', 'chemicalAndProperties', 'culturalAndHistorical',
-              'commercialAndMarket', 'environmentalAndConservation', 'researchAndInnovation'
+              'taxonomy', 'morphology', 'sensoryProfile',
+              'ecologicalNetwork', 'culinaryDimensions', 'medicinalIntelligence',
+              'cultivationIntelligence', 'chemicalUniverse', 'culturalDimensions',
+              'economicDimensions', 'environmentalIntelligence', 'knowledgeConnections'
             ];
             
             allPerspectives.forEach(perspectiveName => {
@@ -1278,6 +1342,12 @@ const morphMapper = new ServerMorphMapper();
                   maxFields: null,
                   maxDepth: 2
                 });
+                
+                if (perspectiveFields.length > 0) {
+                  console.log(`[MorphMapper] 📊 ${perspectiveName}: ${perspectiveFields.length} fields found`);
+                } else {
+                  console.log(`[MorphMapper] ⚠️ ${perspectiveName}: NO fields extracted (data exists but empty?)`);
+                }
                 
                 perspectiveFields.forEach(field => {
                   const fieldPath = `${perspectiveName}.${field.fullPath}`;
@@ -1363,17 +1433,17 @@ const morphMapper = new ServerMorphMapper();
     
     const allPerspectives = [
       'taxonomy',
-      'physicalCharacteristics',
-      'ecologyAndHabitat',
-      'culinaryAndNutritional',
-      'medicinalAndHealth',
-      'cultivationAndProcessing',
-      'safetyAndIdentification',
-      'chemicalAndProperties',
-      'culturalAndHistorical',
-      'commercialAndMarket',
-      'environmentalAndConservation',
-      'researchAndInnovation'
+      'morphology',
+      'ecologicalNetwork',
+      'culinaryDimensions',
+      'medicinalIntelligence',
+      'cultivationIntelligence',
+      'sensoryProfile',
+      'chemicalUniverse',
+      'culturalDimensions',
+      'economicDimensions',
+      'environmentalIntelligence',
+      'knowledgeConnections'
     ];
     
     containers.forEach(container => {

@@ -24,6 +24,7 @@ import { globalStyles } from './tokens.js';
 
 export class TimelineMorph extends LitElement {
   static properties = {
+    data: { type: Array },
     events: { type: Array },
     label: { type: String },
     perspectives: { type: Array },
@@ -85,28 +86,37 @@ export class TimelineMorph extends LitElement {
 
     .timeline-event-label {
       position: absolute;
-      top: 30px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 12px;
+      font-size: 11px;
       color: white;
       white-space: nowrap;
-      opacity: 0;
-      transition: opacity 0.2s ease;
+      font-weight: 500;
     }
 
-    .timeline-event:hover .timeline-event-label {
-      opacity: 1;
+    .timeline-event-label.above {
+      bottom: 30px;
+    }
+
+    .timeline-event-label.below {
+      top: 30px;
     }
 
     .timeline-event-date {
       position: absolute;
-      bottom: 30px;
       left: 50%;
       transform: translateX(-50%);
       font-size: 10px;
       color: rgba(255, 255, 255, 0.6);
       white-space: nowrap;
+    }
+
+    .timeline-event-date.above {
+      bottom: 50px;
+    }
+
+    .timeline-event-date.below {
+      top: 50px;
     }
 
     .timeline-markers {
@@ -121,11 +131,25 @@ export class TimelineMorph extends LitElement {
 
   constructor() {
     super();
+    this.data = [];
     this.events = [];
     this.label = '';
     this.perspectives = [];
     this.startDate = null;
     this.endDate = null;
+  }
+
+  normalizeData() {
+    const source = this.data || this.events;
+    if (!Array.isArray(source) || source.length === 0) return [];
+
+    return source.map(item => {
+      // Support both date and dayOffset formats
+      const day = item.dayOffset !== undefined ? item.dayOffset : 0;
+      const label = item.label || item.stage || item.event || 'Event';
+      const stage = item.stage || '';
+      return { day, label, stage, ...item };
+    }).sort((a, b) => a.day - b.day);
   }
 
   connectedCallback() {
@@ -172,68 +196,63 @@ export class TimelineMorph extends LitElement {
   /**
    * Calculate event position on timeline (0-100%)
    */
-  getEventPosition(event) {
-    if (!this.events.length) return 0;
-    
-    // Find date range
-    const dates = this.events.map(e => new Date(e.date).getTime());
-    const minDate = Math.min(...dates);
-    const maxDate = Math.max(...dates);
-    
-    if (minDate === maxDate) return 50;
-    
-    const eventDate = new Date(event.date).getTime();
-    const position = ((eventDate - minDate) / (maxDate - minDate)) * 100;
-    
+  getEventPosition(event, minDay, maxDay) {
+    if (minDay === maxDay) return 50;
+    const position = ((event.day - minDay) / (maxDay - minDay)) * 100;
     return Math.max(5, Math.min(95, position));
   }
 
   /**
-   * Format date
+   * Format day offset
    */
-  formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  formatDay(day) {
+    return `Day ${day}`;
   }
 
   /**
    * Get color from perspectives
    */
   getColor() {
-    if (!this.amorph || !this.perspectives.length) return '#667eea';
-    return this.amorph.getPerspectiveColor(this.perspectives[0]) || '#667eea';
+    return 'var(--color-cultivation, #f59e0b)';
   }
 
   render() {
+    const items = this.normalizeData();
+    
+    if (items.length === 0) {
+      return html`<div style="font-size: 12px; color: rgba(255,255,255,0.5); padding: 20px; text-align: center;">No timeline data</div>`;
+    }
+
+    const minDay = items[0].day;
+    const maxDay = items[items.length - 1].day;
     const color = this.getColor();
     
     return html`
-      ${this.label ? html`<div class="timeline-label">${this.label}</div>` : ''}
-      
       <div class="timeline-container">
         <div class="timeline-line"></div>
         
-        ${this.events.map(event => {
-          const position = this.getEventPosition(event);
+        ${items.map((event, index) => {
+          const position = this.getEventPosition(event, minDay, maxDay);
+          const isEven = index % 2 === 0;
+          const positionClass = isEven ? 'above' : 'below';
           return html`
             <div 
               class="timeline-event"
               style="left: ${position}%; color: ${color};"
+              title="${event.label} (${this.formatDay(event.day)})"
             >
               <div class="timeline-event-dot"></div>
-              <div class="timeline-event-label">${event.label}</div>
-              <div class="timeline-event-date">${this.formatDate(event.date)}</div>
+              <div class="timeline-event-label ${positionClass}">${event.stage || event.label}</div>
+              <div class="timeline-event-date ${positionClass}">${this.formatDay(event.day)}</div>
             </div>
           `;
         })}
       </div>
       
-      ${this.events.length > 0 ? html`
-        <div class="timeline-markers">
-          <span>${this.formatDate(this.events[0].date)}</span>
-          <span>${this.formatDate(this.events[this.events.length - 1].date)}</span>
-        </div>
-      ` : ''}
+      <div class="timeline-markers">
+        <span>${this.formatDay(minDay)}</span>
+        <span>${this.formatDay(maxDay)} (${Math.round((maxDay - minDay) / 7)} weeks)</span>
+      </div>
     `;
   }
 }

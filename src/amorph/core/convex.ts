@@ -62,17 +62,17 @@ export async function fetchEntities() {
       description: extractDescription(entity),
       // Pass through all perspectives as-is from schema (top-level properties)
       taxonomy: entity.taxonomy,
-      physicalCharacteristics: entity.physicalCharacteristics,
-      safetyAndIdentification: entity.safetyAndIdentification,
-      ecologyAndHabitat: entity.ecologyAndHabitat,
-      culinaryAndNutritional: entity.culinaryAndNutritional,
-      medicinalAndHealth: entity.medicinalAndHealth,
-      cultivationAndProcessing: entity.cultivationAndProcessing,
-      chemicalAndProperties: entity.chemicalAndProperties,
-      culturalAndHistorical: entity.culturalAndHistorical,
-      commercialAndMarket: entity.commercialAndMarket,
-      environmentalAndConservation: entity.environmentalAndConservation,
-      researchAndInnovation: entity.researchAndInnovation,
+      morphology: entity.morphology,
+      sensoryProfile: entity.sensoryProfile,
+      ecologicalNetwork: entity.ecologicalNetwork,
+      culinaryDimensions: entity.culinaryDimensions,
+      medicinalIntelligence: entity.medicinalIntelligence,
+      cultivationIntelligence: entity.cultivationIntelligence,
+      chemicalUniverse: entity.chemicalUniverse,
+      culturalDimensions: entity.culturalDimensions,
+      economicDimensions: entity.economicDimensions,
+      environmentalIntelligence: entity.environmentalIntelligence,
+      knowledgeConnections: entity.knowledgeConnections,
     })) || [];
   } catch (error) {
     console.error('Failed to fetch entities:', error);
@@ -87,21 +87,21 @@ function extractTags(entity: any): string[] {
   const tags: string[] = [];
   
   // Culinary tags
-  if (entity.culinaryAndNutritional?.edibleRaw) tags.push('edible');
-  if (entity.culinaryAndNutritional?.toxicity) tags.push('toxic');
-  if (entity.culinaryAndNutritional?.cookingRequired) tags.push('cook-required');
+  if (entity.culinaryDimensions?.edibleRaw) tags.push('edible');
+  if (entity.culinaryDimensions?.toxicity) tags.push('toxic');
+  if (entity.culinaryDimensions?.cookingRequired) tags.push('cook-required');
   
   // Medicinal tags
-  if (entity.medicinalAndHealth?.medicinalUses?.length > 0) tags.push('medicinal');
+  if (entity.medicinalIntelligence?.medicinalUses?.length > 0) tags.push('medicinal');
   
-  // Ecology tags
-  if (entity.ecologyAndHabitat?.season) {
-    entity.ecologyAndHabitat.season.forEach((s: string) => tags.push(s.toLowerCase()));
+  // Ecology tags - using temporalPatterns for seasonal data
+  if (entity.temporalPatterns?.seasonality?.peak_seasons) {
+    entity.temporalPatterns.seasonality.peak_seasons.forEach((s: string) => tags.push(s.toLowerCase()));
   }
   
   // Morphology
-  if (entity.morphologyAndIdentification?.capColor) {
-    entity.morphologyAndIdentification.capColor.forEach((c: string) => tags.push(c.toLowerCase()));
+  if (entity.morphology?.colorPalette) {
+    entity.morphology.colorPalette.forEach((c: any) => tags.push(c.name?.toLowerCase()));
   }
   
   return tags.slice(0, 8); // Max 8 tags
@@ -117,16 +117,16 @@ function extractDescription(entity: any): string {
   }
   
   // Try different perspectives for description
-  if (entity.culinaryAndNutritional?.culinaryUses?.[0]) {
-    return entity.culinaryAndNutritional.culinaryUses[0];
+  if (entity.culinaryDimensions?.culinaryTraditions?.[0]?.dishes?.[0]) {
+    return `Used in ${entity.culinaryDimensions.culinaryTraditions[0].dishes[0]}`;
   }
   
-  if (entity.medicinalAndHealth?.medicinalUses?.[0]) {
-    return entity.medicinalAndHealth.medicinalUses[0];
+  if (entity.medicinalIntelligence?.useCases?.[0]?.use) {
+    return entity.medicinalIntelligence.useCases[0].use;
   }
   
-  if (entity.ecologyAndHabitat?.ecologicalRole) {
-    return entity.ecologyAndHabitat.ecologicalRole;
+  if (entity.ecologicalNetwork?.trophicLevel) {
+    return `Trophic level ${entity.ecologicalNetwork.trophicLevel} organism`;
   }
   
   return `${entity.commonName} (${entity.latinName})`;

@@ -391,17 +391,17 @@ export class DataMorph extends LitElement {
 
     const allPerspectives = [
       'taxonomy',
-      'physicalCharacteristics',
-      'ecologyAndHabitat',
-      'culinaryAndNutritional',
-      'medicinalAndHealth',
-      'cultivationAndProcessing',
-      'safetyAndIdentification',
-      'chemicalAndProperties',
-      'culturalAndHistorical',
-      'commercialAndMarket',
-      'environmentalAndConservation',
-      'researchAndInnovation'
+      'morphology',
+      'ecologicalNetwork',
+      'culinaryDimensions',
+      'medicinalIntelligence',
+      'cultivationIntelligence',
+      'sensoryProfile',
+      'chemicalUniverse',
+      'culturalDimensions',
+      'economicDimensions',
+      'environmentalIntelligence',
+      'knowledgeConnections'
     ];
 
     // DEEP MODE WITHOUT FIELD: Extract ALL perspectives

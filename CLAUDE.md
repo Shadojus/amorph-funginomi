@@ -1,6 +1,6 @@
 # 📝 AMORPH Framework - Generic Data Visualization System
 
-**Last Updated:** 22. November 2025
+**Last Updated:** 23. November 2025
 
 ## 🎯 Vision
 
@@ -82,6 +82,371 @@ Die wirkliche Innovation ist **"beliebige strukturierte Daten automatisch sinnvo
 - Instance 2 zeigt "related to Entity X from Instance 1" → Cross-Reference
 - Aggregator (Bifröst.io) vereint alle Knowledge-Bases in eine Suche
 
+---
+
+## 🎨 Universal Schema Design Philosophy
+
+**CRITICAL PRINCIPLE:** Das System ist **vollständig datengetrieben** - MorphMapper analysiert **nur** die Datenstruktur!
+
+### The Data-Driven Detection Pattern
+
+**MorphMapper entscheidet basierend auf dem, was es SIEHT, nicht auf dem, was wir VORSCHREIBEN.**
+
+**MorphMapper Location:** `src/amorph/features/grid-view/MorphMapper.js` (677 lines)
+**Detection Philosophy:** 
+```javascript
+// MorphMapper fragt:
+typeof value === 'boolean' → BooleanMorph
+typeof value === 'number' → NumberMorph
+Array.isArray(value) → Analysiere Array-Inhalt
+typeof value === 'object' → Analysiere Objekt-Struktur
+typeof value === 'string' → Analysiere String-Länge und Pattern
+```
+
+**Es gibt KEINE Regeln zum "richtigen" Schema-Design!**
+- ❌ Nicht: "Du musst Arrays mit 3-6 Items für Radar-Charts nutzen"
+- ✅ Sondern: "MorphMapper sieht Array mit 3-6 Items, jedes hat 'axis' + 'value' → erkennt Pattern → wählt RadarChartMorph"
+
+#### Was MorphMapper TATSÄCHLICH tut
+
+**Type Detection (Pure Analysis):**
+```javascript
+// 1. Primitive Types
+boolean → BooleanMorph
+number → NumberMorph
+string (< 30 chars, no newlines) → NameMorph oder TagMorph
+string (longer or multiline) → TextMorph
+
+// 2. Object Structures
+{min: number, max: number} → RangeMorph
+{value: number, max: number} → ProgressMorph
+{lat/latitude, lng/longitude} → MapMorph
+Object mit 2-5 primitive fields → KeyValueMorph
+Anderes Object → DataMorph (generic fallback)
+
+// 3. Array Contents
+Array of strings → TagMorph (wenn kurz) oder ListMorph
+Array of numbers (5-15) → SparklineMorph
+Array of objects → Analysiere erste Item-Struktur:
+  - Wenn consistent + chart-pattern → ChartMorph
+  - Sonst → ListMorph
+```
+
+**Priority Calculation (Heuristic):**
+- Feldname enthält "edib", "toxic", "danger" → +300 (Safety critical!)
+- Feldname enthält "name", "title" → +100
+- Morphtyp ist visual (Range, Chart) → +120
+- Morphtyp ist Metadata (_id, slug, createdAt) → -500
+
+**Das ist ALLES!** Keine Regeln, nur Pattern-Erkennung.
+
+#### Konzeptuelles Verständnis
+
+**Was ist "Datengetrieben"?**
+- Schema definiert Datenstruktur (Convex Schema)
+- MorphMapper **beobachtet** diese Struktur zur Runtime
+- MorphMapper **erkennt** Patterns in den Daten
+- MorphMapper **wählt** passenden Morph basierend auf erkanntem Pattern
+- **KEINE** manuellen Mappings: Feldname → Morph-Typ
+
+**Beispiel-Flow:**
+```javascript
+// Schema: beliebige Struktur
+temperatureRange: { min: 10, max: 30, unit: "°C" }
+
+// Runtime: MorphMapper sieht
+value = { min: 10, max: 30, unit: "°C" }
+typeof value === 'object' → Objekt-Analyse
+'min' in value && 'max' in value → Range-Pattern erkannt
+typeof value.min === 'number' → Numerischer Range
+→ return 'range-morph'
+
+// Rendering: RangeMorph erhält
+<range-morph data={value}></range-morph>
+→ Zeigt visuellen Scale mit Segment von 10-30°C
+```
+
+**Keine Regeln, nur Patterns:**
+- MorphMapper kennt ~15 Patterns (Range, Progress, Chart, etc.)
+- Jedes Pattern hat Detection-Logik (`if (keys.includes('min') && ...)`)
+- Wenn Pattern matcht → Morph-Typ wird zurückgegeben
+- Wenn kein Pattern matcht → Fallback (DataMorph, ListMorph, TextMorph)
+
+#### Was bedeutet das für Schema-Design?
+
+**Nicht prescriptive ("Du musst..."), sondern explorativ ("Was passiert wenn..."):**
+
+Frage: "Ich habe ein Array mit [{name, count}, {name, count}] - was passiert?"
+Antwort: MorphMapper sieht Array of objects → Analysiert erste Item → 2 Keys, consistent → Prüft Chart-Patterns → Keine klare Übereinstimmung → ListMorph
+
+Frage: "Was wenn ich 'category' statt 'name' nutze?"
+Antwort: MorphMapper sieht `keys.includes('category') && keys.includes('count')` → Pie-Chart-Pattern → PieChartMorph
+
+**Das System lernt durch Beobachtung, nicht durch Anweisungen!**
+
+### Erkannte Patterns (Was MorphMapper SIEHT, nicht was wir VORSCHREIBEN)
+
+**Diese Tabelle beschreibt, welche Patterns MorphMapper **beobachtet hat** in den vorhandenen Daten:**
+
+| Pattern-Name | Was MorphMapper Erkennt | Gewählter Morph | Frontend Status |
+|--------------|-------------------------|-----------------|-----------------|
+| **Range Pattern** | Object: `min` + `max` Keys, beide number | `range-morph` | ✅ Visual Scale |
+| **Progress Pattern** | Object: `value` + `max` Keys ODER `percentage` Key | `progress-morph` | ✅ Progress Bar |
+| **KeyValue Pattern** | Object: 2-5 Keys, alle Primitive Values | `key-value-morph` | ✅ 2-Column Grid |
+| **Tag Array Pattern** | Array: Alle Strings, avg length < 20 chars | `tag-morph` | ✅ Multiple Pills |
+| **Number Array Pattern** | Array: 5-15 Numbers | `sparkline-morph` | ⏳ Detection OK, Rendering TODO |
+| **Map Pattern** | Array of Objects: Key `location` mit `latitude`/`longitude` | `map-morph` | ⏳ Detection OK, Leaflet TODO |
+| **Timeline Pattern** | Array of Objects: Keys `dayOffset`/`date` + `stage`/`label` | `timeline-morph` | ⏳ Detection OK, Rendering TODO |
+| **Radar Pattern** | Array of 3-6 Objects: Keys `axis`/`dimension` + `value` | `radar-chart-morph` | ⏳ Detection OK, Chart.js TODO |
+| **Pie Pattern** | Array of 2-6 Objects: Keys `category`/`type`/`name` + `count`/`percentage`/`value` | `pie-chart-morph` | ⏳ Detection OK, Chart.js TODO |
+| **Bar Pattern** | Array of 3-8 Objects: Keys `label`/`month`/`period` + `value`/`amount` | `bar-chart-morph` | ⏳ Detection OK, Chart.js TODO |
+
+**Wichtig:** Diese Patterns sind **Beobachtungen**, keine **Anforderungen**!
+- MorphMapper HAT diese Patterns in Funginomi-Daten gefunden
+- Andere Domains könnten andere Patterns haben
+- MorphMapper würde neue Patterns erkennen, wenn wir neue Detection-Logik hinzufügen
+
+**Beispiel - Was passiert bei neuem Pattern:**
+```javascript
+// Neues Pattern in Daten: {start, end, duration}
+// Aktuell: MorphMapper erkennt NICHT als speziellen Typ
+// → Fallback zu KeyValueMorph (3 Keys, alle primitive)
+
+// Um TimeRange-Morph zu enablen:
+// 1. TimeRangeMorph.js implementieren
+// 2. MorphMapper.js erweitern:
+//    if ('start' in value && 'end' in value && 'duration' in value)
+//      return 'time-range-morph'
+// 3. Daten in Schema hinzufügen → Automatisch erkannt!
+```
+
+**Das System ist erweiterbar durch Code, nicht durch Config!**
+
+### Implementation Strategy (MorphMapper-Driven)
+
+**Phase 1 (COMPLETE):** Schema Design + MorphMapper Detection
+- ✅ All 10 visualization field types defined in schema
+- ✅ MorphMapper erkennt alle Patterns automatisch (data-driven)
+- ✅ 200+ data points populated across 6 entities
+- ✅ Core Morphs: RangeMorph, ProgressMorph, KeyValueMorph
+
+**Phase 2 (TODO):** Chart Morph Implementation
+- ⏳ RadarChartMorph (Chart.js oder D3)
+- ⏳ PieChartMorph (Chart.js oder D3)
+- ⏳ BarChartMorph (Chart.js mit Heatmap-Option)
+- ⏳ MapMorph (Leaflet Integration)
+- ⏳ TimelineMorph (Custom Canvas oder D3)
+- ⏳ SparklineMorph (bereits erkannt, Rendering fehlt)
+
+**Phase 3 (TODO):** Advanced Visualizations
+- ⏳ ScatterPlotMorph (Multi-Variable Comparison)
+- ⏳ NetworkGraphMorph (Entity Relationships)
+- ⏳ SankeyMorph (Flow Visualizations)
+
+### Warum Data-Driven Architecture Wichtig Ist
+
+**Das Fundamental-Prinzip:**
+```
+NICHT: Schema → Regeln → Mapping → Morph (prescriptive)
+SONDERN: Daten → Pattern-Erkennung → Morph (descriptive)
+```
+
+**Für Entwickler:**
+- Keine manuellen Mappings: "Feld X nutzt Morph Y"
+- Keine Konfiguration: "Bei Pilzen ist edibility ein TagMorph"
+- Nur Code-Erweiterung: "Füge neue Detection-Logik für neues Pattern hinzu"
+- Universal: Gleicher MorphMapper-Code für Fungi, Plants, Products, Papers, etc.
+
+**Für Neue Domains:**
+```javascript
+// Funginomi hat: temperatureRange: {min, max, unit}
+// MorphMapper erkennt: Range-Pattern → RangeMorph
+
+// Phytonomi hat: bloomPeriod: {start: "March", end: "July"}
+// MorphMapper erkennt: KEIN Pattern → KeyValueMorph (Fallback)
+// ABER: String-Values, keine Numbers → TextMorph für beide Values
+
+// Lösung: NICHT Schema ändern, sondern:
+// 1. Date-String-Detection in MorphMapper hinzufügen
+// 2. DateRangeMorph implementieren
+// 3. Phytonomi-Daten automatisch als DateRange erkannt!
+```
+
+**Für Framework-Evolution:**
+- Neue Patterns entstehen aus **realen Daten**, nicht aus **Spekulation**
+- MorphMapper-Code wächst **organisch** mit Anforderungen
+- Keine "Top-10 Visualization Types" - sondern "Patterns, die wir bisher gesehen haben"
+- Kein Lock-in: Neue Detection-Logik = Neue Möglichkeiten für ALLE Domains
+
+**Das System denkt nicht:**
+- ❌ "Das ist ein Pilz-Feld, also braucht es diesen Morph"
+- ✅ "Das ist ein Object mit min/max, also passt RangeMorph"
+
+**Das System lernt nicht durch Config, sondern durch Code:**
+- MorphMapper.js: Pattern-Detection-Logik
+- Neue Morphs: Neue Pattern-Implementierungen
+- Daten: Trigger für Pattern-Erkennung
+
+**Result:** 
+```
+Real Data → Pattern Recognition → Automatic Visualization
+(Keine Zwischenschritte, keine Regeln, keine Mappings)
+```
+
+## 🏗️ System-Wide Architecture Integration
+
+### Schema → MorphMapper → Morphs → Reactors → Visualization
+
+**Vollständige Integration der Visualization-Ready Schema Philosophy ins AMORPH Framework:**
+
+#### 1. **Schema Design (convex/schema.ts)**
+- 10 Visualization Field Types definiert
+- 200+ Data Points über 6 Entities
+- Alle Fields folgen MorphMapper Detection Patterns
+
+#### 2. **MorphMapper Detection (grid-view/MorphMapper.js - 677 lines)**
+**Detection Logic (Data-Driven, NO Hardcoded Mappings):**
+```javascript
+// Range Detection
+if ('min' in value && 'max' in value && typeof value.min === 'number') 
+  return 'range-morph';
+
+// Chart Detection
+if (Array.isArray(value) && value.length >= 3 && value.length <= 6) {
+  if (keys.includes('axis') && keys.includes('value')) 
+    return 'radar-chart-morph';
+  if (keys.includes('category') && keys.includes('percentage')) 
+    return 'pie-chart-morph';
+}
+
+// Map Detection
+if (keys.includes('location') && firstItem.location.latitude !== undefined)
+  return 'map-morph';
+
+// Timeline Detection
+if (keys.includes('dayOffset') && keys.includes('stage'))
+  return 'timeline-morph';
+```
+
+**Priority System:**
+- Visual Morphs: +120 (Range, Chart, Sparkline)
+- Safety Info: +300 (edibility, toxicity, danger)
+- Identity: +100 (name, title)
+- Visual ID: +100 (color, shape, size)
+- Metadata: -500 (createdAt, _id, slug)
+
+#### 3. **Morph Components (grid-view/morphs/ - SINGLE SOURCE)**
+**Implemented (✅):**
+- `RangeMorph.js` - Visual scale mit positioned segment
+- `ProgressMorph.js` - Progress bars (value/max oder percentage)
+- `KeyValueMorph.js` - Compact 2-column layout für kleine Objekte
+- `TagMorph.js` - Multiple pills für String-Arrays
+- `ListMorph.js` - Wrapping items, compact padding
+- `NameMorph.js`, `TextMorph.js`, `ImageMorph.js`, `NumberMorph.js`, `BooleanMorph.js`
+- `DataMorph.js` - Nested objects (generic fallback)
+
+**Planned (⏳):**
+- `RadarChartMorph.js` - Multi-dimensional spider charts (Chart.js/D3)
+- `PieChartMorph.js` - Composition donut charts (Chart.js/D3)
+- `BarChartMorph.js` - Bar/Heatmap charts (Chart.js)
+- `SparklineMorph.js` - Trend lines (Canvas or D3)
+- `MapMorph.js` - Geographic distribution (Leaflet)
+- `TimelineMorph.js` - Temporal stages (Custom or D3)
+- `ScatterPlotMorph.js` - Multi-variable comparison (Chart.js/D3)
+
+#### 4. **Visual Reactors (grid-view/reactors/ - SINGLE SOURCE)**
+- `GlowReactor.js` - Highlight matching morphs
+- `FilterReactor.js` - Show/hide based on criteria
+- `HoverReactor.js` - Interactive hover states
+- `AnimationReactor.js` - Smooth transitions
+- `PulseReactor.js` - Attention-grabbing effects
+- `SortReactor.js` - Reorder by relevance
+
+**All other features copy from grid-view/** (perspective-system, search-system, bubble-view)
+
+#### 5. **Feature Integration**
+**GridView (grid-view/):**
+- GridHost renders cards mit auto-generated morphs
+- MorphMapper extracts top 15 fields by priority
+- Visual reactors highlight/filter/sort
+
+**BubbleView (bubble-view/):**
+- Canvas rendering (60 FPS, Native 2D)
+- HilbertSpaceSimilarity für connections
+- CanvasPhysicsReactor für movement
+- BubbleDetailReactor zeigt relationships
+
+**PerspectiveSystem (perspective-system/):**
+- PerspectiveHost pro Perspektive
+- PerspectiveReactor dims irrelevant morphs
+- FIFO queue (max 4 active)
+
+**SearchSystem (search-system/):**
+- ConvexSearchReactor (server-side deep search)
+- SearchFilterController (client-side highlighting)
+- Auto-perspective activation based on matched fields
+
+**MorphHeader (morph-header/):**
+- 12 Perspektiven-Buttons (domain-configurable)
+- Search bar with debounce (300ms)
+- FIFO perspective management
+
+#### 6. **Event-Driven Coordination**
+```javascript
+// Schema → Data
+Convex Query → Entity Object with Visualization Fields
+
+// Data → Detection
+MorphMapper.getMappedFields(entity) → [{fieldName, morphType, value, priority}]
+
+// Detection → Rendering
+MorphMapper.createMorphElement(fieldConfig) → <range-morph>, <pie-chart-morph>, etc.
+
+// Rendering → Interaction
+Visual Reactors (Glow, Filter, Hover) → User Interactions
+
+// Interaction → State
+AmorphSystem.emit('perspective:changed') → Update all Views
+```
+
+#### 7. **Domain Configuration (core/domain.config.js)**
+**Instance-Specific Settings:**
+- Entity collection name (`fungi`)
+- Data source fields (nameField, slugField, etc.)
+- 12 Perspectives mit Colors & Icons
+- Field-to-Perspective mappings
+- Default perspectives
+
+**Framework-Agnostic:**
+- MorphMapper detection (universal patterns)
+- Visual reactors (work with any domain)
+- GridView/BubbleView architecture
+- Event system (AmorphSystem, RedisEventBridge)
+
+### System-Wide Benefits
+
+**For Schema Design:**
+- Follow MorphMapper patterns → Automatic visualization
+- No need to manually specify which morphs to use
+- Consistent across all domains/instances
+
+**For Frontend Development:**
+- Implement Chart Morphs once → Works for all fields matching pattern
+- MorphMapper handles detection → Zero manual configuration
+- Visual Reactors work with all Morph types
+
+**For Multi-Instance Scalability:**
+- Same Framework code for Funginomi, Phytonomi, etc.
+- Only Schema + DomainConfig changes per instance
+- MorphMapper patterns are universal (geographic, timeline, composition, etc.)
+
+**For Users:**
+- Rich visualizations automatically generated from data
+- Multiple views (Grid, Bubble, Perspective) of same data
+- Consistent interaction patterns across all instances
+
+---
+
 ## 📊 Current Instance Implementation
 
 **Current Instance = AMORPH Framework + Domain Configuration**
@@ -117,7 +482,79 @@ Die wirkliche Innovation ist **"beliebige strukturierte Daten automatisch sinnvo
 
 ---
 
-## 🔥 Latest Changes (2025-11-21)
+## 🔥 Latest Changes (2025-11-23)
+
+### 0. 🎨 Visualization-Ready Schema Implementation - Phase 2-4 Complete
+
+**Data-Driven Visualization Architecture Implemented:**
+- ✅ **10+ Pattern Types** - MorphMapper erkennt Patterns in allen 6 Entitäten
+- ✅ **200+ Data Points** - Structured data für Pattern-Recognition
+- ✅ **Multi-Phase Rollout** - Phase 1-4 field types hinzugefügt
+- ✅ **MorphMapper beobachtet** - Daten strukturiert, MorphMapper erkennt automatisch
+
+**Phase 2 - Seasonal & Trend Analysis:**
+- ✅ `seasonalActivity` - 12 months × 6 species = 72 data points
+  - Month-by-month activity levels (0-100)
+  - Stage labels (dormant, growing, fruiting, year-round)
+  - Enables heatmap and calendar visualizations
+- ✅ `biodiversityTrend` - 5 years × 6 species = 30 data points
+  - Year-over-year abundance and sighting counts
+  - Wild vs cultivated sources
+  - Enables timeseries trend analysis
+
+**Phase 3 - Composition & Progress:**
+- ✅ `compoundDistribution` - 5 categories × 6 species = 30 data points
+  - Macronutrient breakdown (Proteins, Carbs, Fiber, etc.)
+  - Percentage + grams for dual visualization
+  - Enables pie/donut charts
+- ✅ `growthMetrics` - 4 metrics × 5 cultivatable species = 20 data points
+  - Colonization, fruiting, yield, quality scores (0-100)
+  - Enables progress bar visualizations
+- ✅ `cultivationMetrics` - 3-5 strains × 3 commercial species = 12-15 data points
+  - Multi-dimensional scatter data (yield, cycle time, contamination, profitability)
+  - Strain comparison and optimization analysis
+
+**Phase 4 - Economic & Research Trends:**
+- ✅ `priceHistory` - 5 years × 4 commercial species = 20 data points
+  - Historical pricing by market segment
+  - Currency-aware line charts
+- ✅ `researchActivity` - 5 years × 6 species = 30 data points
+  - Publications, patents, clinical trials, citations
+  - Multi-line research trend visualization
+
+**Seeds Completed:**
+1. ✅ Beauveria bassiana - All phases (year-round cultivation, biopesticide market)
+2. ✅ Hypsizygus tessellatus - All phases (seasonal fruiting, edible market)
+3. ✅ Cordyceps militaris - All phases (rare wild, high-value medicinal)
+4. ✅ Hericium erinaceus - All phases (declining wild, premium gourmet/medicinal)
+5. ✅ Fomitopsis betulina - Phases 1,2,4 (year-round visible, not cultivatable)
+6. ✅ Pholiota adiposa - Phases 1,2,3 (seasonal wild, research only, no market)
+
+**Schema Design Principles Documented:**
+- ✅ **Morph-First Thinking** - "What visualizations can this enable?"
+- ✅ **Structured for Charts** - Arrays of objects with numeric values
+- ✅ **Normalized Scores** - 0-100 scales for comparability
+- ✅ **Context Included** - Units, labels, descriptions
+- ✅ **Timeseries Support** - Year/month/time fields for trends
+- ✅ **Geographic Enabling** - Lat/long coordinates for maps
+- ✅ **Raw + Normalized Data** - Both original and scaled values
+- ✅ **Optional by Default** - Flexibility via `v.optional()`
+
+**Database Status:**
+- ✅ All schema extensions validated (no TypeScript errors)
+- ✅ All 6 entities reseeded successfully
+- ✅ Convex backend running with complete visualization data
+- ✅ Ready for frontend Morph implementations (Chart.js, D3.js, Leaflet)
+
+**Next Steps:**
+- Frontend Chart Morph implementations
+- MorphMapper auto-detection for new field types
+- Automated chart generation from schema metadata
+- Additional entity seeds (expand to 20+ fungi)
+
+---
+
+## 🔥 Previous Changes (2025-11-21)
 
 ### 0. 🫧 Bubble View Detail Dialog & Canvas Optimization
 
