@@ -1,6 +1,6 @@
 # 👁️ PERSPECTIVE SYSTEM FEATURE
 
-**Last Updated:** 22. November 2025
+**Last Updated:** 23. November 2025
 
 ## Overview
 
@@ -32,7 +32,32 @@ Card component for perspective display.
 ## Reactor
 
 ### PerspectiveReactor.js
-Dims irrelevant morphs when perspective is active. Uses CSS opacity.
+Filters and highlights morphs based on active perspectives.
+
+**Features:**
+- ✅ Dims irrelevant morphs (opacity: 0.6)
+- ✅ Highlights relevant morphs with left border
+- ✅ Sets `--perspective-color` CSS variable on morphs
+- ✅ Event-driven: listens to `perspective-changed` events
+- ✅ Fallback: queries MorphHeader for initial perspectives (timing workaround)
+
+**CSS Variable System (2025-11-23):**
+```javascript
+// PerspectiveReactor sets on morph element
+morph.style.setProperty('--perspective-color', relevance.color);
+
+// Morphs inherit via CSS cascade
+:host {
+  --perspective-color: var(--perspective-color, #10b981);
+}
+```
+
+**Known Issues (2025-11-23):**
+- Timing issue: PerspectiveReactor enables with 500ms delay via init.js
+- Early `perspective-changed` events are missed
+- Workaround: `getActivePerspectives()` method retrieves from MorphHeader
+- CSS variable cascade through Shadow DOM boundaries needs refinement
+- Chart morphs use `--local-perspective-color` for Shadow DOM inheritance
 
 ## 🔗 Related Components
 

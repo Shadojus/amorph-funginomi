@@ -948,23 +948,15 @@ const morphMapper = new ServerMorphMapper();
           gridHost.style.display = 'none';
           bubbleHost.style.display = 'block';
           
-          // Bubble View: Enable perspective weighting and connections
+          // Bubble View: Enable Pixi.js rendering
           const bubbleView = bubbleHost.shadowRoot?.querySelector('bubble-view');
           if (bubbleView) {
-            // Ensure connections are visible for relationship view
-            bubbleView.showConnections = true;
-            
-            // 🎨 Re-enable Canvas Reactors when switching to Bubble View
-            if (!bubbleView.reactorsEnabled) {
-              bubbleView.enableCanvasReactors();
-            }
-            
-            // Trigger similarity recalculation with current perspectives
-            bubbleView.updateSimilarityMatrix();
+            // BubbleView v2.0 - Pixi.js auto-renders, no manual reactor enabling needed
+            // Similarity calculations happen automatically via backend
             
             const searchQuery = amorph.state.searchQuery || 'none';
             const perspectiveCount = amorph.state?.activePerspectives?.length || 0;
-            console.log(`[ViewToggle] 🪷 Bubble View | Search: "${searchQuery}" | Perspectives: ${perspectiveCount} active | Connections: enabled`);
+            console.log(`[ViewToggle] 🪷 Bubble View v2.0 (Pixi.js) | Search: "${searchQuery}" | Perspectives: ${perspectiveCount} active`);
           }
           
           // Enable BubbleView-specific reactors

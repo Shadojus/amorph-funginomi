@@ -1,6 +1,6 @@
 # 🌍 AMORPH Global Components
 
-**Last Updated:** 22. November 2025
+**Last Updated:** 23. November 2025
 
 **Framework Note:** MorphHeader ist **konfigurierbar** für verschiedene Instanzen. Die Perspektiven-Buttons, Branding, und Search-Integration sind über Props/Config anpassbar. Jede Instance definiert ihre eigenen Perspektiven basierend auf ihrer Domäne.
 
@@ -57,6 +57,10 @@ Globale Components für die gesamte App:
 - ✅ Event Dispatching (window + document für Shadow DOM)
 
 **Entfernt:** ❌ Reactor Toggles, ❌ View Mode Switcher, ❌ BubbleView Controls
+
+**Latest Features (2025-11-23):**
+- ✅ **getActivePerspectives() API** - Public method for external access to active perspectives
+- ✅ **PerspectiveReactor timing workaround** - Retrieves perspectives on first apply()
 
 **Latest Features (2025-11-19):**
 - ✅ **Pulsating search bar** - Blue glow animation (3s loop, stops on focus)

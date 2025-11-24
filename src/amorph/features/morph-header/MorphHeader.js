@@ -1049,6 +1049,17 @@ export class MorphHeader extends LitElement {
   }
 
   // ==========================================
+  // PUBLIC API
+  // ==========================================
+  
+  /**
+   * Get currently active perspectives (for external access)
+   */
+  getActivePerspectives() {
+    return this.activePerspectives || [];
+  }
+
+  // ==========================================
   // SEARCH METHODS
   // ==========================================
 

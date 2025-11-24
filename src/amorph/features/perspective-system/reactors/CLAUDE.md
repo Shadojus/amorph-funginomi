@@ -1,6 +1,8 @@
 # Perspective System - Reactors (Framework Component)
 
-**Last Updated:** 22. November 2025
+**Last Updated:** 23. November 2025
+
+**Previously:** 22. November 2025
 
 ## Overview
 

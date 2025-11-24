@@ -13,8 +13,14 @@ import { globalStyles } from './tokens.js';
 
 export class RadarChartMorph extends LitElement {
   static properties = {
-    data: { type: Array }
+    data: { type: Array },
+    perspective: { type: String }
   };
+  
+  connectedCallback() {
+    super.connectedCallback();
+    // Perspective color will be inherited from parent via CSS variable
+  }
 
   static styles = [
     globalStyles,
@@ -25,6 +31,7 @@ export class RadarChartMorph extends LitElement {
         background: rgba(0, 0, 0, 0.3);
         border-radius: var(--radius-md);
         padding: var(--space-md);
+        --local-perspective-color: var(--perspective-color, #10b981);
       }
 
       .radar-container {
@@ -51,13 +58,16 @@ export class RadarChartMorph extends LitElement {
 
       .radar-grid {
         fill: none;
-        stroke: rgba(16, 185, 129, 0.25);
+        stroke: var(--local-perspective-color);
+        opacity: 0.25;
         stroke-width: 1.5;
       }
 
       .radar-shape {
-        fill: rgba(16, 185, 129, 0.35);
-        stroke: rgba(16, 185, 129, 0.9);
+        fill: var(--local-perspective-color);
+        fill-opacity: 0.35;
+        stroke: var(--local-perspective-color);
+        stroke-opacity: 0.9;
         stroke-width: 3;
         stroke-linejoin: round;
       }
@@ -80,7 +90,7 @@ export class RadarChartMorph extends LitElement {
       .radar-value-html {
         font-size: 14px;
         font-weight: 700;
-        color: rgb(16, 185, 129) !important;
+        color: var(--local-perspective-color) !important;
         text-shadow: 
           -1px -1px 0 #000,  
           1px -1px 0 #000,
@@ -93,7 +103,7 @@ export class RadarChartMorph extends LitElement {
       }
 
       .radar-point {
-        fill: rgba(16, 185, 129, 1);
+        fill: var(--local-perspective-color);
         stroke: rgba(255, 255, 255, 0.8);
         stroke-width: 2;
       }
@@ -219,8 +229,6 @@ export class RadarChartMorph extends LitElement {
 
   render() {
     const items = this.normalizeData();
-    
-    console.log('[RadarChart] Rendering with items:', items.length, items);
     
     if (items.length < 3) {
       return html`<div style="font-size: 12px; color: rgba(255,255,255,0.5); padding: 20px; text-align: center;">Need 3+ axes</div>`;

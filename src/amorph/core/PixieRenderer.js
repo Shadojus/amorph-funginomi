@@ -443,6 +443,106 @@ export class PixieRenderer {
   }
   
   /**
+   * Enable interactive events on a node (NEW - BubbleView v2)
+   */
+  enableNodeInteraction(id, callbacks = {}) {
+    const container = this.nodes.get(id);
+    if (!container) {
+      console.warn(`[PixieRenderer] Node ${id} not found for interaction`);
+      return false;
+    }
+    
+    // Make interactive
+    container.eventMode = 'static';
+    container.cursor = 'pointer';
+    
+    // Attach event listeners
+    if (callbacks.onClick) {
+      container.on('pointerdown', (event) => {
+        callbacks.onClick(id, event);
+      });
+    }
+    
+    if (callbacks.onHover) {
+      container.on('pointerover', (event) => {
+        callbacks.onHover(id, true, event);
+      });
+      container.on('pointerout', (event) => {
+        callbacks.onHover(id, false, event);
+      });
+    }
+    
+    if (callbacks.onDrag) {
+      let dragData = null;
+      
+      container.on('pointerdown', (event) => {
+        dragData = {
+          startX: event.global.x,
+          startY: event.global.y,
+          nodeX: container.x,
+          nodeY: container.y
+        };
+        callbacks.onDrag(id, 'start', dragData, event);
+      });
+      
+      container.on('pointermove', (event) => {
+        if (dragData) {
+          const dx = event.global.x - dragData.startX;
+          const dy = event.global.y - dragData.startY;
+          container.x = dragData.nodeX + dx;
+          container.y = dragData.nodeY + dy;
+          callbacks.onDrag(id, 'move', { x: container.x, y: container.y }, event);
+        }
+      });
+      
+      container.on('pointerup', (event) => {
+        if (dragData) {
+          callbacks.onDrag(id, 'end', { x: container.x, y: container.y }, event);
+          dragData = null;
+        }
+      });
+      
+      container.on('pointerupoutside', (event) => {
+        if (dragData) {
+          callbacks.onDrag(id, 'end', { x: container.x, y: container.y }, event);
+          dragData = null;
+        }
+      });
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Get all node positions (for physics) (NEW - BubbleView v2)
+   */
+  getAllNodePositions() {
+    const positions = new Map();
+    
+    this.nodes.forEach((container, id) => {
+      positions.set(id, {
+        x: container.x,
+        y: container.y
+      });
+    });
+    
+    return positions;
+  }
+  
+  /**
+   * Batch update node positions (performance!) (NEW - BubbleView v2)
+   */
+  batchUpdatePositions(updates) {
+    updates.forEach((position, id) => {
+      const container = this.nodes.get(id);
+      if (container) {
+        container.x = position.x;
+        container.y = position.y;
+      }
+    });
+  }
+  
+  /**
    * Clear alles
    */
   clear() {

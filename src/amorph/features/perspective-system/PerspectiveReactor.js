@@ -59,6 +59,15 @@ export class PerspectiveReactor {
    * Apply perspective filtering to morphs
    */
   apply(morphs) {
+    // On first apply, check if we missed any perspective changes (timing issue)
+    if (this.activePerspectives.length === 0) {
+      const morphHeader = document.querySelector('morph-header');
+      if (morphHeader && morphHeader.getActivePerspectives) {
+        this.activePerspectives = morphHeader.getActivePerspectives();
+        console.log('[PerspectiveReactor] 🔄 Retrieved initial perspectives from MorphHeader:', this.activePerspectives.map(p => p.name));
+      }
+    }
+    
     // Skip if search is active (SearchFilterController handles highlighting during search)
     const containerSelector = window.amorph?.domainConfig?.ui?.grid?.containerClass || '.entity-grid';
     const container = document.querySelector(containerSelector);

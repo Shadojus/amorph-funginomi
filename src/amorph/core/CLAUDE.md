@@ -1,6 +1,6 @@
 # 🎯 AMORPH Core - Framework Kernel
 
-**Last Updated:** 22. November 2025
+**Last Updated:** 23. November 2025
 
 **Framework Note:** Der Core ist **domain-agnostisch**. Er enthält keine domain-spezifische Logik. AmorphSystem, Observers, und EventBridge funktionieren mit beliebigen strukturierten Daten.
 

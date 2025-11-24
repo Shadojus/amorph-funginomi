@@ -13,8 +13,14 @@ import { globalStyles } from './tokens.js';
 
 export class BarChartMorph extends LitElement {
   static properties = {
-    data: { type: Array }
+    data: { type: Array },
+    perspective: { type: String }
   };
+  
+  connectedCallback() {
+    super.connectedCallback();
+    // Perspective color will be inherited from parent via CSS variable
+  }
 
   static styles = [
     globalStyles,
@@ -25,6 +31,7 @@ export class BarChartMorph extends LitElement {
         background: rgba(0, 0, 0, 0.3);
         border-radius: var(--radius-md);
         padding: var(--space-md);
+        --local-perspective-color: var(--perspective-color, #10b981);
       }
 
       .chart-wrapper {
@@ -50,18 +57,24 @@ export class BarChartMorph extends LitElement {
 
       .bar {
         width: 100%;
-        background: linear-gradient(180deg, rgba(16, 185, 129, 0.9), rgba(16, 185, 129, 0.6));
+        background: linear-gradient(180deg, 
+          color-mix(in srgb, var(--local-perspective-color) 90%, transparent),
+          color-mix(in srgb, var(--local-perspective-color) 60%, transparent)
+        );
         border-radius: var(--radius-sm) var(--radius-sm) 0 0;
         transition: all var(--transition-fast);
         cursor: pointer;
         position: relative;
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--local-perspective-color) 30%, transparent);
       }
 
       .bar:hover {
-        background: linear-gradient(180deg, rgba(16, 185, 129, 1), rgba(16, 185, 129, 0.8));
-        transform: translateY(-4px);
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.5);
+        background: linear-gradient(180deg, 
+          var(--local-perspective-color),
+          color-mix(in srgb, var(--local-perspective-color) 80%, transparent)
+        );
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px color-mix(in srgb, var(--local-perspective-color) 50%, transparent);
       }
 
       .bar-value {
@@ -69,9 +82,9 @@ export class BarChartMorph extends LitElement {
         top: -24px;
         left: 50%;
         transform: translateX(-50%);
-        font-size: 12px;
-        font-weight: 700;
-        color: rgba(16, 185, 129, 1);
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--local-perspective-color);
         white-space: nowrap;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 1),
                      -1px -1px 3px rgba(0, 0, 0, 1),

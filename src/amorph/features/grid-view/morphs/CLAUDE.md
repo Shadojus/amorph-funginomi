@@ -1,6 +1,6 @@
 # Grid View - Data Morphs (Framework Core)
 
-**Last Updated:** 22. November 2025
+**Last Updated:** 23. November 2025
 
 ## Overview
 
@@ -46,6 +46,50 @@ Each morph:
 - Handles perspective-based visibility
 - Supports deep mode highlighting for search
 - Emits events for user interactions
+
+### Chart Morphs - Enhanced (2025-11-23)
+
+**BarChartMorph** - Vertical bar charts for numerical arrays
+- ✅ Nested value extraction: handles `{value: {value: number, unit: string}}`
+- ✅ Auto-unit detection (g, mg, µg, cm, °C, %, etc.)
+- ✅ Smart formatting: 1000mg → 1kg, scales large numbers
+- ✅ HTML labels with absolute positioning (below bars)
+- ✅ Values displayed on top of bars with text-shadows
+- ✅ Gradient backgrounds using color-mix()
+- ✅ Hover effects with transform and enhanced shadows
+- ✅ Perspective color inheritance via CSS variables
+
+**RadarChartMorph** - Spider/Radar charts for multi-dimensional data
+- ✅ SVG-based grid and shape rendering
+- ✅ HTML label overlays with absolute positioning (percentage-based)
+- ✅ Labels + numeric values displayed for each axis
+- ✅ Auto-scaling: 0-10 values scaled to 0-100%
+- ✅ Multiple text-shadows for label visibility (6-layer outline effect)
+- ✅ Perspective color inheritance via CSS variables
+- ✅ Supports 3-12 axes with flexible data structures
+
+**PieChartMorph** - Circular charts for categorical data
+- ✅ Category-based segments with percentages
+- ✅ Color support from data
+- ✅ Interactive legends
+
+**CSS Variable System for Perspective Colors:**
+```javascript
+// DataMorph (parent) inherits from PerspectiveReactor
+:host {
+  --perspective-color: var(--perspective-color, rgba(255, 255, 255, 0.5));
+}
+
+// BarChartMorph/RadarChartMorph (children) use local variable
+:host {
+  --local-perspective-color: var(--perspective-color, #10b981);
+}
+```
+
+**Known Issue (2025-11-23):**
+- PerspectiveReactor timing issue: Aktiviert sich mit 500ms delay
+- Workaround implemented: `getActivePerspectives()` method in MorphHeader
+- Colors still not consistently applied (CSS variable cascade through Shadow DOM)
 
 ### Responsive Design (2025-11-22)
 **ALL morphs now have:**

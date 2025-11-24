@@ -34,6 +34,8 @@ export class DataMorph extends LitElement {
         display: block;
         max-width: 100%;
         overflow: hidden;
+        /* Inherit perspective color from parent and make it available to children */
+        --perspective-color: var(--perspective-color, rgba(255, 255, 255, 0.5));
       }    .data-container {
       background: transparent;
       padding: 0.375rem 0.5rem 0.375rem 0;
@@ -550,24 +552,7 @@ export class DataMorph extends LitElement {
   /**
    * Get perspective color
    */
-  getPerspectiveColor(perspectiveName) {
-    const colors = {
-      root: '#90CAF9',  // Default blue for top-level fields
-      taxonomy: '#ef4444',
-      physicalCharacteristics: '#f97316',
-      ecologyAndHabitat: '#eab308',
-      culinaryAndNutritional: '#22c55e',
-      medicinalAndHealth: '#06b6d4',
-      cultivationAndProcessing: '#3b82f6',
-      safetyAndIdentification: '#8b5cf6',
-      chemicalAndProperties: '#ec4899',
-      culturalAndHistorical: '#d946ef',
-      commercialAndMarket: '#14b8a6',
-      environmentalAndConservation: '#10b981',
-      researchAndInnovation: '#0ea5e9'
-    };
-    return colors[perspectiveName] || '#ffffff';
-  }
+
 
   /**
    * Format perspective name for display (shorter labels)
@@ -798,14 +783,13 @@ export class DataMorph extends LitElement {
       return html``;
     }
 
-    // Get first perspective for color (primary)
+    // Get first perspective for icon (primary)
     const [firstPerspective] = dataEntries[0];
-    const color = this.getPerspectiveColor(firstPerspective);
     const icon = this.getPerspectiveIcon(firstPerspective);
 
     // DEEP MODE: Render all nested data recursively
     if (this.mode === 'deep') {
-      return this.renderDeepMode(dataEntries, color, icon);
+      return this.renderDeepMode(dataEntries, icon);
     }
 
     // SIMPLE MODE: Original behavior (single field display)
@@ -816,7 +800,7 @@ export class DataMorph extends LitElement {
       // Special case: 'root' perspective means top-level field (no badge needed)
       if (perspectiveName === 'root') {
         return html`
-          <div class="data-container" style="--perspective-color: ${color}">
+          <div class="data-container">
             <div class="data-label">
               ${this.formatFieldName(this.field)}
             </div>
@@ -826,10 +810,10 @@ export class DataMorph extends LitElement {
       }
 
       return html`
-        <div class="data-container" style="--perspective-color: ${color}">
+        <div class="data-container">
           <div class="data-label">
             ${this.formatFieldName(this.field)}
-            <span class="perspective-badge" style="--perspective-color: ${color}">
+            <span class="perspective-badge">
               ${icon} ${this.formatPerspectiveName(perspectiveName)}
             </span>
           </div>
@@ -840,7 +824,7 @@ export class DataMorph extends LitElement {
 
     // Multiple perspectives - stack them
     return html`
-      <div class="data-container" style="--perspective-color: ${color}">
+      <div class="data-container">
         <div class="data-label">
           ${this.formatFieldName(this.field)}
         </div>
@@ -855,11 +839,10 @@ export class DataMorph extends LitElement {
               `;
             }
             
-            const pColor = this.getPerspectiveColor(perspectiveName);
             const pIcon = this.getPerspectiveIcon(perspectiveName);
             return html`
               <div style="margin-bottom: 0.75rem;">
-                <span class="perspective-badge" style="--perspective-color: ${pColor}; margin-bottom: 0.375rem;">
+                <span class="perspective-badge" style="margin-bottom: 0.375rem;">
                   ${pIcon} ${this.formatPerspectiveName(perspectiveName)}
                 </span>
                 ${this.renderValue(value, perspectiveName)}
@@ -874,14 +857,13 @@ export class DataMorph extends LitElement {
   /**
    * Render in DEEP mode - shows all nested data recursively
    */
-  renderDeepMode(dataEntries, color, icon) {
+  renderDeepMode(dataEntries, icon) {
     // Reverse order so newest perspective is on top
     const reversedEntries = [...dataEntries].reverse();
     
     return html`
-      <div class="data-container deep-mode" style="--perspective-color: ${color}">
+      <div class="data-container deep-mode">
         ${reversedEntries.map(([perspectiveName, value]) => {
-          const pColor = this.getPerspectiveColor(perspectiveName);
           const pIcon = this.getPerspectiveIcon(perspectiveName);
           
           // Flatten the entire value recursively
@@ -890,9 +872,9 @@ export class DataMorph extends LitElement {
           if (fields.length === 0) return html``;
           
           return html`
-            <div class="perspective-section" style="--perspective-color: ${pColor}">
+            <div class="perspective-section">
               <div class="data-label">
-                <span class="perspective-badge" style="--perspective-color: ${pColor}">
+                <span class="perspective-badge">
                   ${pIcon} ${this.formatPerspectiveName(perspectiveName)}
                 </span>
               </div>

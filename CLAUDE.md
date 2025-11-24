@@ -230,13 +230,34 @@ Antwort: MorphMapper sieht `keys.includes('category') && keys.includes('count')`
 - ✅ 200+ data points populated across 6 entities
 - ✅ Core Morphs: RangeMorph, ProgressMorph, KeyValueMorph
 
-**Phase 2 (TODO):** Chart Morph Implementation
-- ⏳ RadarChartMorph (Chart.js oder D3)
-- ⏳ PieChartMorph (Chart.js oder D3)
-- ⏳ BarChartMorph (Chart.js mit Heatmap-Option)
+**Phase 2 (COMPLETE - 2025-11-23):** Chart Morph Implementation
+- ✅ RadarChartMorph (Native SVG + HTML overlays)
+  - SVG grid and shape rendering
+  - HTML labels with absolute positioning
+  - 6-layer text-shadow for visibility
+  - Auto-scaling 0-10 → 0-100%
+  - Perspective color support (CSS variables)
+- ✅ BarChartMorph (Native HTML/CSS)
+  - Nested value extraction: {value: {value: number}}
+  - Auto-unit detection (g, mg, µg, cm, °C, %)
+  - Smart formatting: 1000mg → 1kg
+  - HTML labels with text-shadows
+  - Gradient backgrounds with color-mix()
+  - Perspective color support (CSS variables)
+- ✅ PieChartMorph (Native SVG)
+  - Category-based segments
+  - Color support from data
+  - Interactive legends
 - ⏳ MapMorph (Leaflet Integration)
 - ⏳ TimelineMorph (Custom Canvas oder D3)
 - ⏳ SparklineMorph (bereits erkannt, Rendering fehlt)
+
+**Chart Visualization Architecture (2025-11-23):**
+- No external libraries (Chart.js/D3) - 100% native rendering
+- SVG for shapes, HTML for labels (better text rendering)
+- CSS variable system for perspective colors
+- Shadow DOM CSS variable cascade with --local-perspective-color
+- Text visibility solved with multiple text-shadows (outline effect)
 
 **Phase 3 (TODO):** Advanced Visualizations
 - ⏳ ScatterPlotMorph (Multi-Variable Comparison)
@@ -1226,6 +1247,65 @@ import { CanvasPhysicsReactor } from '../reactors/canvas/CanvasPhysicsReactor.js
 import { BubbleView } from '../features/bubble-view/BubbleView.js';
 import { CanvasPhysicsReactor } from '../features/bubble-view/reactors/CanvasPhysicsReactor.js';
 ```
+
+## 🔧 Current Challenges & Solutions (2025-11-23)
+
+### Perspective Color System
+
+**Problem:** CSS variable cascade through Shadow DOM boundaries
+- PerspectiveReactor sets `--perspective-color` on morph elements
+- DataMorph (parent) uses Shadow DOM
+- Chart morphs (children) use Shadow DOM
+- CSS variables don't automatically cascade through Shadow DOM boundaries
+
+**Current Solution:**
+```javascript
+// DataMorph inherits and re-declares
+:host {
+  --perspective-color: var(--perspective-color, rgba(255, 255, 255, 0.5));
+}
+
+// Chart morphs use local variable
+:host {
+  --local-perspective-color: var(--perspective-color, #10b981);
+}
+```
+
+**Status:** Partially working, colors not consistently applied
+**Root Cause:** PerspectiveReactor timing issue (500ms delay in init.js)
+**Workaround:** `getActivePerspectives()` method retrieves from MorphHeader
+
+### PerspectiveReactor Timing
+
+**Problem:** Reactor enables after initial perspective-changed events
+- MorphHeader dispatches events immediately on load
+- PerspectiveReactor activates with 500ms setTimeout
+- Early events are missed
+
+**Solution Implemented:**
+```javascript
+// PerspectiveReactor.apply() checks for initial state
+if (this.activePerspectives.length === 0) {
+  const morphHeader = document.querySelector('morph-header');
+  if (morphHeader && morphHeader.getActivePerspectives) {
+    this.activePerspectives = morphHeader.getActivePerspectives();
+  }
+}
+```
+
+**Status:** Workaround in place, but full solution requires init.js refactoring
+
+### Chart Label Visibility
+
+**Problem:** SVG text elements rendering but invisible
+**Solution:** Switched to HTML overlays with absolute positioning
+**Result:** ✅ Labels now visible with 6-layer text-shadow outline effect
+
+### Nested Value Extraction
+
+**Problem:** BarChart received 0 bars with nested data structures
+**Solution:** Enhanced extractNumericValue() to handle `{value: {value: number}}`
+**Result:** ✅ All bar charts rendering correctly with proper value extraction
 
 ## Entry Point
 
