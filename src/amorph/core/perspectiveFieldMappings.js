@@ -263,136 +263,171 @@ export const fieldToPerspectiveIndex = {
 // PERSPECTIVE DEFINITIONS
 // ============================================================================
 // Definiert alle eindeutigen Perspektiven mit Metadaten
-export const perspectiveDefinitions: Record<string, {
-  label: string;
-  description: string;
-  category: 'primary' | 'application' | 'utility';
-  icon?: string;
-  order: number;
-}> = {
+// Each perspective has: label, description, category, icon, color, order
+export const perspectiveDefinitions = {
   // Primary Perspectives (14)
   'identity': {
-    label: 'Identity & Nomenclature',
+    label: 'Identity',
     description: 'Names, etymology, common names, scientific nomenclature',
     category: 'primary',
+    icon: '🏷️',
+    color: '#6366f1',
     order: 1,
   },
   'visualIdentity': {
-    label: 'Visual Identity',
+    label: 'Visual',
     description: 'Images, colors, 360° views, visual signatures',
     category: 'primary',
+    icon: '🖼️',
+    color: '#8b5cf6',
     order: 2,
   },
   'taxonomy': {
     label: 'Taxonomy',
     description: 'Hierarchical classification from kingdom to species',
     category: 'primary',
+    icon: '🧬',
+    color: '#ef4444',
     order: 3,
   },
   'phylogeny': {
-    label: 'Phylogeny & Evolution',
+    label: 'Phylogeny',
     description: 'Evolutionary relationships, genetic markers, genome data',
     category: 'primary',
+    icon: '🌳',
+    color: '#84cc16',
     order: 4,
   },
   'morphologyAndAnatomy': {
-    label: 'Morphology & Anatomy',
+    label: 'Morphology',
     description: 'Macro characteristics: cap, stem, gills, spore print',
     category: 'primary',
+    icon: '👁️',
+    color: '#f97316',
     order: 5,
   },
   'microscopyAndCellular': {
-    label: 'Microscopy & Cellular',
+    label: 'Microscopy',
     description: 'Spores, basidia, hyphae, tissue structure',
     category: 'primary',
+    icon: '🔬',
+    color: '#06b6d4',
     order: 6,
   },
   'chemicalAndProperties': {
-    label: 'Chemistry & Compounds',
+    label: 'Chemical',
     description: 'Nutrients, metabolites, volatilome, enzymes',
     category: 'primary',
+    icon: '🧪',
+    color: '#ec4899',
     order: 7,
   },
   'sensoryProfile': {
-    label: 'Sensory Profile',
+    label: 'Sensory',
     description: 'Aroma, taste, texture, appearance, sound',
     category: 'primary',
+    icon: '👃',
+    color: '#a855f7',
     order: 8,
   },
   'ecologyAndDistribution': {
-    label: 'Ecology & Distribution',
+    label: 'Ecology',
     description: 'Habitat, substrate, interactions, ecosystem services',
     category: 'primary',
+    icon: '🌍',
+    color: '#eab308',
     order: 9,
   },
   'temporalPatterns': {
-    label: 'Temporal Patterns',
+    label: 'Temporal',
     description: 'Life cycle, phenology, circadian rhythms, history',
     category: 'primary',
+    icon: '📅',
+    color: '#a855f7',
     order: 10,
   },
   'geographyAndDistribution': {
-    label: 'Geography & Distribution',
+    label: 'Geography',
     description: 'Native range, climate envelope, occurrence data',
     category: 'primary',
+    icon: '🗺️',
+    color: '#14b8a6',
     order: 11,
   },
   'cultivationAndGrowing': {
-    label: 'Cultivation & Growing',
+    label: 'Cultivation',
     description: 'Growing conditions, substrates, production timeline',
     category: 'primary',
+    icon: '🌱',
+    color: '#3b82f6',
     order: 12,
   },
 
   // Application Perspectives (6)
   'medicinalAndHealth': {
-    label: 'Medicinal & Health',
+    label: 'Medicinal',
     description: 'Traditional medicine, clinical trials, safety, dosing',
     category: 'application',
+    icon: '⚕️',
+    color: '#06b6d4',
     order: 13,
   },
   'culinaryAndNutritional': {
-    label: 'Culinary & Nutritional',
+    label: 'Culinary',
     description: 'Edibility, recipes, nutrition, flavor profiles',
     category: 'application',
+    icon: '🍳',
+    color: '#22c55e',
     order: 14,
   },
   'commercialAndMarket': {
-    label: 'Commercial & Market',
+    label: 'Commercial',
     description: 'Market value, production volume, trade data, pricing',
     category: 'application',
+    icon: '💰',
+    color: '#fbbf24',
     order: 15,
   },
   'environmentalAndConservation': {
-    label: 'Environmental & Conservation',
+    label: 'Environment',
     description: 'Conservation status, threats, habitat requirements',
     category: 'application',
+    icon: '🌿',
+    color: '#10b981',
     order: 16,
   },
   'historicalAndCultural': {
-    label: 'Historical & Cultural',
+    label: 'Cultural',
     description: 'Folklore, traditions, ethnobotany, cultural significance',
     category: 'application',
+    icon: '📜',
+    color: '#d946ef',
     order: 17,
   },
   'researchAndInnovation': {
-    label: 'Research & Innovation',
+    label: 'Research',
     description: 'Active research, publications, patents, future potential',
     category: 'application',
+    icon: '🔬',
+    color: '#0ea5e9',
     order: 18,
   },
 
   // Utility Perspectives (3)
   'safetyAndIdentification': {
-    label: 'Safety & Identification',
+    label: 'Safety',
     description: 'Toxicity, look-alikes, identification features, warnings',
     category: 'utility',
+    icon: '⚠️',
+    color: '#f43f5e',
     order: 19,
   },
   'metadata': {
     label: 'Metadata',
     description: 'System data, quality metrics, version control',
     category: 'utility',
+    icon: '📋',
+    color: '#64748b',
     order: 20,
   },
 };
@@ -400,8 +435,8 @@ export const perspectiveDefinitions: Record<string, {
 // ============================================================================
 // PERSPECTIVE SCHEMA FIELDS - Maps perspective names to their display fields
 // ============================================================================
-export const perspectiveSchemaFields: Record<string, { displayFields: string[] }> = (() => {
-  const result: Record<string, { displayFields: string[] }> = {};
+export const perspectiveSchemaFields = (() => {
+  const result = {};
   
   // Group all fields by their perspective
   for (const [fieldKey, perspectiveId] of Object.entries(fieldToPerspectiveIndex)) {
@@ -423,15 +458,15 @@ export const perspectiveSchemaFields: Record<string, { displayFields: string[] }
 /**
  * Get perspective for a field
  */
-export function getPerspectiveForField(fieldName: string): string | null {
+export function getPerspectiveForField(fieldName) {
   return fieldToPerspectiveIndex[fieldName] || null;
 }
 
 /**
  * Get all fields for a perspective
  */
-export function getFieldsForPerspective(perspectiveId: string): string[] {
-  const fields: string[] = [];
+export function getFieldsForPerspective(perspectiveId) {
+  const fields = [];
   for (const [field, perspective] of Object.entries(fieldToPerspectiveIndex)) {
     if (perspective === perspectiveId) {
       fields.push(field);
@@ -443,13 +478,7 @@ export function getFieldsForPerspective(perspectiveId: string): string[] {
 /**
  * Get all perspectives with their fields count
  */
-export function getPerspectivesWithCounts(): Array<{
-  perspectiveId: string;
-  label: string;
-  fieldCount: number;
-  category: string;
-  order: number;
-}> {
+export function getPerspectivesWithCounts() {
   const perspectives = new Set(Object.values(fieldToPerspectiveIndex));
   
   return Array.from(perspectives)
@@ -466,13 +495,7 @@ export function getPerspectivesWithCounts(): Array<{
 /**
  * Get all perspectives sorted by order
  */
-export function getAllPerspectives(): Array<{
-  id: string;
-  label: string;
-  description: string;
-  category: string;
-  fieldCount: number;
-}> {
+export function getAllPerspectives() {
   return Array.from(new Set(Object.values(fieldToPerspectiveIndex)))
     .map(perspectiveId => {
       const def = perspectiveDefinitions[perspectiveId];
@@ -494,7 +517,7 @@ export function getAllPerspectives(): Array<{
 /**
  * Check if field is mapped
  */
-export function isFieldMapped(fieldName: string): boolean {
+export function isFieldMapped(fieldName) {
   return fieldName in fieldToPerspectiveIndex;
 }
 
@@ -519,8 +542,8 @@ export function getMappingStatistics() {
  * Get mapping of field keys to their perspective IDs
  * Used to dynamically construct perspective objects in fungi.ts
  */
-export function getFieldKeyToPerspectiveMapping(): Record<string, string> {
-  const mapping: Record<string, string> = {};
+export function getFieldKeyToPerspectiveMapping() {
+  const mapping = {};
   
   const perspectiveIds = new Set(Object.values(fieldToPerspectiveIndex));
   

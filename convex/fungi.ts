@@ -1,4 +1,4 @@
-import { query } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { 
   fieldToPerspectiveIndex,
@@ -340,6 +340,66 @@ export const advancedSearch = query({
       matchedPerspectives: perspectiveMatchCounts,
       totalResults: results.length,
       query: args.query,
+    };
+  },
+});
+
+/**
+ * Clear all fungi from the database
+ */
+export const clearAll = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const allFungi = await ctx.db.query("fungi").collect();
+    let deleted = 0;
+    for (const fungus of allFungi) {
+      await ctx.db.delete(fungus._id);
+      deleted++;
+    }
+    return { success: true, deleted };
+  },
+});
+
+/**
+ * Clear all user interactions from the database
+ */
+export const clearInteractions = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const allInteractions = await ctx.db.query("userInteractions").collect();
+    let deleted = 0;
+    for (const interaction of allInteractions) {
+      await ctx.db.delete(interaction._id);
+      deleted++;
+    }
+    return { success: true, deleted };
+  },
+});
+
+/**
+ * Clear everything - fungi and interactions
+ */
+export const clearDatabase = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // Clear fungi
+    const allFungi = await ctx.db.query("fungi").collect();
+    for (const fungus of allFungi) {
+      await ctx.db.delete(fungus._id);
+    }
+    
+    // Clear interactions
+    const allInteractions = await ctx.db.query("userInteractions").collect();
+    for (const interaction of allInteractions) {
+      await ctx.db.delete(interaction._id);
+    }
+    
+    return { 
+      success: true, 
+      deleted: {
+        fungi: allFungi.length,
+        interactions: allInteractions.length
+      }
     };
   },
 });

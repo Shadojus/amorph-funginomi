@@ -3,19 +3,22 @@
  * =====================================
  * 
  * Globale Header-Komponente für das AMORPH System
+ * DATA-DRIVEN from perspectiveFieldMappings.js
  * 
  * Features:
  * - Perspective Selector (max 4 gleichzeitig, FIFO)
+ * - All perspectives loaded from schema (perspectiveDefinitions)
  * - Tag-to-Perspective Auto-Activation
  * - Global Search Bar
  * - Glassmorphism Design
  * 
  * @author AMORPH System
- * @version 2.0.0
+ * @version 3.0.0 - Data-Driven
  */
 
 import { LitElement, html, css } from 'lit';
 import { globalStyles } from './tokens.js';
+import { perspectiveDefinitions, getAllPerspectives } from '../../core/perspectiveFieldMappings.js';
 
 /**
  * Tag to Perspective Mapping
@@ -644,33 +647,21 @@ export class MorphHeader extends LitElement {
     super();
     
     // State - Match schema perspectives from perspectiveFieldMappings.ts
-    // IMPORTANT: These names MUST match the perspectiveIds in perspectiveFieldMappings.ts!
-    this.perspectives = [
-      { name: 'identity', label: 'Identity', icon: '🏷️', color: '#6366f1' },
-      { name: 'taxonomy', label: 'Taxonomy', icon: '🧬', color: '#ef4444' },
-      { name: 'morphologyAndAnatomy', label: 'Morphology', icon: '👁️', color: '#f97316' },
-      { name: 'sensoryProfile', label: 'Sensory', icon: '👃', color: '#8b5cf6' },
-      { name: 'ecologyAndDistribution', label: 'Ecology', icon: '🌍', color: '#eab308' },
-      { name: 'temporalPatterns', label: 'Temporal', icon: '📅', color: '#a855f7' },
-      { name: 'cultivationAndGrowing', label: 'Cultivation', icon: '🌱', color: '#3b82f6' },
-      { name: 'medicinalAndHealth', label: 'Medicinal', icon: '⚕️', color: '#06b6d4' },
-      { name: 'culinaryAndNutritional', label: 'Culinary', icon: '🍳', color: '#22c55e' },
-      { name: 'chemicalAndProperties', label: 'Chemical', icon: '🧪', color: '#ec4899' },
-      { name: 'commercialAndMarket', label: 'Commercial', icon: '💰', color: '#14b8a6' },
-      { name: 'environmentalAndConservation', label: 'Environment', icon: '🌿', color: '#10b981' },
-      { name: 'historicalAndCultural', label: 'Cultural', icon: '📜', color: '#d946ef' },
-      { name: 'researchAndInnovation', label: 'Research', icon: '🔬', color: '#0ea5e9' },
-      { name: 'safetyAndIdentification', label: 'Safety', icon: '⚠️', color: '#f43f5e' },
-    ];
+    // 🔮 DATA-DRIVEN PERSPECTIVES FROM SCHEMA
+    // All perspectives are loaded from perspectiveFieldMappings.js (perspectiveDefinitions)
+    // This ensures the MorphHeader always reflects the complete schema
+    this.perspectives = this._loadPerspectivesFromSchema();
+    
+    console.log('[MorphHeader] 📊 Loaded', this.perspectives.length, 'perspectives from schema:', 
+      this.perspectives.map(p => p.name));
     
     // 4 DEFAULT PERSPECTIVES - Pre-selected on page load
-    // Using perspectives that actually have data in the entities
-    this.activePerspectives = [
-      { name: 'identity', label: 'Identity', icon: '🏷️', color: '#6366f1' },
-      { name: 'taxonomy', label: 'Taxonomy', icon: '🧬', color: '#ef4444' },
-      { name: 'morphologyAndAnatomy', label: 'Morphology', icon: '👁️', color: '#f97316' },
-      { name: 'ecologyAndDistribution', label: 'Ecology', icon: '🌍', color: '#eab308' },
-    ];
+    // Using first 4 perspectives from schema (sorted by order)
+    const defaultPerspectiveNames = ['identity', 'taxonomy', 'morphologyAndAnatomy', 'ecologyAndDistribution'];
+    this.activePerspectives = this.perspectives
+      .filter(p => defaultPerspectiveNames.includes(p.name))
+      .slice(0, 4);
+    
     this.maxPerspectives = 4;
     this.showPerspectiveMenu = false;
     
@@ -698,6 +689,32 @@ export class MorphHeader extends LitElement {
     this.amorph = null;
   }
 
+  /**
+   * 🔮 Load all perspectives from perspectiveDefinitions (schema-driven)
+   * Converts perspectiveDefinitions to the format expected by MorphHeader
+   */
+  _loadPerspectivesFromSchema() {
+    const perspectives = [];
+    
+    // Convert perspectiveDefinitions to array format with sorting by order
+    const sortedEntries = Object.entries(perspectiveDefinitions)
+      .sort(([, a], [, b]) => (a.order || 999) - (b.order || 999));
+    
+    for (const [id, def] of sortedEntries) {
+      perspectives.push({
+        name: id,
+        label: def.label || id,
+        icon: def.icon || '📦',
+        color: def.color || '#6366f1',
+        description: def.description || '',
+        category: def.category || 'unknown',
+        order: def.order || 999,
+      });
+    }
+    
+    return perspectives;
+  }
+
   connectedCallback() {
     super.connectedCallback();
     
@@ -714,7 +731,9 @@ export class MorphHeader extends LitElement {
     // This activates the 4 default perspectives on page load
     setTimeout(() => {
       this.dispatchPerspectiveChange();
-      console.log('[MorphHeader] ✅ Initialized with 4 default perspectives:', this.activePerspectives.map(p => p.name));
+      console.log('[MorphHeader] ✅ Initialized with', this.activePerspectives.length, 'default perspectives:', 
+        this.activePerspectives.map(p => p.name));
+      console.log('[MorphHeader] 📋 Total perspectives available:', this.perspectives.length);
     }, 100);
     
     // Listen for bubble-view-active event

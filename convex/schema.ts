@@ -124,31 +124,31 @@ const fungi = defineTable({
   slug: v.string(),
   
   // Multi-language names with etymology
-  internationalNames: citedValue(v.array(v.object({
+  internationalNames: v.optional(citedValue(v.array(v.object({
     language: v.string(),
     name: v.string(),
     script: v.optional(v.string()),
     meaning: v.optional(v.string()),
     etymology: v.optional(v.string()),
     first_recorded_use: v.optional(v.number()),
-  }))),
+  })))),
   
   // Naming history
-  nomenclatureHistory: citedValue(v.array(v.object({
+  nomenclatureHistory: v.optional(citedValue(v.array(v.object({
     name: v.string(),
     author: v.string(),
     year: v.number(),
     type: v.string(), // basionym, synonym, combination
     validity: v.string(), // valid, invalid, disputed
     reference: citationSource,
-  }))),
+  })))),
   
   // ===== VISUAL IDENTITY (Enhanced with 360° and microscopy) =====
   visualIdentity: v.optional(v.object({
     // High-resolution imagery
     primaryImage: citedValue(v.string()),
     
-    imageGallery: citedValue(v.array(v.object({
+    imageGallery: v.optional(citedValue(v.array(v.object({
       url: v.string(),
       type: v.string(), // photograph, illustration, microscopy, SEM, diagram, 3D
       viewAngle: v.string(),
@@ -166,20 +166,20 @@ const fungi = defineTable({
       equipment: v.optional(v.string()),
       license: v.string(),
       color_accuracy: v.optional(v.string()), // calibrated, natural, enhanced
-    }))),
+    })))),
     
     // 360° visualization data
-    view360: citedValue(v.optional(v.object({
+    view360: v.optional(citedValue(v.optional(v.object({
       frames: v.array(v.string()),
       frameCount: v.number(),
       rotationAxis: v.string(),
       capture_method: v.string(), // photogrammetry, turntable, synthetic
       model_url: v.optional(v.string()), // 3D model file
       texture_resolution: v.optional(v.number()),
-    }))),
+    })))),
     
     // Scientific color data
-    colorData: citedValue(v.object({
+    colorData: v.optional(citedValue(v.object({
       // Standardized color measurements
       munsell_colors: v.optional(v.array(v.object({
         location: v.string(), // cap, stem, gills, flesh, spores
@@ -217,7 +217,7 @@ const fungi = defineTable({
         color_change: v.string(),
         diagnostic_value: v.string(), // high, medium, low
       }))),
-    })),
+    }))),
     
     // Visual signature for AI/ML
     visualSignature: citedValue(v.object({
@@ -231,7 +231,7 @@ const fungi = defineTable({
   })),
   
   // ===== TAXONOMY & PHYLOGENY (Complete hierarchical data) =====
-  taxonomy: citedValue(v.object({
+  taxonomy: v.optional(citedValue(v.object({
     // Standard ranks
     domain: v.string(), // Eukaryota
     kingdom: v.string(), // Fungi
@@ -289,10 +289,10 @@ const fungi = defineTable({
       eol_id: v.optional(v.string()),
       inaturalist_taxon: v.optional(v.string()),
     }),
-  })),
+  }))),
   
   // Molecular phylogeny
-  phylogeny: citedValue(v.object({
+  phylogeny: v.optional(citedValue(v.object({
     // Evolutionary relationships
     clade: v.string(),
     sister_taxa: v.array(v.string()),
@@ -324,10 +324,10 @@ const fungi = defineTable({
       emergence_mya: v.optional(v.number()),
       adaptive_value: v.string(),
     })),
-  })),
+  }))),
   
   // ===== MORPHOLOGY (Complete macro & micro characteristics) =====
-  morphology: citedValue(v.object({
+  morphology: v.optional(citedValue(v.object({
     // Overall growth form
     growth_form: v.string(), // pileate, resupinate, coralloid, clavate, gastroid
     
@@ -502,10 +502,10 @@ const fungi = defineTable({
         })),
       })),
     })),
-  })),
+  }))),
   
   // ===== MICROSCOPY (Complete cellular details) =====
-  microscopy: citedValue(v.object({
+  microscopy: v.optional(citedValue(v.object({
     // Spore characteristics
     spores: v.object({
       // Dimensions
@@ -700,10 +700,10 @@ const fungi = defineTable({
         caulocystidia: v.boolean(),
       })),
     }),
-  })),
+  }))),
   
   // ===== CHEMISTRY (Complete molecular architecture) =====
-  chemistry: citedValue(v.object({
+  chemistry: v.optional(citedValue(v.object({
     // Primary metabolites
     primaryMetabolites: v.object({
       // Macronutrients per 100g
@@ -1108,10 +1108,10 @@ const fungi = defineTable({
         }),
       }))),
     })),
-  })),
+  }))),
   
   // ===== SENSORY PROFILE (Complete multi-sensory data) =====
-  sensoryProfile: citedValue(v.object({
+  sensoryProfile: v.optional(citedValue(v.object({
     // Olfactory
     aroma: v.object({
       // Overall intensity
@@ -1269,10 +1269,10 @@ const fungi = defineTable({
         sound: v.optional(v.string()),
       }),
     })),
-  })),
+  }))),
   
   // ===== ECOLOGY (Complete ecological relationships) =====
-  ecology: citedValue(v.object({
+  ecology: v.optional(citedValue(v.object({
     // Functional role
     ecological_role: v.object({
       primary_role: v.string(),
@@ -1562,10 +1562,10 @@ const fungi = defineTable({
         conservation_units: v.optional(v.array(v.string())),
       })),
     })),
-  })),
+  }))),
   
   // ===== TEMPORAL PATTERNS (Complete time-based data) =====
-  temporalPatterns: citedValue(v.object({
+  temporalPatterns: v.optional(citedValue(v.object({
     // Life cycle
     lifecycle: v.object({
       // Complete developmental sequence
@@ -1720,10 +1720,10 @@ const fungi = defineTable({
         })),
       })),
     })),
-  })),
+  }))),
   
   // ===== GEOGRAPHY & DISTRIBUTION =====
-  geography: citedValue(v.object({
+  geography: v.optional(citedValue(v.object({
     // Native range
     native_range: v.object({
       continents: v.array(v.string()),
@@ -1819,10 +1819,10 @@ const fungi = defineTable({
       // Köppen climate zones
       koppen_zones: v.array(v.string()),
     }),
-  })),
+  }))),
   
   // ===== CULTIVATION =====
-  cultivation: citedValue(v.object({
+  cultivation: v.optional(citedValue(v.object({
     // Cultivation status
     cultivation_status: v.string(), // not cultivated, experimental, commercial
     
@@ -2066,10 +2066,10 @@ const fungi = defineTable({
         prevention: v.array(v.string()),
       }))),
     })),
-  })),
+  }))),
   
   // ===== MEDICINAL PROPERTIES =====
-  medicinal: citedValue(v.object({
+  medicinal: v.optional(citedValue(v.object({
     // Traditional use
     traditional_medicine: v.array(v.object({
       system: v.string(), // TCM, Ayurveda, Native American, etc
@@ -2290,10 +2290,10 @@ const fungi = defineTable({
       // Therapeutic monitoring
       monitoring: v.optional(v.array(v.string())),
     })),
-  })),
+  }))),
   
   // ===== CULINARY PROFILE =====
-  culinary: citedValue(v.object({
+  culinary: v.optional(citedValue(v.object({
     // Edibility
     edibility: v.object({
       status: v.string(), // choice, edible, conditionally edible, inedible, poisonous
@@ -2409,10 +2409,10 @@ const fungi = defineTable({
         quality_retention: v.number(), // %
       })),
     }),
-  })),
+  }))),
   
   // ===== ECONOMIC DATA =====
-  economics: citedValue(v.object({
+  economics: v.optional(citedValue(v.object({
     // Market status
     market_status: v.string(), // not traded, local, regional, international
     
@@ -2547,10 +2547,10 @@ const fungi = defineTable({
         beneficiaries: v.array(v.string()),
       }))),
     }),
-  })),
+  }))),
   
   // ===== CONSERVATION =====
-  conservation: citedValue(v.object({
+  conservation: v.optional(citedValue(v.object({
     // Conservation status
     status: v.object({
       // IUCN Red List
@@ -2630,10 +2630,10 @@ const fungi = defineTable({
       // Management recommendations
       recommendations: v.array(v.string()),
     }),
-  })),
+  }))),
   
   // ===== CULTURAL SIGNIFICANCE =====
-  cultural: citedValue(v.object({
+  cultural: v.optional(citedValue(v.object({
     // Ethnomycology
     ethnomycology: v.array(v.object({
       culture: v.string(),
@@ -2741,7 +2741,7 @@ const fungi = defineTable({
         economic_value: v.optional(v.string()),
       })),
     })),
-  })),
+  }))),
   
   // ===== RESEARCH & INNOVATION =====
   research: citedValue(v.object({
@@ -2868,7 +2868,7 @@ const fungi = defineTable({
   })),
   
   // ===== INTERACTIONS & RELATIONSHIPS =====
-  interactions: citedValue(v.object({
+  interactions: v.optional(citedValue(v.object({
     // Multi-species interactions
     multispecies: v.optional(v.array(v.object({
       organisms: v.array(v.string()),
@@ -2947,7 +2947,7 @@ const fungi = defineTable({
         functional_groups: v.array(v.string()),
       })),
     })),
-  })),
+  }))),
   
   // ===== METADATA & QUALITY =====
   metadata: v.optional(v.object({
