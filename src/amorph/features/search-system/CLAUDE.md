@@ -1,6 +1,8 @@
 # 🔍 SEARCH SYSTEM FEATURE
 
-**Last Updated:** 23. November 2025
+**Last Updated:** 25. November 2025
+
+**Status:** ✅ FULLY WORKING (as of 2025-11-25)
 
 ## Overview
 
@@ -9,6 +11,12 @@
 **Framework Concept:** Das Search-System ist generisch. Es durchsucht strukturierte Daten rekursiv (beliebige Objekte, Arrays, Nested Properties) und highlightet Treffer in den gerenderten Morphs. Die Convex-Integration ist austauschbar - das System funktioniert mit beliebigen Backend-APIs (REST, GraphQL, etc.).
 
 **Key Principle:** Search analysiert **Datenstrukturen**, nicht "Pilz-Felder". Die Auto-Perspective-Switching-Logik basiert auf generischen Field-to-Perspective-Mappings, die pro Instance konfigurierbar sind.
+
+**⚠️ CRITICAL FIX (2025-11-25):**
+- Search slug extraction MUST use `seoName` field (not `slug` field)
+- Database has TWO slug fields: `slug` (short) vs `seoName` (full SEO slug)
+- Frontend cards use `seoName` for their `data-slug` attribute
+- Configured in `domain.config.js` via `slugField: 'seoName'`
 
 **✨ UPDATED (2025-11-21):**
 - ConvexSearchReactor coordinates with BubbleView for bubble creation

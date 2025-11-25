@@ -1,8 +1,10 @@
 # 🎯 AMORPH Core - Framework Kernel
 
-**Last Updated:** 23. November 2025
+**Last Updated:** 25. November 2025
 
 **Framework Note:** Der Core ist **domain-agnostisch**. Er enthält keine domain-spezifische Logik. AmorphSystem, Observers, und EventBridge funktionieren mit beliebigen strukturierten Daten.
+
+**CRITICAL (2025-11-25):** `domain.config.js` must use `slugField: 'seoName'` - the `seoName` field is used by frontend cards, NOT the short `slug` field!
 
 ## Structure
 
@@ -608,6 +610,10 @@ export default {
     type: 'convex',
     table: 'fungi',
     nameField: 'commonName',
+    // ⚠️ CRITICAL: Must be 'seoName' NOT 'slug'!
+    // Database has two slug fields:
+    // - slug: short (amanita-muscaria)
+    // - seoName: full SEO slug (fly-agaric-amanita-muscaria) ← Frontend uses THIS
     slugField: 'seoName',
     descriptionField: 'description'
   },

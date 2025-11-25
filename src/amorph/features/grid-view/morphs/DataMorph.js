@@ -62,19 +62,19 @@ export class DataMorph extends LitElement {
     .data-label {
       display: flex;
       align-items: center;
-      gap: 0.375rem;
-      font-size: 0.5625rem;
+      gap: 0.5rem;
+      font-size: 0.625rem;
       font-weight: 700;
-      color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.55);
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      margin-bottom: 0.375rem;
+      margin-bottom: 0.5rem;
     }
 
     .data-value {
       color: rgba(255, 255, 255, 0.95);
-      line-height: 1.3;
-      font-size: 0.8125rem;
+      line-height: 1.4;
+      font-size: 0.875rem;
       transition: all 0.3s ease;
       word-wrap: break-word;
       overflow-wrap: break-word;
@@ -105,37 +105,39 @@ export class DataMorph extends LitElement {
     .data-value.text {
       font-size: 0.9375rem;
       font-weight: 500;
+      line-height: 1.5;
     }
 
     .data-value.tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.25rem;
-      line-height: 1.2;
+      gap: 0.375rem 0.5rem;
+      line-height: 1.3;
+      padding: 0.125rem 0;
     }
 
     .tag {
-      padding: 0;
+      padding: 0.25rem 0.5rem;
       font-size: 0.8125rem;
-      font-weight: 400;
-      background: transparent;
-      color: rgba(255, 255, 255, 0.85);
-      border: none;
-      display: inline;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      display: inline-block;
     }
     
     .tag:not(:last-child)::after {
-      content: ',';
-      margin-right: 0.25rem;
+      content: none;
     }
 
     .perspective-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.2rem;
-      padding: 0.1rem 0.375rem;
-      border-radius: 3px;
-      font-size: 0.5rem;
+      gap: 0.25rem;
+      padding: 0.1875rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.5625rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.03em;
@@ -148,28 +150,33 @@ export class DataMorph extends LitElement {
     .multi-perspective {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.25rem;
     }
 
     .perspective-section {
-      padding: 0.75rem;
+      padding: 1rem 0.875rem;
       border-left: 3px solid var(--perspective-color, rgba(255, 255, 255, 0.2));
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.025);
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+    }
+    
+    .perspective-section:last-child {
+      margin-bottom: 0;
     }
 
     /* Smart Grid Layout für nested fields */
     .nested-fields-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.5rem;
+      gap: 0.75rem 1rem;
+      margin-top: 0.5rem;
     }
 
     /* Nested rendering styles */
     .nested-field {
-      margin-bottom: 0.5rem;
-      padding: 0.375rem 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      margin-bottom: 0.375rem;
+      padding: 0.5rem 0;
     }
     
     /* Boolean und Number fields: kompakt nebeneinander */
@@ -177,11 +184,20 @@ export class DataMorph extends LitElement {
       grid-column: span 1;
       border-bottom: none;
       margin-bottom: 0;
+      padding: 0.25rem 0;
     }
     
     /* Lange Text-Fields: volle Breite */
     .nested-field.wide {
       grid-column: 1 / -1;
+      padding-bottom: 0.625rem;
+      margin-bottom: 0.375rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    
+    .nested-field.wide:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
     }
 
     .nested-field:last-child {
@@ -190,41 +206,45 @@ export class DataMorph extends LitElement {
 
     .nested-label {
       display: block;
-      font-size: 0.5rem;
+      font-size: 0.5625rem;
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.45);
+      color: rgba(255, 255, 255, 0.5);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 0.125rem;
+      margin-bottom: 0.25rem;
     }
 
     .nested-section {
-      margin: 0.5rem 0;
-      padding: 0.5rem;
+      margin: 0.875rem 0;
+      padding: 0.75rem;
       border-left: 2px solid rgba(255, 255, 255, 0.15);
       background: rgba(255, 255, 255, 0.02);
-      border-radius: 4px;
+      border-radius: 6px;
       grid-column: 1 / -1;
+    }
+    
+    .nested-section:first-child {
+      margin-top: 0.375rem;
     }
 
     .section-title {
-      font-size: 0.625rem;
+      font-size: 0.6875rem;
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.75);
+      color: rgba(255, 255, 255, 0.8);
       text-transform: capitalize;
-      margin: 0 0 0.375rem 0;
+      margin: 0 0 0.625rem 0;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      padding-bottom: 0.25rem;
+      padding-bottom: 0.375rem;
     }
     
     /* Inline Boolean-Darstellung für nested fields */
     .boolean-inline {
       display: inline-flex;
       align-items: center;
-      gap: 0.25rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.6875rem;
+      gap: 0.375rem;
+      padding: 0.375rem 0.625rem;
+      border-radius: 5px;
+      font-size: 0.75rem;
       font-weight: 500;
       width: fit-content;
     }
@@ -242,7 +262,7 @@ export class DataMorph extends LitElement {
     }
     
     .bool-icon {
-      font-size: 0.875rem;
+      font-size: 1rem;
       line-height: 1;
     }
     
@@ -251,14 +271,15 @@ export class DataMorph extends LitElement {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 120px;
+      max-width: 140px;
     }
     
     /* Number-Darstellung */
     .data-value.number {
-      font-size: 0.875rem;
+      font-size: 0.9375rem;
       font-weight: 600;
       color: #667eea;
+      padding: 0.125rem 0;
     }
 
     .nested-array {
@@ -287,11 +308,18 @@ export class DataMorph extends LitElement {
     .nested-object {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.375rem;
+      gap: 0.625rem 0.875rem;
     }
 
     /* Deep mode styles */
     .deep-mode {
+      padding: 0;
+      border-left: none;
+    }
+    
+    .deep-mode .perspective-section {
+      margin-bottom: 1rem;
+    }
       padding: 0;
       border-left: none;
     }

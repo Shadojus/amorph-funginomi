@@ -44,14 +44,15 @@ export class NumberMorph extends LitElement {
       .number-container {
         display: inline-flex;
         flex-direction: column;
-        gap: 0.125rem;
-        padding: 0.375rem 0.5rem;
+        gap: 0.1875rem;
+        padding: 0.5rem 0.625rem;
         border-radius: var(--radius-md, 6px);
         background: rgba(255, 255, 255, 0.05);
         border: 1.5px solid rgba(102, 126, 234, 0.2);
         transition: all 0.3s ease;
         width: fit-content;
         max-width: 100%;
+        min-width: 80px;
     }
 
     .number-container:hover {
@@ -61,8 +62,8 @@ export class NumberMorph extends LitElement {
     }
 
     .label {
-      font-size: 0.5625rem;
-      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.625rem;
+      color: rgba(255, 255, 255, 0.55);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       font-weight: 600;
@@ -74,26 +75,26 @@ export class NumberMorph extends LitElement {
     .value-row {
       display: flex;
       align-items: baseline;
-      gap: 0.125rem;
+      gap: 0.1875rem;
     }
 
     .value {
-      font-size: 1.125rem;
+      font-size: 1.25rem;
       font-weight: 700;
       color: #667eea;
-      line-height: 1;
+      line-height: 1.1;
     }
 
     .unit {
-      font-size: 0.6875rem;
+      font-size: 0.75rem;
       color: rgba(255, 255, 255, 0.6);
       font-weight: 500;
     }
 
     .range {
-      font-size: 0.625rem;
-      color: rgba(255, 255, 255, 0.4);
-      margin-top: 0.125rem;
+      font-size: 0.6875rem;
+      color: rgba(255, 255, 255, 0.45);
+      margin-top: 0.1875rem;
     }
 
     .range-bar {
@@ -101,7 +102,7 @@ export class NumberMorph extends LitElement {
       height: 3px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 2px;
-      margin-top: 0.25rem;
+      margin-top: 0.375rem;
       position: relative;
       overflow: hidden;
     }

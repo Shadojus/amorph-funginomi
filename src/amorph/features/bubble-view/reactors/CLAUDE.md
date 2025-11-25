@@ -1,6 +1,6 @@
 # Bubble View - Reactors (Framework Component)
 
-**Last Updated:** 23. November 2025
+**Last Updated:** 25. November 2025
 
 **Previously:** 22. November 2025
 

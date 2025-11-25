@@ -1,6 +1,6 @@
 # 📄 PAGES - Astro Pages & Routes (Instance-Specific)
 
-**Last Updated:** 23. November 2025
+**Last Updated:** 25. November 2025
 
 **⚠️ INSTANCE-SPECIFIC:** Diese Pages sind instance-spezifisch. Das AMORPH Framework selbst ist page-agnostic. Jede Instance definiert ihre eigenen Routes basierend auf ihrer Domäne, nutzt aber die gleichen Features (GridView, BubbleView, PerspectiveSystem).
 
