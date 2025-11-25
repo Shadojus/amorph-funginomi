@@ -22,6 +22,7 @@ export class RangeMorph extends LitElement {
       :host {
         display: block;
         font-family: var(--font-sans);
+        width: 100%;
         max-width: 100%;
         overflow: hidden;
       }
@@ -29,7 +30,7 @@ export class RangeMorph extends LitElement {
       .range-container {
         display: flex;
         flex-direction: column;
-        gap: 0.4rem;
+        gap: 0.5rem;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
@@ -88,33 +89,33 @@ export class RangeMorph extends LitElement {
       }
       
       .range-label-text {
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 9px;
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 0.625rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.04em;
       }
 
       .range-value {
         font-variant-numeric: tabular-nums;
-        font-weight: 700;
+        font-weight: 600;
         display: flex;
         align-items: baseline;
         gap: 2px;
         color: rgba(16, 185, 129, 1);
         white-space: nowrap;
-        font-size: 13px;
+        font-size: 0.8125rem;
       }
 
       .range-value.optimal { 
         color: rgba(16, 185, 129, 1);
         font-weight: 700;
-        text-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+        text-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
       }
 
       .range-unit {
         color: inherit;
         opacity: 0.8;
-        font-size: 10px;
+        font-size: 0.6875rem;
       }
     `
   ];

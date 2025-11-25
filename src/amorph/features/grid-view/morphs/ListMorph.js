@@ -33,6 +33,7 @@ export class ListMorph extends LitElement {
     css`
       :host {
         display: block;
+        width: 100%;
         max-width: 100%;
         overflow: hidden;
       }
@@ -41,24 +42,25 @@ export class ListMorph extends LitElement {
         padding: 0.75rem;
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         transition: all 0.3s ease;
         width: 100%;
+        max-width: 100%;
         box-sizing: border-box;
     }
 
     .list-container:hover {
       background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.15);
     }
 
     .label {
-      font-size: 0.75rem;
-      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.6875rem;
+      color: rgba(255, 255, 255, 0.55);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.04em;
       font-weight: 600;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.625rem;
       display: block;
     }
 
@@ -71,12 +73,12 @@ export class ListMorph extends LitElement {
     }
 
     .item {
-      padding: 0.4rem 0.8rem;
+      padding: 0.375rem 0.75rem;
       border-radius: 16px;
       background: rgba(102, 126, 234, 0.1);
-      border: 1.5px solid rgba(102, 126, 234, 0.3);
+      border: 1.5px solid rgba(102, 126, 234, 0.25);
       color: #8b9dff;
-      font-size: 0.7rem;
+      font-size: 0.8125rem;
       font-weight: 500;
       transition: all 0.2s ease;
       user-select: none;
@@ -88,14 +90,14 @@ export class ListMorph extends LitElement {
 
     .item:hover {
       background: rgba(102, 126, 234, 0.2);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
     }
 
     .compact .item {
-      padding: 0.375rem 0.75rem;
-      font-size: 0.8125rem;
-      border-radius: 16px;
+      padding: 0.3rem 0.625rem;
+      font-size: 0.75rem;
+      border-radius: 14px;
     }
 
     .more-indicator {

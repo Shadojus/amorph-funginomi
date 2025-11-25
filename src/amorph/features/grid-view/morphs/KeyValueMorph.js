@@ -22,24 +22,25 @@ export class KeyValueMorph extends LitElement {
       :host {
         display: block;
         font-family: var(--font-sans);
+        width: 100%;
         max-width: 100%;
         overflow: hidden;
       }
 
       .kv-grid {
         display: grid;
-        grid-template-columns: minmax(60px, auto) 1fr;
-        gap: var(--space-xs) var(--space-sm);
-        font-size: var(--font-size-sm);
+        grid-template-columns: minmax(80px, auto) 1fr;
+        gap: 0.375rem 0.75rem;
+        font-size: 0.875rem;
         width: 100%;
         max-width: 100%;
       }
 
       .kv-key {
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.6875rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.04em;
         font-weight: 600;
         white-space: nowrap;
         overflow: hidden;
@@ -48,10 +49,10 @@ export class KeyValueMorph extends LitElement {
 
       .kv-value {
         color: rgba(255, 255, 255, 0.95);
-        font-weight: 700;
+        font-weight: 600;
         word-wrap: break-word;
         overflow-wrap: break-word;
-        font-size: 13px;
+        font-size: 0.875rem;
       }
 
       .kv-value.boolean {

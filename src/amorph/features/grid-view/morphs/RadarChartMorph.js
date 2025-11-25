@@ -30,17 +30,26 @@ export class RadarChartMorph extends LitElement {
         font-family: var(--font-sans);
         background: rgba(0, 0, 0, 0.3);
         border-radius: var(--radius-md);
-        padding: var(--space-md);
+        padding: 0.5rem;
         --local-perspective-color: var(--perspective-color, #10b981);
+        container-type: inline-size;
+        container-name: radarchart;
       }
 
       .radar-container {
         position: relative;
         width: 100%;
         aspect-ratio: 1;
-        max-width: 360px;
+        max-width: 200px;
         margin: 0 auto;
         isolation: isolate;
+      }
+      
+      /* Larger on wide containers */
+      @container radarchart (min-width: 250px) {
+        .radar-container {
+          max-width: 280px;
+        }
       }
       
       .label-group,
@@ -51,7 +60,7 @@ export class RadarChartMorph extends LitElement {
       svg {
         width: 100%;
         height: 100%;
-        filter: drop-shadow(0 2px 8px rgba(16, 185, 129, 0.3));
+        filter: drop-shadow(0 2px 6px rgba(16, 185, 129, 0.25));
         position: relative;
         z-index: 10;
       }
@@ -60,7 +69,7 @@ export class RadarChartMorph extends LitElement {
         fill: none;
         stroke: var(--local-perspective-color);
         opacity: 0.25;
-        stroke-width: 1.5;
+        stroke-width: 1;
       }
 
       .radar-shape {
@@ -68,12 +77,12 @@ export class RadarChartMorph extends LitElement {
         fill-opacity: 0.35;
         stroke: var(--local-perspective-color);
         stroke-opacity: 0.9;
-        stroke-width: 3;
+        stroke-width: 2;
         stroke-linejoin: round;
       }
 
       .radar-label-html {
-        font-size: 12px;
+        font-size: 9px;
         font-weight: 700;
         color: white !important;
         text-shadow: 
@@ -81,14 +90,19 @@ export class RadarChartMorph extends LitElement {
           1px -1px 0 #000,
           -1px 1px 0 #000,
           1px 1px 0 #000,
-          0 0 4px #000,
-          0 0 8px #000;
+          0 0 3px #000;
         white-space: nowrap;
         line-height: 1;
       }
+      
+      @container radarchart (min-width: 250px) {
+        .radar-label-html {
+          font-size: 11px;
+        }
+      }
 
       .radar-value-html {
-        font-size: 14px;
+        font-size: 10px;
         font-weight: 700;
         color: var(--local-perspective-color) !important;
         text-shadow: 
@@ -96,8 +110,7 @@ export class RadarChartMorph extends LitElement {
           1px -1px 0 #000,
           -1px 1px 0 #000,
           1px 1px 0 #000,
-          0 0 4px #000,
-          0 0 8px #000;
+          0 0 3px #000;
         white-space: nowrap;
         line-height: 1;
       }
@@ -105,17 +118,23 @@ export class RadarChartMorph extends LitElement {
       .radar-point {
         fill: var(--local-perspective-color);
         stroke: rgba(255, 255, 255, 0.8);
-        stroke-width: 2;
+        stroke-width: 1.5;
       }
       
       .chart-title {
         text-align: center;
-        font-size: 14px;
+        font-size: 11px;
         font-weight: 700;
         color: rgba(255, 255, 255, 0.9);
-        margin-bottom: var(--space-sm);
+        margin-bottom: 0.375rem;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
+      }
+      
+      @container radarchart (min-width: 250px) {
+        .chart-title {
+          font-size: 13px;
+        }
       }
     `
   ];

@@ -31,6 +31,7 @@ export class TextMorph extends LitElement {
     css`
       :host {
         display: block;
+        width: 100%;
         max-width: 100%;
         overflow: hidden;
       }
@@ -38,7 +39,7 @@ export class TextMorph extends LitElement {
       .text {
         margin: 0;
         font-family: var(--font-sans);
-        line-height: var(--line-height-normal);
+        line-height: 1.5;
         transition: var(--transition-base);
         word-wrap: break-word;
         overflow-wrap: break-word;
@@ -56,18 +57,18 @@ export class TextMorph extends LitElement {
     
     /* Sizes */
     .text.small {
-      font-size: 13px;
-      line-height: 1.5;
+      font-size: 0.8125rem;
+      line-height: 1.45;
     }
     
     .text.medium {
-      font-size: 15px;
-      line-height: 1.6;
+      font-size: 0.9375rem;
+      line-height: 1.5;
     }
     
     .text.large {
-      font-size: 17px;
-      line-height: 1.7;
+      font-size: 1.0625rem;
+      line-height: 1.55;
     }
     
     /* Weight */

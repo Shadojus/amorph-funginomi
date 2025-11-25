@@ -24,6 +24,8 @@ export class NameMorph extends LitElement {
     css`
       :host {
         display: block;
+        width: 100%;
+        max-width: 100%;
       }
       
       .name {
@@ -31,16 +33,16 @@ export class NameMorph extends LitElement {
         font-weight: var(--font-weight-semibold);
         color: var(--color-text-light);
         transition: var(--transition-base);
-        line-height: var(--line-height-normal);
+        line-height: 1.3;
         word-wrap: break-word;
         overflow-wrap: break-word;
         word-break: break-word;
         max-width: 100%;
       }
       
-      .name.small { font-size: var(--font-size-sm); }
-      .name.medium { font-size: var(--font-size-lg); }
-      .name.large { font-size: var(--font-size-2xl); }
+      .name.small { font-size: 0.875rem; }
+      .name.medium { font-size: 1.125rem; }
+      .name.large { font-size: 1.375rem; }
       
       .name.latin {
         font-style: italic;

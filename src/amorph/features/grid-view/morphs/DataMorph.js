@@ -63,12 +63,14 @@ export class DataMorph extends LitElement {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      font-size: 0.625rem;
+      font-size: 0.6875rem;
       font-weight: 700;
-      color: rgba(255, 255, 255, 0.55);
+      color: rgba(255, 255, 255, 0.6);
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 0.5rem;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.375rem;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .data-value {
@@ -162,45 +164,91 @@ export class DataMorph extends LitElement {
       border-left-width: 3px;
     }
 
-    /* Festes 2-Spalten Grid für nested fields */
+    /* ===== CONTAINER QUERY SETUP ===== */
+    /* DataMorph responds to its own width, not the viewport */
+    .data-container {
+      container-type: inline-size;
+      container-name: datamorph;
+    }
+    
+    .nested-fields-grid {
+      container-type: inline-size;
+      container-name: nestedgrid;
+    }
+
+    /* Default: 2-Spalten Layout */
     .nested-fields-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.625rem 0.75rem;
-      margin-top: 0.625rem;
+      gap: 0.5rem 0.625rem;
+      margin-top: 0.5rem;
       align-items: start;
+    }
+    
+    /* Very narrow container (<180px): 1-spaltig, sehr kompakt */
+    @container nestedgrid (max-width: 180px) {
+      .nested-fields-grid {
+        grid-template-columns: 1fr;
+        gap: 0.375rem;
+      }
+      
+      .nested-field,
+      .nested-field.compact,
+      .nested-field.wide {
+        grid-column: 1 / -1;
+        padding: 0.375rem 0.5rem;
+      }
+      
+      .nested-label {
+        font-size: 0.5rem;
+        margin-bottom: 0.125rem;
+      }
+    }
+    
+    /* Narrow container (180-280px): 1-spaltig */
+    @container nestedgrid (min-width: 181px) and (max-width: 280px) {
+      .nested-fields-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+      
+      .nested-field,
+      .nested-field.compact,
+      .nested-field.wide {
+        grid-column: 1 / -1;
+      }
+    }
+    
+    /* Wide container (>280px): spans */
+    @container nestedgrid (min-width: 281px) {
+      .nested-field.compact {
+        grid-column: span 1;
+      }
+      
+      .nested-field.wide {
+        grid-column: 1 / -1;
+      }
     }
 
     /* Nested rendering styles - mit Container */
     .nested-field {
       background: rgba(0, 0, 0, 0.15);
-      border-radius: 5px;
+      border-radius: 6px;
       padding: 0.5rem 0.625rem;
       border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    
-    /* Boolean und Number fields: 1 Spalte */
-    .nested-field.compact {
-      grid-column: span 1;
-    }
-    
-    /* Lange Text-Fields: volle Breite */
-    .nested-field.wide {
-      grid-column: 1 / -1;
-    }", "oldString": "    /* Responsives Auto-Fit Grid für nested fields */\n    .nested-fields-grid {\n      display: grid;\n      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));\n      gap: 0.875rem 1rem;\n      margin-top: 0.75rem;\n      align-items: start;\n    }\n\n    /* Nested rendering styles */\n    .nested-field {\n      padding: 0.5rem 0;\n    }\n    \n    /* Boolean und Number fields: kompakt, passen sich an */\n    .nested-field.compact {\n      grid-column: span 1;\n      padding: 0.375rem 0;\n    }\n    \n    /* Lange Text-Fields: volle Breite */\n    .nested-field.wide {\n      grid-column: 1 / -1;\n      padding-bottom: 0.75rem;\n      margin-bottom: 0.5rem;\n      border-bottom: 1px solid rgba(255, 255, 255, 0.06);\n    }\n    \n    .nested-field.wide:last-child {\n      border-bottom: none;\n      margin-bottom: 0;\n    }
-
-    .nested-field:last-child {
-      border-bottom: none;
     }
 
     .nested-label {
       display: block;
-      font-size: 0.5625rem;
+      font-size: 0.6875rem;
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.6);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
       margin-bottom: 0.25rem;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.3;
     }
 
     .nested-section {
@@ -297,10 +345,18 @@ export class DataMorph extends LitElement {
     }
 
     .nested-object {
+      container-type: inline-size;
+      container-name: nestedobject;
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: 1fr;
       gap: 0.5rem 0.625rem;
       align-items: start;
+    }
+    
+    @container nestedobject (min-width: 280px) {
+      .nested-object {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     /* Deep mode styles */
@@ -313,17 +369,6 @@ export class DataMorph extends LitElement {
       margin-bottom: 1.25rem;
     }
     
-    .deep-mode .perspective-section:last-child {
-      margin-bottom: 0;
-    }
-      padding: 0;
-      border-left: none;
-    }
-
-    .deep-mode .perspective-section {
-      margin-bottom: 1.5rem;
-    }
-
     .deep-mode .perspective-section:last-child {
       margin-bottom: 0;
     }

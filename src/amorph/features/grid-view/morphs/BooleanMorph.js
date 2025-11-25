@@ -33,20 +33,21 @@ export class BooleanMorph extends LitElement {
     globalStyles,
     css`
       :host {
-        display: inline-block;
+        display: block;
         width: 100%;
+        max-width: 100%;
       }
 
       .boolean-container {
         display: inline-flex;
         align-items: center;
-        gap: 0.4375rem;
-        padding: 0.4375rem 0.75rem;
+        gap: 0.5rem;
+        padding: 0.5rem 0.75rem;
         border-radius: var(--radius-md, 6px);
         transition: var(--transition-base, all 0.2s ease);
         font-size: 0.8125rem;
         font-weight: var(--font-weight-medium, 500);
-        width: fit-content;
+        width: auto;
         max-width: 100%;
     }
 
@@ -63,7 +64,7 @@ export class BooleanMorph extends LitElement {
     }
 
     .icon {
-      font-size: 1.125rem;
+      font-size: 1rem;
       line-height: 1;
       flex-shrink: 0;
     }

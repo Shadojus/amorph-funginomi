@@ -37,31 +37,52 @@ export class TimelineMorph extends LitElement {
     css`
       :host {
         display: block;
-        padding: var(--space-lg);
-        border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
+        width: 100%;
+        max-width: 100%;
+        padding: 0.625rem;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        container-type: inline-size;
+        container-name: timeline;
+        box-sizing: border-box;
     }
 
     .timeline-label {
-      font-size: 14px;
-      font-weight: 500;
-      color: white;
-      margin-bottom: 12px;
+      font-size: 0.625rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.55);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.5rem;
     }
 
     .timeline-container {
       position: relative;
-      padding: 40px 20px;
+      padding: 1.25rem 0.5rem;
+      min-height: 60px;
+    }
+    
+    @container timeline (min-width: 300px) {
+      .timeline-container {
+        padding: 1.5rem 1rem;
+      }
     }
 
     .timeline-line {
       position: absolute;
       top: 50%;
-      left: 20px;
-      right: 20px;
+      left: 0.5rem;
+      right: 0.5rem;
       height: 2px;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    @container timeline (min-width: 300px) {
+      .timeline-line {
+        left: 1rem;
+        right: 1rem;
+      }
     }
 
     .timeline-event {
@@ -72,30 +93,47 @@ export class TimelineMorph extends LitElement {
     }
 
     .timeline-event-dot {
-      width: 16px;
-      height: 16px;
+      width: 10px;
+      height: 10px;
       background: currentColor;
-      border: 3px solid white;
+      border: 2px solid white;
       border-radius: 50%;
       transition: all 0.2s ease;
     }
+    
+    @container timeline (min-width: 300px) {
+      .timeline-event-dot {
+        width: 14px;
+        height: 14px;
+      }
+    }
 
     .timeline-event:hover .timeline-event-dot {
-      transform: scale(1.5);
+      transform: scale(1.2);
     }
 
     .timeline-event-label {
       position: absolute;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 11px;
-      color: white;
+      font-size: 0.5625rem;
+      color: rgba(255, 255, 255, 0.8);
       white-space: nowrap;
       font-weight: 500;
+      max-width: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    @container timeline (min-width: 300px) {
+      .timeline-event-label {
+        font-size: 0.6875rem;
+        max-width: 120px;
+      }
     }
 
     .timeline-event-label.above {
-      bottom: 30px;
+      bottom: 1.25rem;
     }
 
     .timeline-event-label.below {

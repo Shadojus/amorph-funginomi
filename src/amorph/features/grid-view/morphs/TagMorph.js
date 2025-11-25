@@ -30,7 +30,8 @@ export class TagMorph extends LitElement {
     globalStyles,
     css`
       :host {
-        display: inline-block;
+        display: block;
+        width: 100%;
         max-width: 100%;
         overflow: hidden;
       }
@@ -38,14 +39,14 @@ export class TagMorph extends LitElement {
       .tags-container {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.4rem;
+        gap: 0.5rem;
         max-width: 100%;
       }
       
       .tag {
-        padding: 0.35rem 0.75rem;
+        padding: 0.375rem 0.75rem;
         border-radius: var(--radius-full);
-        font-size: 0.75rem;
+        font-size: 0.8125rem;
         font-weight: var(--font-weight-medium);
         transition: var(--transition-base);
         border: 1.5px solid currentColor;

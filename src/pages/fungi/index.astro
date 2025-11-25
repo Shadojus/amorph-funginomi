@@ -468,9 +468,6 @@ const morphMapper = new ServerMorphMapper();
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
     height: auto;
     position: relative;
-    /* Container Query: each card responds to its own width */
-    container-type: inline-size;
-    container-name: card;
   }
   
   /* Dark overlay for better readability */
@@ -607,9 +604,9 @@ const morphMapper = new ServerMorphMapper();
   .card-data {
     padding: 1.25rem;
     display: grid;
-    /* Festes 2-Spalten Grid für konsistentes Layout */
+    /* Default: 2-Spalten Layout */
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem 1rem;
+    gap: 0.875rem 1rem;
     overflow-y: auto;
     overflow-x: hidden;
     max-height: 500px;
@@ -618,24 +615,36 @@ const morphMapper = new ServerMorphMapper();
     width: 100%;
     box-sizing: border-box;
     align-items: start;
+    /* Container Query für eigene Responsive-Anpassung */
+    container-type: inline-size;
+    container-name: carddata;
+  }
+  
+  /* Narrow card-data (<300px): 1-Spalte */
+  @container carddata (max-width: 300px) {
+    .card-data {
+      grid-template-columns: 1fr;
+    }
   }
   
   /* ALLE Morphs bekommen einen konsistenten Container-Look */
   .card-data > * {
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 6px;
-    padding: 0.625rem 0.75rem;
+    border-radius: 8px;
+    padding: 0.75rem;
     border: 1px solid rgba(255, 255, 255, 0.06);
   }
   
+  /* ===== MORPH GRID SPANS ===== */
   /* Kompakte Morphs: 1 Spalte */
   .card-data boolean-morph,
-  .card-data number-morph {
+  .card-data number-morph,
+  .card-data tag-morph,
+  .card-data name-morph {
     grid-column: span 1;
   }
   
-  /* Mittlere Morphs: 1 Spalte, aber können wachsen */
-  .card-data tag-morph,
+  /* Mittlere Morphs: 1 Spalte */
   .card-data range-morph,
   .card-data key-value-morph,
   .card-data .morph-field {
@@ -645,20 +654,48 @@ const morphMapper = new ServerMorphMapper();
   /* Große Morphs: volle Breite */
   .card-data data-morph,
   .card-data text-morph,
-  .card-data list-morph {
+  .card-data list-morph,
+  .card-data timeline-morph {
     grid-column: 1 / -1;
-  }
-  
-  /* Name-Morphs auch volle Breite wenn lang */
-  .card-data name-morph {
-    grid-column: span 1;
   }
   
   /* Wrapper für große Inhalte */
   .card-data .morph-field:has(text-morph),
   .card-data .morph-field:has(list-morph),
-  .card-data .morph-field:has(data-morph) {
+  .card-data .morph-field:has(data-morph),
+  .card-data .morph-field:has(timeline-morph) {
     grid-column: 1 / -1;
+  }
+  
+  /* Kompakte morph-field wrapper */
+  .card-data .morph-field:has(boolean-morph),
+  .card-data .morph-field:has(number-morph),
+  .card-data .morph-field:has(tag-morph),
+  .card-data .morph-field:has(name-morph) {
+    grid-column: span 1;
+  }
+  
+  /* Narrow container: alles 1-spaltig */
+  @container carddata (max-width: 300px) {
+    .card-data boolean-morph,
+    .card-data number-morph,
+    .card-data tag-morph,
+    .card-data name-morph,
+    .card-data .morph-field {
+      grid-column: 1 / -1;
+    }
+  }
+  
+  /* Very narrow: kompaktere Abstände */
+  @container carddata (max-width: 220px) {
+    .card-data {
+      gap: 0.5rem;
+      padding: 0.75rem;
+    }
+    
+    .card-data > * {
+      padding: 0.5rem;
+    }
   }
   
   /* Enable flex ordering for perspective-based DataMorph positioning */
@@ -690,22 +727,16 @@ const morphMapper = new ServerMorphMapper();
     padding-bottom: 0.25rem;
   }
   
-  /* Kompakte morph-field wrapper für Boolean/Number */
-  .card-data .morph-field:has(boolean-morph),
-  .card-data .morph-field:has(number-morph) {
-    grid-column: span 1;
-  }
-  
   .card-data .morph-label {
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.6);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    margin-bottom: 0.125rem;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
+    margin-bottom: 0.1875rem;
   }
   
   /* Style all morph types in card-data */
@@ -881,61 +912,11 @@ const morphMapper = new ServerMorphMapper();
     }
   }
   
-  /* Kleine Screens: 1-spaltig - VIEWPORT FALLBACK */
+  /* Kleine Screens - nur Viewport-Fallback für sehr alte Browser */
   @media (max-width: 480px) {
     .card-data {
-      grid-template-columns: 1fr;
       gap: 0.625rem;
-    }
-    
-    .card-data boolean-morph,
-    .card-data number-morph,
-    .card-data tag-morph,
-    .card-data .morph-field {
-      grid-column: 1 / -1;
-    }
-  }
-  
-  /* ===== CONTAINER QUERIES: Each card is individually responsive ===== */
-  
-  /* Wide card (>450px): 2-column layout */
-  @container card (min-width: 450px) {
-    .card-data {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem 1rem;
-    }
-    
-    .card-data boolean-morph,
-    .card-data number-morph {
-      grid-column: span 1;
-    }
-    
-    .card-data tag-morph,
-    .card-data range-morph,
-    .card-data key-value-morph,
-    .card-data .morph-field {
-      grid-column: span 1;
-    }
-    
-    .card-data .morph-field:has(boolean-morph),
-    .card-data .morph-field:has(number-morph) {
-      grid-column: span 1;
-    }
-  }
-  
-  /* Narrow card (<450px): 1-column layout */
-  @container card (max-width: 449px) {
-    .card-data {
-      grid-template-columns: 1fr;
-      gap: 0.625rem;
-    }
-    
-    .card-data boolean-morph,
-    .card-data number-morph,
-    .card-data tag-morph,
-    .card-data range-morph,
-    .card-data .morph-field {
-      grid-column: 1 / -1;
+      padding: 1rem;
     }
   }
   
