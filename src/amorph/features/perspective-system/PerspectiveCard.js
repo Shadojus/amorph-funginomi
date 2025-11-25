@@ -24,6 +24,7 @@
 import { LitElement, html, css } from 'lit';
 import { globalStyles } from '../grid-view/morphs/tokens.js';
 import { amorph } from '../../core/AmorphSystem.js';
+import { perspectiveSchemaFields, getFieldsForPerspective } from '../../core/perspectiveFieldMappings.ts';
 
 export class PerspectiveCard extends LitElement {
   static properties = {
@@ -264,6 +265,9 @@ export class PerspectiveCard extends LitElement {
 
   /**
    * Get fields for a specific perspective
+   * NOW USES CENTRALIZED MAPPINGS from perspectiveFieldMappings.ts
+   * 
+   * When schema changes, only update perspectiveFieldMappings.ts!
    */
   getFieldsForPerspective(perspectiveName) {
     const fields = [];
@@ -271,82 +275,71 @@ export class PerspectiveCard extends LitElement {
 
     if (!perspectiveData) return fields;
 
-    // Culinary
-    if (perspectiveName === 'culinaryAndNutritional') {
-      if (perspectiveData.edibility) {
-        fields.push({ label: 'Edibility', value: perspectiveData.edibility, type: 'text' });
-      }
-      if (perspectiveData.taste) {
-        fields.push({ label: 'Taste', value: perspectiveData.taste, type: 'text' });
-      }
-      if (perspectiveData.texture) {
-        fields.push({ label: 'Texture', value: perspectiveData.texture, type: 'text' });
-      }
-      if (perspectiveData.culinaryUses) {
-        fields.push({ label: 'Culinary Uses', value: perspectiveData.culinaryUses, type: 'text' });
-      }
-    }
+    // Get the display field names from centralized mappings
+    const perspectiveConfig = perspectiveSchemaFields[perspectiveName];
+    if (!perspectiveConfig) return fields;
 
-    // Safety
-    if (perspectiveName === 'safetyAndIdentification') {
-      if (perspectiveData.toxicity) {
-        fields.push({ label: 'Toxicity', value: perspectiveData.toxicity, type: 'text' });
-      }
-      if (perspectiveData.identificationFeatures) {
-        fields.push({ label: 'Key ID Features', value: perspectiveData.identificationFeatures, type: 'text' });
-      }
-      if (perspectiveData.lookalikes && perspectiveData.lookalikes.length > 0) {
-        fields.push({ label: 'Lookalikes', value: perspectiveData.lookalikes.join(', '), type: 'text' });
-      }
-    }
-
-    // Cultivation
-    if (perspectiveName === 'cultivationAndProcessing') {
-      if (perspectiveData.methods && perspectiveData.methods.length > 0) {
-        fields.push({ label: 'Cultivation Methods', value: perspectiveData.methods.join(', '), type: 'text' });
-      }
-      if (perspectiveData.difficulty) {
-        fields.push({ label: 'Difficulty', value: perspectiveData.difficulty, type: 'text' });
-      }
-      if (perspectiveData.substrate) {
-        fields.push({ label: 'Substrate', value: perspectiveData.substrate, type: 'text' });
-      }
-    }
-
-    // Medicinal
-    if (perspectiveName === 'medicinalAndHealth') {
-      if (perspectiveData.benefits && perspectiveData.benefits.length > 0) {
-        fields.push({ label: 'Health Benefits', value: perspectiveData.benefits.join(', '), type: 'text' });
-      }
-      if (perspectiveData.compounds && perspectiveData.compounds.length > 0) {
-        fields.push({ label: 'Active Compounds', value: perspectiveData.compounds.join(', '), type: 'text' });
-      }
-    }
-
-    // Ecology
-    if (perspectiveName === 'ecologyAndHabitat') {
-      if (perspectiveData.habitat && perspectiveData.habitat.length > 0) {
-        fields.push({ label: 'Habitat', value: perspectiveData.habitat.join(', '), type: 'text' });
-      }
-      if (perspectiveData.season && perspectiveData.season.length > 0) {
-        fields.push({ label: 'Season', value: perspectiveData.season.join(', '), type: 'text' });
-      }
-      if (perspectiveData.distribution) {
-        fields.push({ label: 'Distribution', value: perspectiveData.distribution, type: 'text' });
-      }
-    }
-
-    // Chemical
-    if (perspectiveName === 'chemicalAndProperties') {
-      if (perspectiveData.composition) {
-        fields.push({ label: 'Chemical Composition', value: perspectiveData.composition, type: 'text' });
-      }
-      if (perspectiveData.bioactiveCompounds && perspectiveData.bioactiveCompounds.length > 0) {
-        fields.push({ label: 'Bioactive Compounds', value: perspectiveData.bioactiveCompounds.join(', '), type: 'text' });
+    // Iterate through fields defined for this perspective in the mapping
+    const displayFields = perspectiveConfig.displayFields || [];
+    
+    for (const fieldKey of displayFields) {
+      // Try to find the value in the data
+      const value = this._getNestedValue(perspectiveData, fieldKey);
+      
+      if (value !== null && value !== undefined && value !== '') {
+        fields.push({
+          label: this._formatFieldLabel(fieldKey),
+          value: this._formatFieldValue(value),
+          type: 'text'
+        });
       }
     }
 
     return fields;
+  }
+
+  /**
+   * Get nested value from object by dot-notation path
+   * e.g., "habitat.substrate" → obj.habitat.substrate
+   */
+  _getNestedValue(obj, path) {
+    const keys = path.split('.');
+    let current = obj;
+    
+    for (const key of keys) {
+      if (current && typeof current === 'object' && key in current) {
+        current = current[key];
+      } else {
+        return null;
+      }
+    }
+    
+    return current;
+  }
+
+  /**
+   * Format field name for display
+   * e.g., "cultivationMethods" → "Cultivation Methods"
+   */
+  _formatFieldLabel(fieldKey) {
+    return fieldKey
+      .replace(/([A-Z])/g, ' $1') // Add space before uppercase
+      .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+      .trim();
+  }
+
+  /**
+   * Format field value for display
+   * Handles arrays, objects, and strings
+   */
+  _formatFieldValue(value) {
+    if (Array.isArray(value)) {
+      return value.join(', ');
+    }
+    if (typeof value === 'object') {
+      return JSON.stringify(value, null, 2);
+    }
+    return String(value);
   }
 
   render() {

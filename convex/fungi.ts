@@ -1,5 +1,10 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { 
+  fieldToPerspectiveIndex,
+  getFieldKeyToPerspectiveMapping,
+  getPerspectiveForField
+} from "./perspectiveFieldMappings";
 
 /**
  * List all fungi in the database
@@ -41,9 +46,10 @@ export const getByCommonName = query({
   args: { name: v.string() },
   handler: async (ctx, args) => {
     const allFungi = await ctx.db.query("fungi").collect();
-    return allFungi.filter((fungus) =>
-      fungus.commonName.toLowerCase().includes(args.name.toLowerCase())
-    );
+    return allFungi.filter((fungus) => {
+      const commonName = fungus.commonName?.value || "";
+      return typeof commonName === "string" && commonName.toLowerCase().includes(args.name.toLowerCase());
+    });
   },
 });
 
@@ -54,9 +60,10 @@ export const getByLatinName = query({
   args: { name: v.string() },
   handler: async (ctx, args) => {
     const allFungi = await ctx.db.query("fungi").collect();
-    return allFungi.filter((fungus) =>
-      fungus.latinName.toLowerCase().includes(args.name.toLowerCase())
-    );
+    return allFungi.filter((fungus) => {
+      const latinName = fungus.latinName?.value || "";
+      return typeof latinName === "string" && latinName.toLowerCase().includes(args.name.toLowerCase());
+    });
   },
 });
 
@@ -130,82 +137,9 @@ export const advancedSearch = query({
     
     console.log(`[advancedSearch] Query: "${searchQuery}" → ${searchTerms.length} terms:`, searchTerms);
 
-    // Field to perspective mapping (same as SearchReactor)
-    const fieldToPerspective: Record<string, string> = {
-      // Chemical & Properties
-      primaryCompounds: "chemicalAndProperties",
-      secondaryMetabolites: "chemicalAndProperties",
-      enzymeActivity: "chemicalAndProperties",
-      bioactiveCompounds: "chemicalAndProperties",
-      
-      // Culinary & Nutritional
-      nutritionalValue: "culinaryAndNutritional",
-      flavorProfile: "culinaryAndNutritional",
-      preparationMethods: "culinaryAndNutritional",
-      edibleRaw: "culinaryAndNutritional",
-      cookingMethods: "culinaryAndNutritional",
-      
-      // Cultivation & Processing
-      cultivationDifficulty: "cultivationAndProcessing",
-      substratePreferences: "cultivationAndProcessing",
-      growthConditions: "cultivationAndProcessing",
-      harvestingMethods: "cultivationAndProcessing",
-      
-      // Medicinal & Health
-      medicinalProperties: "medicinalAndHealth",
-      activeCompounds: "medicinalAndHealth",
-      therapeuticApplications: "medicinalAndHealth",
-      medicinalUses: "medicinalAndHealth",
-      
-      // Research & Innovation
-      activeResearchAreas: "researchAndInnovation",
-      innovativeApplications: "researchAndInnovation",
-      patentedTechnologies: "researchAndInnovation",
-      
-      // Ecology & Habitat
-      substrate: "ecologyAndHabitat",
-      seasonality: "ecologyAndHabitat",
-      habitat: "ecologyAndHabitat",
-      distribution: "ecologyAndHabitat",
-      season: "ecologyAndHabitat",
-      
-      // Safety & Identification
-      edibility: "safetyAndIdentification",
-      toxicityLevel: "safetyAndIdentification",
-      lookalikeSpecies: "safetyAndIdentification",
-      identificationFeatures: "safetyAndIdentification",
-      
-      // Physical Characteristics
-      capColor: "physicalCharacteristics",
-      capShape: "physicalCharacteristics",
-      sporePrintColor: "physicalCharacteristics",
-      gillColor: "physicalCharacteristics",
-      stipeColor: "physicalCharacteristics",
-      
-      // Taxonomy
-      kingdom: "taxonomy",
-      phylum: "taxonomy",
-      class: "taxonomy",
-      order: "taxonomy",
-      family: "taxonomy",
-      genus: "taxonomy",
-      species: "taxonomy",
-      
-      // Cultural & Historical
-      culturalSignificance: "culturalAndHistorical",
-      traditionalUses: "culturalAndHistorical",
-      folklore: "culturalAndHistorical",
-      
-      // Commercial & Market
-      marketValue: "commercialAndMarket",
-      commercialUses: "commercialAndMarket",
-      cultivation: "commercialAndMarket",
-      
-      // Environmental & Conservation
-      conservationStatus: "environmentalAndConservation",
-      threatsAndChallenges: "environmentalAndConservation",
-      ecologicalRole: "environmentalAndConservation",
-    };
+    // NOW USING CENTRALIZED MAPPINGS from perspectiveFieldMappings.ts
+    // When schema changes, only update perspectiveFieldMappings.ts!
+    const fieldToPerspective = fieldToPerspectiveIndex;
 
     // Weighted scoring (same as SearchReactor)
     const weights = {
@@ -302,7 +236,7 @@ export const advancedSearch = query({
       };
 
       // Check high-priority fields first
-      const commonNameMatch = matches(fungus.commonName);
+      const commonNameMatch = matches(fungus.commonName?.value);
       if (commonNameMatch.matched) {
         // Score multiplier based on match quality
         const multiplier = commonNameMatch.exactMatch ? 2 : 1;
@@ -310,7 +244,7 @@ export const advancedSearch = query({
         matchedFields.push("commonName");
       }
 
-      const latinNameMatch = matches(fungus.latinName);
+      const latinNameMatch = matches(fungus.latinName?.value);
       if (latinNameMatch.matched) {
         const multiplier = latinNameMatch.exactMatch ? 2 : 1;
         totalScore += weights.latinName * latinNameMatch.matchCount * multiplier;
@@ -318,8 +252,9 @@ export const advancedSearch = query({
       }
 
       // Check taxonomy
-      if (fungus.taxonomy) {
-        const familyMatch = matches(fungus.taxonomy.family);
+      if (fungus.taxonomy?.value) {
+        const taxonomy = fungus.taxonomy.value as Record<string, any>;
+        const familyMatch = matches(taxonomy.family);
         if (familyMatch.matched) {
           const multiplier = familyMatch.exactMatch ? 2 : 1;
           totalScore += weights.family * familyMatch.matchCount * multiplier;
@@ -327,7 +262,7 @@ export const advancedSearch = query({
           matchedPerspectives.add("taxonomy");
         }
         
-        const genusMatch = matches(fungus.taxonomy.genus);
+        const genusMatch = matches(taxonomy.genus);
         if (genusMatch.matched) {
           const multiplier = genusMatch.exactMatch ? 2 : 1;
           totalScore += weights.genus * genusMatch.matchCount * multiplier;
@@ -338,7 +273,7 @@ export const advancedSearch = query({
         // Check other taxonomy fields
         const taxonomyFields = ['kingdom', 'phylum', 'class', 'order', 'species'] as const;
         for (const field of taxonomyFields) {
-          const match = matches(fungus.taxonomy[field as keyof typeof fungus.taxonomy]);
+          const match = matches(taxonomy[field]);
           if (match.matched) {
             totalScore += weights.default * match.matchCount;
             matchedPerspectives.add("taxonomy");
@@ -347,19 +282,13 @@ export const advancedSearch = query({
       }
 
       // Deep search all perspective objects
-      const perspectives = [
-        { key: "morphology", data: fungus.morphology },
-        { key: "sensoryProfile", data: fungus.sensoryProfile },
-        { key: "ecologicalNetwork", data: fungus.ecologicalNetwork },
-        { key: "culinaryDimensions", data: fungus.culinaryDimensions },
-        { key: "medicinalIntelligence", data: fungus.medicinalIntelligence },
-        { key: "cultivationIntelligence", data: fungus.cultivationIntelligence },
-        { key: "chemicalUniverse", data: fungus.chemicalUniverse },
-        { key: "culturalDimensions", data: fungus.culturalDimensions },
-        { key: "economicDimensions", data: fungus.economicDimensions },
-        { key: "environmentalIntelligence", data: fungus.environmentalIntelligence },
-        { key: "knowledgeConnections", data: fungus.knowledgeConnections },
-      ];
+      // Dynamically build perspectives array from field mapping
+      const perspectiveMapping = getFieldKeyToPerspectiveMapping();
+      const perspectives = Object.entries(perspectiveMapping).map(([key, perspectiveId]) => ({
+        key,
+        perspectiveId,
+        data: fungus[key as keyof typeof fungus]
+      }));
 
       // Check each perspective
       for (const perspective of perspectives) {
@@ -371,7 +300,7 @@ export const advancedSearch = query({
           if (match.matched) {
             const fieldPath = `${perspective.key}.${field}`;
             matchedFields.push(fieldPath);
-            matchedPerspectives.add(perspective.key);
+            matchedPerspectives.add(perspective.perspectiveId);
 
             // Get weight for this field
             const weight = weights[field as keyof typeof weights] || weights.default;

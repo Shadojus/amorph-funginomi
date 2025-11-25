@@ -6,6 +6,23 @@
  * 
  * The AMORPH framework itself is domain-agnostic.
  * This config adapts the framework to a specific knowledge domain.
+ * 
+ * ⚠️ IMPORTANT: Field-to-Perspective Mappings
+ * ============================================
+ * The `fieldToPerspective` mapping below is CENTRALIZED in:
+ * → src/amorph/core/perspectiveFieldMappings.ts
+ * → src/amorph/core/perspectiveFieldMappings.astro
+ * 
+ * When your database schema changes:
+ * 1. Update ONLY perspectiveFieldMappings.ts
+ * 2. All other components automatically use the updated mappings:
+ *    - PerspectiveCard.js
+ *    - BubbleMorph.js
+ *    - index.astro
+ *    - DataMorph.js
+ *    - Any other component that imports from perspectiveFieldMappings.ts
+ * 
+ * This single-source-of-truth approach eliminates maintenance pain!
  */
 
 export const DomainConfig = {

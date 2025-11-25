@@ -15,6 +15,7 @@
  */
 
 import { LitElement, html, css } from 'lit';
+import { perspectiveDisplayFields } from '../../../core/perspectiveFieldMappings.ts';
 
 export class BubbleMorph extends LitElement {
   static properties = {
@@ -293,21 +294,14 @@ export class BubbleMorph extends LitElement {
   
   /**
    * Get visible data fields based on active perspectives
+   * NOW USES CENTRALIZED MAPPINGS from perspectiveFieldMappings.ts
+   * When schema changes, only update perspectiveFieldMappings.ts!
    */
   getVisibleFields() {
     if (!this.entityData) return [];
     
-    // Mapping of perspectives to fields (matches Grid View)
-    const perspectiveFieldMap = {
-      'medicinalAndHealth': ['medicinalAndHealth.medicinalProperties', 'medicinalAndHealth.activeCompounds'],
-      'cultivationAndProcessing': ['cultivationAndProcessing.cultivationDifficulty', 'cultivationAndProcessing.cultivationMethods'],
-      'chemicalAndProperties': ['primaryCompounds', 'secondaryMetabolites'],
-      'culinaryAndNutritional': ['culinaryAndNutritional.flavorProfile', 'culinaryAndNutritional.preparationMethods'],
-      'ecologyAndHabitat': ['ecologyAndHabitat.substrate', 'ecologyAndHabitat.seasonality.primarySeason'],
-      'safetyAndIdentification': ['edibility', 'toxicityLevel'],
-      'taxonomy': ['taxonomy.family', 'taxonomy.genus'],
-      'physicalCharacteristics': ['physicalCharacteristics.capColor', 'physicalCharacteristics.sporePrintColor']
-    };
+    // Use centralized mapping instead of hardcoded values
+    const perspectiveFieldMap = perspectiveDisplayFields;
 
     let fields = [];
     

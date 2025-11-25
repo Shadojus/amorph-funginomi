@@ -6,6 +6,39 @@ const { slug } = Astro.params;
 const entity = await fetchEntity(slug!);
 if (!entity) return Astro.redirect('/fungi');
 
+// Dynamic perspective configuration from schema mappings
+const perspectiveConfig: Record<string, { title: string; icon: string; color: string }> = {
+  identity: { title: 'Identity', icon: '🏷️', color: '#6366f1' },
+  visualIdentity: { title: 'Visual', icon: '👁️', color: '#f97316' },
+  taxonomy: { title: 'Taxonomy', icon: '🧬', color: '#ef4444' },
+  phylogeny: { title: 'Phylogeny', icon: '🌳', color: '#d946ef' },
+  morphologyAndAnatomy: { title: 'Morphology', icon: '🔬', color: '#f97316' },
+  microscopyAndCellular: { title: 'Microscopy', icon: '🔬', color: '#ec4899' },
+  chemicalAndProperties: { title: 'Chemistry', icon: '🧪', color: '#ec4899' },
+  sensoryProfile: { title: 'Sensory', icon: '👃', color: '#8b5cf6' },
+  ecologyAndDistribution: { title: 'Ecology', icon: '🌍', color: '#eab308' },
+  temporalPatterns: { title: 'Temporal', icon: '⏰', color: '#06b6d4' },
+  geographyAndDistribution: { title: 'Geography', icon: '🗺️', color: '#10b981' },
+  cultivationAndGrowing: { title: 'Cultivation', icon: '🌱', color: '#3b82f6' },
+  medicinalAndHealth: { title: 'Medicinal', icon: '⚕️', color: '#06b6d4' },
+  culinaryAndNutritional: { title: 'Culinary', icon: '🍳', color: '#22c55e' },
+  commercialAndMarket: { title: 'Commercial', icon: '💰', color: '#14b8a6' },
+  environmentalAndConservation: { title: 'Environment', icon: '🌿', color: '#10b981' },
+  historicalAndCultural: { title: 'Cultural', icon: '📜', color: '#d946ef' },
+  researchAndInnovation: { title: 'Innovation', icon: '🔬', color: '#0ea5e9' },
+  safetyAndIdentification: { title: 'Safety', icon: '⚠️', color: '#ef4444' },
+  metadata: { title: 'Metadata', icon: '📋', color: '#64748b' }
+};
+
+// Build perspectives array from entity data and config
+const perspectives = Object.entries(perspectiveConfig)
+  .map(([id, config]) => ({
+    id,
+    ...config,
+    data: (entity as any)[id]
+  }))
+  .filter(p => p.data);
+
 function renderValue(value: any, key: string) {
   if (value === null || value === undefined) return null;
   const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
@@ -26,21 +59,6 @@ function renderAllFields(obj: any, maxDepth = 3, currentDepth = 0): any[] {
   }
   return results;
 }
-
-const perspectives = [
-  { id: 'taxonomy', title: 'Taxonomy', icon: '🧬', color: '#ef4444', data: entity.taxonomy },
-  { id: 'morphology', title: 'Physical', icon: '👁️', color: '#f97316', data: entity.morphology },
-  { id: 'ecologicalNetwork', title: 'Ecology', icon: '🌍', color: '#eab308', data: entity.ecologicalNetwork },
-  { id: 'culinaryDimensions', title: 'Culinary', icon: '🍳', color: '#22c55e', data: entity.culinaryDimensions },
-  { id: 'medicinalIntelligence', title: 'Medicinal', icon: '⚕️', color: '#06b6d4', data: entity.medicinalIntelligence },
-  { id: 'cultivationIntelligence', title: 'Cultivation', icon: '🌱', color: '#3b82f6', data: entity.cultivationIntelligence },
-  { id: 'sensoryProfile', title: 'Sensory', icon: '⚠️', color: '#8b5cf6', data: entity.sensoryProfile },
-  { id: 'chemicalUniverse', title: 'Chemical', icon: '🧪', color: '#ec4899', data: entity.chemicalUniverse },
-  { id: 'culturalDimensions', title: 'Cultural', icon: '📜', color: '#d946ef', data: entity.culturalDimensions },
-  { id: 'economicDimensions', title: 'Economic', icon: '💰', color: '#14b8a6', data: entity.economicDimensions },
-  { id: 'environmentalAndConservation', title: 'Environment', icon: '🌿', color: '#10b981', data: entity.environmentalAndConservation },
-  { id: 'researchAndInnovation', title: 'Innovation', icon: '🔬', color: '#0ea5e9', data: entity.researchAndInnovation }
-];
 ---
 <BaseLayout title={`${entity.commonName} - Funginomi`} description={entity.description} enableGlow={true} enableSearch={false} enableAnimation={true} showPerspectives={true}>
 <div class="entity-detail">
@@ -52,4 +70,4 @@ const perspectives = [
 </div>
 </BaseLayout>
 <style>.entity-detail{max-width:1400px;margin:0 auto;padding:2rem}.hero{margin-bottom:3rem;display:grid;grid-template-columns:1fr 1fr;gap:2rem}.hero-image{border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.2)}.hero-content{display:flex;flex-direction:column;gap:1.5rem}.morph-wrapper{background:rgba(255,255,255,.03);padding:1.5rem;border-radius:8px;border:1px solid rgba(255,255,255,.1);margin-bottom:1rem}.morph-label{display:block;font-size:.875rem;font-weight:600;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem}.tags-container{display:flex;flex-wrap:wrap;gap:.5rem}.nested-section{margin-bottom:1.5rem;padding-left:1rem;border-left:3px solid rgba(255,255,255,.2)}.nested-title{font-size:1.125rem;font-weight:600;color:rgba(255,255,255,.9);margin-bottom:1rem;text-transform:capitalize}@media (max-width:768px){.entity-detail{padding:1rem}.hero{grid-template-columns:1fr}}</style>
-<script>import '@/amorph/features/perspective-system/PerspectiveHost.js';const d=['taxonomy','ecologyAndHabitat','culinaryAndNutritional','safetyAndIdentification'];window.addEventListener('DOMContentLoaded',()=>{window.dispatchEvent(new CustomEvent('perspective-changed',{detail:{perspectives:d}}));console.log('[Detail] Init:',d);});</script>
+<script>import '@/amorph/features/perspective-system/PerspectiveHost.js';const d=['taxonomy','medicinalAndHealth','culinaryAndNutritional','safetyAndIdentification'];window.addEventListener('DOMContentLoaded',()=>{window.dispatchEvent(new CustomEvent('perspective-changed',{detail:{perspectives:d}}));console.log('[Detail] Init:',d);});</script>

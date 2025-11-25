@@ -447,19 +447,58 @@ export class MorphMapper {
   }
 
   /**
+   * UNWRAP citedValue objects from Convex schema
+   * citedValue wraps: { value: actual_data, sources: [...], confidence: 0-100, ... }
+   * We need to extract the actual data from the 'value' key
+   */
+  unwrapCitedValue(obj) {
+    if (!obj || typeof obj !== 'object') return obj;
+    
+    // Check if this looks like a citedValue wrapper
+    // citedValue has: value, sources, confidence, consensus, last_updated
+    const isCitedValue = 'value' in obj && (
+      'sources' in obj || 
+      'confidence' in obj || 
+      'consensus' in obj || 
+      'last_updated' in obj
+    );
+    
+    if (isCitedValue && obj.value !== undefined) {
+      return obj.value; // Return the actual data
+    }
+    
+    return obj; // Not a citedValue, return as-is
+  }
+
+  /**
    * Get all relevant fields from a data object with their morph types
    * Returns array of { fieldName, morphType, value, priority }
    */
   getMappedFields(dataObject, options = {}) {
+    const DEBUG = true; // Enable debugging
     const {
       excludeFields = ['_id', '_creationTime', 'slug', 'seoName'],
       maxDepth = 1,  // Only 1 level deep to avoid explosion
-      maxFields = 15, // Limit to top 15 fields for performance
+      maxFields = 20, // Limit to top 15 fields for performance
       currentDepth = 0,
       parentPath = ''
     } = options;
 
     const fields = [];
+    
+    if (DEBUG && currentDepth === 0) {
+      console.log('[MorphMapper:getMappedFields] 📥 Input:', {
+        type: typeof dataObject,
+        isArray: Array.isArray(dataObject),
+        keys: dataObject ? Object.keys(dataObject).slice(0, 15) : [],
+        options: { maxDepth, maxFields, currentDepth }
+      });
+    }
+    
+    if (!dataObject || typeof dataObject !== 'object') {
+      console.warn('[MorphMapper:getMappedFields] ⚠️ Invalid dataObject:', dataObject);
+      return [];
+    }
 
     // ❌ REMOVED HARDCODED CHECKS - Now FULLY data-driven!
     // MorphMapper now relies ONLY on data structure analysis in getMorphByValueAnalysis()
@@ -472,27 +511,41 @@ export class MorphMapper {
       // Skip null/undefined
       if (value === null || value === undefined) continue;
 
+      // CRITICAL: Unwrap citedValue wrapper if present
+      const unwrappedValue = this.unwrapCitedValue(value);
+      
+      // Skip if unwrapping resulted in null
+      if (unwrappedValue === null || unwrappedValue === undefined) continue;
+
       const fullPath = parentPath ? `${parentPath}.${key}` : key;
-      const morphType = this.getMorphType(key, value, { parentPath });
+      const morphType = this.getMorphType(key, unwrappedValue, { parentPath });
       const priority = this.getFieldPriority(key, morphType);
+      
+      if (DEBUG && currentDepth === 0) {
+        console.log(`[MorphMapper] Field: "${key}" → ${morphType} (priority: ${priority})`);
+      }
 
       fields.push({
         fieldName: key,
         fullPath,
         morphType,
-        value,
+        value: unwrappedValue,  // Use unwrapped value!
         priority
       });
 
       // For nested objects: FLATTEN one level to expose visual morphs!
       // This extracts capDiameter, stipeLength, etc. from physicalCharacteristics
-      if (morphType === 'data-morph' && typeof value === 'object' && !Array.isArray(value) && currentDepth < maxDepth) {
+      if (morphType === 'data-morph' && typeof unwrappedValue === 'object' && !Array.isArray(unwrappedValue) && currentDepth < maxDepth) {
         // Extract nested fields (ONE level only!)
-        for (const [nestedKey, nestedValue] of Object.entries(value)) {
+        for (const [nestedKey, nestedValue] of Object.entries(unwrappedValue)) {
           if (nestedValue === null || nestedValue === undefined) continue;
           
+          // Also unwrap nested cited values
+          const unwrappedNestedValue = this.unwrapCitedValue(nestedValue);
+          if (unwrappedNestedValue === null || unwrappedNestedValue === undefined) continue;
+          
           const nestedPath = `${fullPath}.${nestedKey}`;
-          const nestedMorphType = this.getMorphType(nestedKey, nestedValue, { parentPath: fullPath });
+          const nestedMorphType = this.getMorphType(nestedKey, unwrappedNestedValue, { parentPath: fullPath });
           const nestedPriority = this.getFieldPriority(nestedKey, nestedMorphType);
           
           // Only add if it's a VISUAL morph (not another nested data-morph)
@@ -501,7 +554,7 @@ export class MorphMapper {
               fieldName: nestedKey,
               fullPath: nestedPath,
               morphType: nestedMorphType,
-              value: nestedValue,
+              value: unwrappedNestedValue,  // Use unwrapped value!
               priority: nestedPriority + 50 // Boost nested visual morphs!
             });
           }
@@ -511,6 +564,12 @@ export class MorphMapper {
 
     // Sort by priority (highest first) and limit to maxFields
     const sorted = fields.sort((a, b) => b.priority - a.priority);
+    
+    if (DEBUG && currentDepth === 0) {
+      console.log(`[MorphMapper:getMappedFields] 📤 Output: ${sorted.length} fields`, 
+        sorted.slice(0, 5).map(f => `${f.fieldName}(${f.morphType})`));
+    }
+    
     return maxFields ? sorted.slice(0, maxFields) : sorted;
   }
 
@@ -520,6 +579,13 @@ export class MorphMapper {
    */
   createMorphElement(fieldConfig, entityData) {
     const { fieldName, morphType, value, fullPath } = fieldConfig;
+    
+    console.log(`[MorphMapper:createMorphElement] Creating "${morphType}" for "${fieldName}"`, {
+      valueType: typeof value,
+      valuePreview: typeof value === 'string' ? value.slice(0, 50) : 
+                    Array.isArray(value) ? `Array(${value.length})` :
+                    typeof value === 'object' ? `Object(${Object.keys(value || {}).length} keys)` : value
+    });
     
     // Create wrapper for morphs that need labels
     const needsWrapper = [

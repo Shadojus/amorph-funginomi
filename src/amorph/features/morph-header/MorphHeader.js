@@ -643,28 +643,33 @@ export class MorphHeader extends LitElement {
   constructor() {
     super();
     
-    // State - Match schema perspectives
+    // State - Match schema perspectives from perspectiveFieldMappings.ts
+    // IMPORTANT: These names MUST match the perspectiveIds in perspectiveFieldMappings.ts!
     this.perspectives = [
+      { name: 'identity', label: 'Identity', icon: '🏷️', color: '#6366f1' },
       { name: 'taxonomy', label: 'Taxonomy', icon: '🧬', color: '#ef4444' },
-      { name: 'morphology', label: 'Physical', icon: '👁️', color: '#f97316' },
-      { name: 'ecologicalNetwork', label: 'Ecology', icon: '🌍', color: '#eab308' },
-      { name: 'culinaryDimensions', label: 'Culinary', icon: '🍳', color: '#22c55e' },
-      { name: 'medicinalIntelligence', label: 'Medicinal', icon: '⚕️', color: '#06b6d4' },
-      { name: 'cultivationIntelligence', label: 'Cultivation', icon: '🌱', color: '#3b82f6' },
-      { name: 'sensoryProfile', label: 'Sensory', icon: '⚠️', color: '#8b5cf6' },
-      { name: 'chemicalUniverse', label: 'Chemical', icon: '🧪', color: '#ec4899' },
-      { name: 'culturalDimensions', label: 'Cultural', icon: '📜', color: '#d946ef' },
-      { name: 'economicDimensions', label: 'Economic', icon: '💰', color: '#14b8a6' },
-      { name: 'environmentalIntelligence', label: 'Environment', icon: '🌿', color: '#10b981' },
-      { name: 'knowledgeConnections', label: 'Knowledge', icon: '🔬', color: '#0ea5e9' },
+      { name: 'morphologyAndAnatomy', label: 'Morphology', icon: '👁️', color: '#f97316' },
+      { name: 'sensoryProfile', label: 'Sensory', icon: '👃', color: '#8b5cf6' },
+      { name: 'ecologyAndDistribution', label: 'Ecology', icon: '🌍', color: '#eab308' },
+      { name: 'temporalPatterns', label: 'Temporal', icon: '📅', color: '#a855f7' },
+      { name: 'cultivationAndGrowing', label: 'Cultivation', icon: '🌱', color: '#3b82f6' },
+      { name: 'medicinalAndHealth', label: 'Medicinal', icon: '⚕️', color: '#06b6d4' },
+      { name: 'culinaryAndNutritional', label: 'Culinary', icon: '🍳', color: '#22c55e' },
+      { name: 'chemicalAndProperties', label: 'Chemical', icon: '🧪', color: '#ec4899' },
+      { name: 'commercialAndMarket', label: 'Commercial', icon: '💰', color: '#14b8a6' },
+      { name: 'environmentalAndConservation', label: 'Environment', icon: '🌿', color: '#10b981' },
+      { name: 'historicalAndCultural', label: 'Cultural', icon: '📜', color: '#d946ef' },
+      { name: 'researchAndInnovation', label: 'Research', icon: '🔬', color: '#0ea5e9' },
+      { name: 'safetyAndIdentification', label: 'Safety', icon: '⚠️', color: '#f43f5e' },
     ];
     
     // 4 DEFAULT PERSPECTIVES - Pre-selected on page load
+    // Using perspectives that actually have data in the entities
     this.activePerspectives = [
-      { name: 'cultivationIntelligence', label: 'Cultivation', icon: '🌱', color: '#3b82f6' },
-      { name: 'chemicalUniverse', label: 'Chemical', icon: '🧪', color: '#ec4899' },
-      { name: 'medicinalIntelligence', label: 'Medicinal', icon: '⚕️', color: '#06b6d4' },
-      { name: 'culinaryDimensions', label: 'Culinary', icon: '🍳', color: '#22c55e' },
+      { name: 'identity', label: 'Identity', icon: '🏷️', color: '#6366f1' },
+      { name: 'taxonomy', label: 'Taxonomy', icon: '🧬', color: '#ef4444' },
+      { name: 'morphologyAndAnatomy', label: 'Morphology', icon: '👁️', color: '#f97316' },
+      { name: 'ecologyAndDistribution', label: 'Ecology', icon: '🌍', color: '#eab308' },
     ];
     this.maxPerspectives = 4;
     this.showPerspectiveMenu = false;

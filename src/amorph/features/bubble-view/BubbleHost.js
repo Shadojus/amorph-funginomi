@@ -135,8 +135,18 @@ class BubbleHost extends LitElement {
       this.bubbleView = this.shadowRoot?.querySelector('bubble-view');
       
       if (this.bubbleView) {
-        this.bubbleView.setCachedData(this.data);
-        console.log('[BubbleHost] ✅ Data passed to BubbleView');
+        // BubbleView v2.0 uses setEntitiesData() or cacheEntities()
+        if (typeof this.bubbleView.cacheEntities === 'function') {
+          this.bubbleView.cacheEntities(this.data);
+          console.log('[BubbleHost] ✅ Data passed to BubbleView via cacheEntities()');
+        } else if (typeof this.bubbleView.setEntitiesData === 'function') {
+          // Don't call setEntitiesData here - it renders bubbles immediately
+          // We only want to cache for later use by search/perspective events
+          console.log('[BubbleHost] ✅ BubbleView ready (data will be passed via search events)');
+        } else {
+          console.warn('[BubbleHost] ⚠️ BubbleView has no cacheEntities or setEntitiesData method');
+          console.log('[BubbleHost] Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(this.bubbleView)));
+        }
       } else {
         setTimeout(waitForBubbleView, 50);
       }

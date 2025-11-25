@@ -208,76 +208,88 @@ export class PerspectiveReactor {
 /**
  * Perspective Configuration
  * Maps perspectives to relevant data and visual cues
+ * Built from schema definition for consistency
  */
 const PERSPECTIVE_CONFIG = {
-  taxonomy: {
-    highlightTags: ['scientific', 'classification', 'kingdom', 'phylum'],
-    morphTypes: ['name-morph', 'text-morph']
+  identity: {
+    highlightTags: ['name', 'nomenclature', 'etymology', 'synonym'],
+    morphTypes: ['text-morph', 'name-morph']
   },
-  
-  physicalCharacteristics: {
-    highlightTags: ['cap', 'gills', 'stem', 'spores', 'color', 'shape'],
+  visualIdentity: {
+    highlightTags: ['image', 'color', 'visual', 'appearance'],
+    morphTypes: ['image-morph', 'color-morph']
+  },
+  taxonomy: {
+    highlightTags: ['scientific', 'classification', 'kingdom', 'phylum', 'family', 'genus', 'species'],
+    morphTypes: ['name-morph', 'text-morph', 'hierarchy-morph']
+  },
+  phylogeny: {
+    highlightTags: ['evolution', 'genetic', 'relationship', 'lineage'],
+    morphTypes: ['text-morph', 'timeline-morph', 'tree-morph']
+  },
+  morphologyAndAnatomy: {
+    highlightTags: ['cap', 'gills', 'stem', 'spores', 'color', 'shape', 'size'],
     morphTypes: ['image-morph', 'text-morph', 'number-morph']
   },
-  
-  ecologyAndHabitat: {
-    highlightTags: ['forest', 'grassland', 'spring', 'summer', 'fall', 'winter', 
-                    'parasitic', 'decomposer', 'mycorrhizal', 'habitat'],
-    morphTypes: ['map-morph', 'timeline-morph', 'tag-morph', 'text-morph']
+  microscopyAndCellular: {
+    highlightTags: ['spore', 'cell', 'hyphae', 'tissue', 'structure'],
+    morphTypes: ['image-morph', 'text-morph', 'number-morph']
   },
-  
-  culinaryAndNutritional: {
-    highlightTags: ['edible', 'delicious', 'gourmet', 'cooking', 'culinary', 
-                    'taste', 'texture', 'nutrition'],
-    morphTypes: ['text-morph', 'boolean-morph', 'chart-morph', 'tag-morph']
-  },
-  
-  medicinalAndHealth: {
-    highlightTags: ['medicinal', 'antioxidant', 'immune-boost', 'therapeutic', 
-                    'health', 'healing', 'benefits'],
-    morphTypes: ['text-morph', 'list-morph', 'chart-morph', 'boolean-morph']
-  },
-  
-  cultivationAndProcessing: {
-    highlightTags: ['cultivation', 'farming', 'substrate', 'harvest', 'growing', 
-                    'temperature', 'humidity'],
-    morphTypes: ['text-morph', 'number-morph', 'timeline-morph']
-  },
-  
-  safetyAndIdentification: {
-    highlightTags: ['toxic', 'poisonous', 'warning', 'deadly', 'caution', 
-                    'lookalike', 'identification', 'safety'],
-    morphTypes: ['text-morph', 'boolean-morph', 'image-morph', 'tag-morph']
-  },
-  
   chemicalAndProperties: {
-    highlightTags: ['compound', 'molecule', 'enzyme', 'protein', 'chemical', 
-                    'bioactive', 'composition'],
+    highlightTags: ['compound', 'molecule', 'enzyme', 'protein', 'bioactive', 'composition'],
     morphTypes: ['text-morph', 'chart-morph', 'list-morph', 'number-morph']
   },
-  
-  culturalAndHistorical: {
-    highlightTags: ['traditional', 'folklore', 'cultural', 'history', 'heritage', 
-                    'mythology', 'ancient'],
-    morphTypes: ['text-morph', 'timeline-morph', 'image-morph']
+  sensoryProfile: {
+    highlightTags: ['aroma', 'taste', 'texture', 'appearance', 'sound'],
+    morphTypes: ['text-morph', 'tag-morph', 'sensory-morph']
   },
-  
+  ecologyAndDistribution: {
+    highlightTags: ['habitat', 'substrate', 'interaction', 'ecosystem', 'forest', 'grassland'],
+    morphTypes: ['map-morph', 'tag-morph', 'text-morph']
+  },
+  temporalPatterns: {
+    highlightTags: ['lifecycle', 'phenology', 'season', 'history', 'timing'],
+    morphTypes: ['timeline-morph', 'text-morph', 'chart-morph']
+  },
+  geographyAndDistribution: {
+    highlightTags: ['range', 'climate', 'location', 'occurrence'],
+    morphTypes: ['map-morph', 'text-morph', 'tag-morph']
+  },
+  cultivationAndGrowing: {
+    highlightTags: ['cultivation', 'farming', 'substrate', 'harvest', 'growing', 'temperature', 'humidity'],
+    morphTypes: ['text-morph', 'number-morph', 'timeline-morph', 'chart-morph']
+  },
+  medicinalAndHealth: {
+    highlightTags: ['medicinal', 'therapeutic', 'health', 'healing', 'benefits', 'safety', 'dosing'],
+    morphTypes: ['text-morph', 'list-morph', 'chart-morph', 'boolean-morph']
+  },
+  culinaryAndNutritional: {
+    highlightTags: ['edible', 'cooking', 'culinary', 'taste', 'texture', 'nutrition', 'recipe'],
+    morphTypes: ['text-morph', 'boolean-morph', 'chart-morph', 'tag-morph', 'radar-chart-morph']
+  },
   commercialAndMarket: {
-    highlightTags: ['commercial', 'market', 'price', 'trade', 'demand', 
-                    'cultivation', 'business'],
+    highlightTags: ['market', 'price', 'trade', 'demand', 'business', 'value'],
     morphTypes: ['number-morph', 'chart-morph', 'text-morph']
   },
-  
   environmentalAndConservation: {
-    highlightTags: ['endangered', 'protected', 'conservation', 'sustainable', 
-                    'environment', 'biodiversity', 'ecosystem'],
+    highlightTags: ['endangered', 'conservation', 'sustainable', 'biodiversity', 'ecosystem', 'threat'],
     morphTypes: ['text-morph', 'boolean-morph', 'tag-morph', 'map-morph']
   },
-  
+  historicalAndCultural: {
+    highlightTags: ['traditional', 'folklore', 'culture', 'history', 'heritage', 'mythology'],
+    morphTypes: ['text-morph', 'timeline-morph', 'image-morph']
+  },
   researchAndInnovation: {
-    highlightTags: ['research', 'study', 'innovation', 'biotechnology', 
-                    'scientific', 'discovery', 'experiment'],
+    highlightTags: ['research', 'study', 'innovation', 'biotechnology', 'publication', 'discovery'],
     morphTypes: ['text-morph', 'list-morph', 'timeline-morph', 'chart-morph']
+  },
+  safetyAndIdentification: {
+    highlightTags: ['toxic', 'poisonous', 'warning', 'lookalike', 'identification', 'safety', 'caution'],
+    morphTypes: ['text-morph', 'boolean-morph', 'image-morph', 'tag-morph']
+  },
+  metadata: {
+    highlightTags: ['quality', 'version', 'timestamp', 'source'],
+    morphTypes: ['text-morph', 'number-morph']
   }
 };
 

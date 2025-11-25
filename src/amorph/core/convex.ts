@@ -43,37 +43,34 @@ export async function fetchEntities() {
     const entities = await fetchQuery(api.fungi.list, {});
     
     // Transform to match expected format
-    return entities?.map((entity: any) => ({
-      _id: entity._id,
-      slug: entity.seoName || entity.slug,
-      names: {
-        common: entity.commonName,
-        scientific: entity.latinName,
-      },
-      images: [
-        {
-          // Uses domain from convex backend - hardcoded per instance
-          url: `/images/fungi/${entity.seoName}.jpg`,
-          alt: `${entity.commonName} (${entity.latinName})`,
-          caption: entity.commonName
-        }
-      ],
-      tags: extractTags(entity),
-      description: extractDescription(entity),
-      // Pass through all perspectives as-is from schema (top-level properties)
-      taxonomy: entity.taxonomy,
-      morphology: entity.morphology,
-      sensoryProfile: entity.sensoryProfile,
-      ecologicalNetwork: entity.ecologicalNetwork,
-      culinaryDimensions: entity.culinaryDimensions,
-      medicinalIntelligence: entity.medicinalIntelligence,
-      cultivationIntelligence: entity.cultivationIntelligence,
-      chemicalUniverse: entity.chemicalUniverse,
-      culturalDimensions: entity.culturalDimensions,
-      economicDimensions: entity.economicDimensions,
-      environmentalIntelligence: entity.environmentalIntelligence,
-      knowledgeConnections: entity.knowledgeConnections,
-    })) || [];
+    // IMPORTANT: Pass through ALL entity data to preserve perspective fields
+    return entities?.map((entity: any) => {
+      // Extract common name for display
+      const commonName = entity.commonName?.value || entity.commonName || 'Unknown';
+      const latinName = entity.latinName?.value || entity.latinName || '';
+      const seoName = entity.seoName || entity.slug || '';
+      
+      return {
+        // Spread ALL entity data first to preserve all perspective fields
+        ...entity,
+        // Then override with formatted fields
+        _id: entity._id,
+        slug: seoName,
+        names: {
+          common: commonName,
+          scientific: latinName,
+        },
+        images: [
+          {
+            url: `/images/fungi/${seoName}.jpg`,
+            alt: `${commonName} (${latinName})`,
+            caption: commonName
+          }
+        ],
+        tags: extractTags(entity),
+        description: extractDescription(entity),
+      };
+    }) || [];
   } catch (error) {
     console.error('Failed to fetch entities:', error);
     return [];

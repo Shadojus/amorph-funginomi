@@ -10,11 +10,32 @@
 
 import BaseLayout from '@/amorph/core/layouts/BaseLayout.astro';
 import { fetchEntities } from '@/amorph/core/convex';
+// TypeScript module with field-to-perspective mappings
+import { perspectiveSchemaFields, getFieldsForPerspective } from '@/amorph/core/perspectiveFieldMappings.ts';
+
+// Build perspectiveDisplayFields for client-side use (simpler structure)
+const perspectiveDisplayFields: Record<string, string[]> = {};
+for (const [perspectiveId, data] of Object.entries(perspectiveSchemaFields)) {
+  perspectiveDisplayFields[perspectiveId] = (data as any).displayFields || [];
+}
 
 // Fetch entity data from Convex
 const entities = await fetchEntities();
 
 console.log(`📊 Loaded ${entities?.length || 0} entities from Convex`);
+
+// Debug: Show first entity structure
+if (entities?.[0]) {
+  const firstEntity = entities[0];
+  console.log(`📋 First entity "${firstEntity.slug}" keys:`, Object.keys(firstEntity));
+  if (firstEntity.taxonomy) {
+    console.log(`   taxonomy type:`, typeof firstEntity.taxonomy);
+    console.log(`   taxonomy keys:`, Object.keys(firstEntity.taxonomy));
+    if (firstEntity.taxonomy.value) {
+      console.log(`   taxonomy.value keys:`, Object.keys(firstEntity.taxonomy.value));
+    }
+  }
+}
 
 /**
  * MorphMapper - Server-side version
@@ -283,8 +304,8 @@ class ServerMorphMapper {
         });
       }
 
-      // Check cultivationAndProcessing.cultivationTimeline
-      if (entity.cultivationAndProcessing?.cultivationTimeline) {
+      // Check cultivationAndGrowing.cultivationTimeline
+      if (entity.cultivationAndGrowing?.cultivationTimeline) {
         fields.push({
           fieldName: 'cultivationTimeline',
           fullPath: 'cultivationAndProcessing.cultivationTimeline',
@@ -793,12 +814,30 @@ const morphMapper = new ServerMorphMapper();
   }
 </style>
 
-<script define:vars={{ entities }}>
+<script define:vars={{ entities, perspectiveDisplayFields }}>
+  // ===========================================================================
+  // 🔍 COMPREHENSIVE DEBUG LOGGING FOR MORPH CREATION
+  // ===========================================================================
+  const DEBUG_MORPH_FLOW = true;
+  
+  function debugLog(category, message, data = null) {
+    if (!DEBUG_MORPH_FLOW) return;
+    const prefix = `[🔍 DEBUG:${category}]`;
+    if (data !== null) {
+      console.log(prefix, message, data);
+    } else {
+      console.log(prefix, message);
+    }
+  }
+  
+  debugLog('INIT', '📦 perspectiveDisplayFields loaded:', Object.keys(perspectiveDisplayFields || {}));
+  debugLog('INIT', '📊 entities count:', entities?.length || 0);
+  
   // Wait for AMORPH and hosts to load
   async function initViewToggle() {
     const amorph = window.amorph;
     if (!amorph) {
-      console.log('⏳ Waiting for AMORPH...');
+      debugLog('INIT', '⏳ Waiting for AMORPH...');
       setTimeout(initViewToggle, 100);
       return;
     }
@@ -808,7 +847,7 @@ const morphMapper = new ServerMorphMapper();
     const gridHost = document.getElementById('grid-view-host');
     
     if (!bubbleHost || !gridHost) {
-      console.warn('⚠️ Host elements not found, retrying...');
+      debugLog('INIT', '⚠️ Host elements not found, retrying...');
       setTimeout(initViewToggle, 100);
       return;
     }
@@ -842,20 +881,9 @@ const morphMapper = new ServerMorphMapper();
 
     // FIFO Perspective Ordering System
     const perspectiveOrder = [];
-    const perspectiveFieldMap = {
-      'safetyAndIdentification': ['edibility', 'toxicityLevel'],
-      'ecologyAndHabitat': ['ecologyAndHabitat.seasonality.primarySeason', 'ecologyAndHabitat.substrate'],
-      'physicalCharacteristics': ['physicalCharacteristics.capColor', 'physicalCharacteristics.sporePrintColor'],
-      'culinaryAndNutritional': ['culinaryAndNutritional.flavorProfile', 'culinaryAndNutritional.preparationMethods'],
-      'medicinalAndHealth': ['medicinalAndHealth.medicinalProperties', 'medicinalAndHealth.activeCompounds'],
-      'cultivationAndProcessing': ['cultivationAndProcessing.cultivationDifficulty', 'cultivationAndProcessing.cultivationMethods'],
-      'culturalAndHistorical': ['culturalAndHistorical.historicalSignificance', 'culturalAndHistorical.firstDocumented'],
-      'commercialAndMarket': ['commercialAndMarket.commercialValue', 'commercialAndMarket.marketSegments', 'commercialAndMarket.commercialProducts'],
-      'environmentalAndConservation': ['environmentalAndConservation.ecologicalRole', 'environmentalAndConservation.ecosystemServices'],
-      'researchAndInnovation': ['researchAndInnovation.researchInterest', 'activeResearchAreas', 'innovativeApplications'],
-      'chemicalAndProperties': ['primaryCompounds', 'secondaryMetabolites'],
-      'taxonomy': ['kingdom', 'phylum', 'class', 'order']
-    };
+    // NOW USING CENTRALIZED MAPPINGS from perspectiveFieldMappings.astro
+    // When schema changes, only update perspectiveFieldMappings.astro!
+    const perspectiveFieldMap = perspectiveDisplayFields;
 
     function updateDataMorphVisibility() {
       const cards = document.querySelectorAll('.card-data');
@@ -1269,14 +1297,30 @@ const morphMapper = new ServerMorphMapper();
    * using the MorphMapper to select the correct morph type
    */
   
+  // Debug helper
+  const DEBUG = true;
+  function dbg(msg, data = null) {
+    if (!DEBUG) return;
+    if (data !== null) {
+      console.log(`[🔍 MorphMapper:DEBUG] ${msg}`, data);
+    } else {
+      console.log(`[🔍 MorphMapper:DEBUG] ${msg}`);
+    }
+  }
+  
   async function initMorphMapper() {
+    dbg('🚀 initMorphMapper called');
+    
     // Wait for MorphMapper to be available
     await new Promise(resolve => {
       if (window.amorph?.morphMapper) {
+        dbg('✅ MorphMapper already available');
         resolve();
       } else {
+        dbg('⏳ Waiting for MorphMapper...');
         const checkInterval = setInterval(() => {
           if (window.amorph?.morphMapper) {
+            dbg('✅ MorphMapper now available');
             clearInterval(checkInterval);
             resolve();
           }
@@ -1286,9 +1330,16 @@ const morphMapper = new ServerMorphMapper();
 
     const mapper = window.amorph.morphMapper;
     console.log('[MorphMapper] ✅ Client initialization starting...');
+    dbg('MorphMapper instance:', mapper);
 
     // Find all card-data containers that need dynamic morphs
     const containers = document.querySelectorAll('.card-data[data-use-mapper="true"]');
+    dbg(`Found ${containers.length} card-data containers`);
+    
+    if (containers.length === 0) {
+      console.warn('[MorphMapper] ⚠️ No card-data containers found with data-use-mapper="true"');
+      dbg('Searching for any .card-data elements...', document.querySelectorAll('.card-data').length);
+    }
     
     // Store containers for later rendering
     window._cardContainers = containers;
@@ -1298,63 +1349,172 @@ const morphMapper = new ServerMorphMapper();
     
     // Function to render morphs based on active perspectives
     function renderMorphsForPerspectives(activePerspectives = []) {
+      dbg('🎨 renderMorphsForPerspectives called', { 
+        perspectives: activePerspectives?.map(p => p.name || p),
+        containerCount: containers.length 
+      });
       console.log(`[MorphMapper] 🎨 Updating visibility for ${activePerspectives.length} perspectives`);
       
       let totalMorphsCreated = 0;
       let totalMorphsShown = 0;
       let totalMorphsHidden = 0;
       
-      containers.forEach(container => {
+      containers.forEach((container, containerIdx) => {
         try {
           const entityDataStr = container.getAttribute('data-entity');
-          if (!entityDataStr) return;
+          if (!entityDataStr) {
+            dbg(`Container ${containerIdx}: NO data-entity attribute!`);
+            return;
+          }
 
           const entityData = JSON.parse(entityDataStr);
+          dbg(`Container ${containerIdx}: Entity "${entityData.slug || entityData._id}"`, {
+            hasIdentity: !!entityData.identity,
+            hasTaxonomy: !!entityData.taxonomy,
+            hasMorphology: !!entityData.morphology,
+            hasSensoryProfile: !!entityData.sensoryProfile,
+            keys: Object.keys(entityData).slice(0, 10)
+          });
           
           // Get active perspective names
           const activePerspectiveNames = activePerspectives.map(p => p.name || p);
           
           // FIRST TIME: Create ALL morphs from ALL perspectives (hidden by default)
           if (!initializedContainers.has(container)) {
+            dbg(`Container ${containerIdx}: FIRST INIT - creating all morphs`);
             console.log('[MorphMapper] 🆕 First load - creating all morphs');
             
-            // Get ALL available perspectives from entity data
-            const allPerspectives = [
-              'taxonomy', 'morphology', 'sensoryProfile',
-              'ecologicalNetwork', 'culinaryDimensions', 'medicinalIntelligence',
-              'cultivationIntelligence', 'chemicalUniverse', 'culturalDimensions',
-              'economicDimensions', 'environmentalIntelligence', 'knowledgeConnections'
-            ];
+            // Map schema field names to perspective IDs
+            // These MUST match the perspectiveIds in perspectiveFieldMappings.ts!
+            const perspectiveFieldMapping = {
+              // Direct matches (perspectiveId === fieldName)
+              'identity': 'identity',
+              'visualIdentity': 'visualIdentity',
+              'taxonomy': 'taxonomy',
+              'phylogeny': 'phylogeny',
+              'sensoryProfile': 'sensoryProfile',
+              'temporalPatterns': 'temporalPatterns',
+              'safetyAndIdentification': 'safetyAndIdentification',
+              'metadata': 'metadata',
+              // Schema fields that need mapping (schema fieldName -> perspectiveId)
+              'morphology': 'morphologyAndAnatomy',
+              'morphologyAndAnatomy': 'morphologyAndAnatomy',
+              'microscopy': 'microscopyAndCellular',
+              'microscopyAndCellular': 'microscopyAndCellular',
+              'chemistry': 'chemicalAndProperties',
+              'chemicalUniverse': 'chemicalAndProperties',
+              'chemicalAndProperties': 'chemicalAndProperties',
+              'ecology': 'ecologyAndDistribution',
+              'ecologicalNetwork': 'ecologyAndDistribution',
+              'ecologyAndDistribution': 'ecologyAndDistribution',
+              'geography': 'geographyAndDistribution',
+              'geographyAndDistribution': 'geographyAndDistribution',
+              'cultivation': 'cultivationAndGrowing',
+              'cultivationIntelligence': 'cultivationAndGrowing',
+              'cultivationAndGrowing': 'cultivationAndGrowing',
+              'medicinal': 'medicinalAndHealth',
+              'medicinalIntelligence': 'medicinalAndHealth',
+              'medicinalAndHealth': 'medicinalAndHealth',
+              'culinary': 'culinaryAndNutritional',
+              'culinaryDimensions': 'culinaryAndNutritional',
+              'culinaryAndNutritional': 'culinaryAndNutritional',
+              'economics': 'commercialAndMarket',
+              'economicDimensions': 'commercialAndMarket',
+              'commercialAndMarket': 'commercialAndMarket',
+              'conservation': 'environmentalAndConservation',
+              'environmentalIntelligence': 'environmentalAndConservation',
+              'environmentalAndConservation': 'environmentalAndConservation',
+              'cultural': 'historicalAndCultural',
+              'culturalDimensions': 'historicalAndCultural',
+              'historicalAndCultural': 'historicalAndCultural',
+              'research': 'researchAndInnovation',
+              'knowledgeConnections': 'researchAndInnovation',
+              'researchAndInnovation': 'researchAndInnovation',
+            };
             
-            allPerspectives.forEach(perspectiveName => {
-              const perspectiveData = entityData[perspectiveName];
+            // Get all entity fields that could be perspectives
+            const entityFields = Object.keys(entityData).filter(key => 
+              !['_id', 'slug', 'names', 'images', 'tags', 'description', '_creationTime'].includes(key)
+            );
+            
+            dbg(`Container ${containerIdx}: checking ${entityFields.length} entity fields`);
+            
+            let perspectivesWithData = 0;
+            entityFields.forEach(fieldName => {
+              let perspectiveData = entityData[fieldName];
               
-              if (perspectiveData && typeof perspectiveData === 'object') {
-                const perspectiveFields = mapper.getMappedFields(perspectiveData, {
-                  maxFields: null,
-                  maxDepth: 2
-                });
-                
-                if (perspectiveFields.length > 0) {
-                  console.log(`[MorphMapper] 📊 ${perspectiveName}: ${perspectiveFields.length} fields found`);
-                } else {
-                  console.log(`[MorphMapper] ⚠️ ${perspectiveName}: NO fields extracted (data exists but empty?)`);
+              if (!perspectiveData || typeof perspectiveData !== 'object') {
+                // dbg(`  ${fieldName}: no data`);
+                return;
+              }
+              
+              // Get the mapped perspective ID (normalize schema field names to consistent IDs)
+              const perspectiveId = perspectiveFieldMapping[fieldName] || fieldName;
+              
+              // Debug: Show raw data structure before any processing
+              const rawKeys = Object.keys(perspectiveData);
+              dbg(`  ${fieldName}: RAW structure has ${rawKeys.length} keys:`, rawKeys.slice(0, 5));
+              
+              // CRITICAL: Unwrap citedValue wrapper { value: {...}, sources: [...], confidence: ... }
+              // citedValue format: { value: <actual data>, sources: [...], confidence: number, ... }
+              if ('value' in perspectiveData && ('sources' in perspectiveData || 'confidence' in perspectiveData || 'consensus' in perspectiveData || 'last_updated' in perspectiveData)) {
+                dbg(`  ${fieldName} (→${perspectiveId}): unwrapping citedValue, value type:`, typeof perspectiveData.value);
+                perspectiveData = perspectiveData.value;
+                if (perspectiveData && typeof perspectiveData === 'object') {
+                  dbg(`    After unwrap: ${Object.keys(perspectiveData).length} keys:`, Object.keys(perspectiveData).slice(0, 5));
                 }
+              }
+              
+              if (!perspectiveData || typeof perspectiveData !== 'object') {
+                dbg(`  ${fieldName}: data became null/invalid after unwrap (type: ${typeof perspectiveData})`);
+                return;
+              }
+              
+              // Check if the unwrapped data is empty
+              const dataKeys = Object.keys(perspectiveData);
+              if (dataKeys.length === 0) {
+                dbg(`  ${fieldName}: data object is EMPTY after unwrap!`);
+                return;
+              }
+              
+              perspectivesWithData++;
+              
+              const perspectiveFields = mapper.getMappedFields(perspectiveData, {
+                maxFields: null,
+                maxDepth: 2
+              });
+              
+              if (perspectiveFields.length > 0) {
+                dbg(`  ${fieldName} (→${perspectiveId}): ${perspectiveFields.length} fields → creating morphs`);
+                console.log(`[MorphMapper] 📊 ${fieldName} → ${perspectiveId}: ${perspectiveFields.length} fields found`);
                 
                 perspectiveFields.forEach(field => {
-                  const fieldPath = `${perspectiveName}.${field.fullPath}`;
-                  const morphElement = mapper.createMorphElement(field, field.value || entityData);
-                  morphElement.setAttribute('data-priority', field.priority);
-                  morphElement.setAttribute('data-morph-type', field.morphType);
-                  morphElement.setAttribute('data-field-path', fieldPath);
-                  morphElement.setAttribute('data-perspective', perspectiveName);
-                  morphElement.setAttribute('perspective', perspectiveName); // CRITICAL: for PerspectiveReactor color bars
-                  morphElement.style.display = 'none'; // Hidden by default
-                  container.appendChild(morphElement);
-                  totalMorphsCreated++;
+                  const fieldPath = `${fieldName}.${field.fullPath}`;
+                  try {
+                    const morphElement = mapper.createMorphElement(field, field.value || entityData);
+                    if (!morphElement) {
+                      dbg(`    ⚠️ createMorphElement returned null for ${field.fieldName}`);
+                      return;
+                    }
+                    morphElement.setAttribute('data-priority', field.priority);
+                    morphElement.setAttribute('data-morph-type', field.morphType);
+                    morphElement.setAttribute('data-field-path', fieldPath);
+                    morphElement.setAttribute('data-perspective', perspectiveId); // Mapped perspective ID
+                    morphElement.setAttribute('perspective', perspectiveId); // CRITICAL: for PerspectiveReactor color bars
+                    morphElement.style.display = 'none'; // Hidden by default
+                    container.appendChild(morphElement);
+                    totalMorphsCreated++;
+                  } catch (morphError) {
+                    console.error(`[MorphMapper] Error creating morph for ${field.fieldName}:`, morphError);
+                  }
                 });
+              } else {
+                dbg(`  ${fieldName}: 0 fields extracted`);
+                console.log(`[MorphMapper] ⚠️ ${fieldName}: NO fields extracted (data exists but empty?)`);
               }
             });
+            
+            dbg(`Container ${containerIdx}: ${perspectivesWithData} perspectives had data, ${totalMorphsCreated} morphs created so far`);
             
             initializedContainers.add(container);
             container.dataset.fullData = entityDataStr;
@@ -1391,6 +1551,18 @@ const morphMapper = new ServerMorphMapper();
       if (totalMorphsCreated > 0) {
         console.log(`[MorphMapper] ✅ Created ${totalMorphsCreated} morphs (one-time initialization)`);
       }
+      
+      // Debug: Show which perspectives morphs belong to vs which are active
+      const allCreatedMorphs = document.querySelectorAll('.card-data [data-perspective]');
+      const createdPerspectives = new Set();
+      allCreatedMorphs.forEach(m => createdPerspectives.add(m.getAttribute('perspective')));
+      dbg('📊 Summary:', {
+        createdMorphs: allCreatedMorphs.length,
+        createdPerspectives: Array.from(createdPerspectives),
+        activePerspectives: activePerspectives.map(p => p.name || p),
+        match: Array.from(createdPerspectives).some(p => activePerspectives.map(ap => ap.name || ap).includes(p))
+      });
+      
       console.log(`[MorphMapper] 👁️ Visibility update: ${totalMorphsShown} shown, ${totalMorphsHidden} hidden (CSS only - instant)`);
     }
     
@@ -1424,18 +1596,12 @@ const morphMapper = new ServerMorphMapper();
     console.log('[MorphMapper] 🔍 Expanding cards to show ALL fields from ALL perspectives...');
     
     const allPerspectives = [
-      'taxonomy',
-      'morphology',
-      'ecologicalNetwork',
-      'culinaryDimensions',
-      'medicinalIntelligence',
-      'cultivationIntelligence',
-      'sensoryProfile',
-      'chemicalUniverse',
-      'culturalDimensions',
-      'economicDimensions',
-      'environmentalIntelligence',
-      'knowledgeConnections'
+      'identity', 'visualIdentity', 'taxonomy', 'phylogeny', 'morphologyAndAnatomy',
+      'microscopyAndCellular', 'chemicalAndProperties', 'sensoryProfile',
+      'ecologyAndDistribution', 'temporalPatterns', 'geographyAndDistribution',
+      'cultivationAndGrowing', 'medicinalAndHealth', 'culinaryAndNutritional',
+      'commercialAndMarket', 'environmentalAndConservation', 'historicalAndCultural',
+      'researchAndInnovation', 'safetyAndIdentification', 'metadata'
     ];
     
     containers.forEach(container => {
