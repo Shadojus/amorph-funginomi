@@ -89,10 +89,12 @@ export class RangeMorph extends LitElement {
       }
       
       .range-label-text {
-        color: rgba(255, 255, 255, 0.55);
-        font-size: 0.625rem;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.6875rem;
         text-transform: uppercase;
         letter-spacing: 0.04em;
+        word-break: break-word;
+        line-height: 1.3;
       }
 
       .range-value {

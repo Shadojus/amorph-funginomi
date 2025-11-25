@@ -384,15 +384,8 @@ const morphMapper = new ServerMorphMapper();
       </p>
     </div>
     
-    <!-- View Toggle -->
-    <div class="view-toggle">
-      <button class="view-btn active" data-view="grid">
-        📊 Grid View
-      </button>
-      <button class="view-btn" data-view="bubble">
-        🫧 Bubble View
-      </button>
-    </div>
+    <!-- View Toggle - Now in MorphHeader -->
+    <!-- Removed: View buttons are now in the header next to search -->
   </header>
 
   <!-- Bubble Host -->
@@ -602,11 +595,11 @@ const morphMapper = new ServerMorphMapper();
   }
 
   .card-data {
-    padding: 1.25rem;
+    padding: 1rem;
     display: grid;
-    /* Default: 2-Spalten Layout */
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.875rem 1rem;
+    /* Default: 1-Spalte für Mobile */
+    grid-template-columns: 1fr;
+    gap: 0.625rem 0.75rem;
     overflow-y: auto;
     overflow-x: hidden;
     max-height: 500px;
@@ -620,10 +613,10 @@ const morphMapper = new ServerMorphMapper();
     container-name: carddata;
   }
   
-  /* Narrow card-data (<300px): 1-Spalte */
-  @container carddata (max-width: 300px) {
+  /* Wide card-data (>300px): 2-Spalten */
+  @container carddata (min-width: 300px) {
     .card-data {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, 1fr);
     }
   }
   
@@ -631,7 +624,7 @@ const morphMapper = new ServerMorphMapper();
   .card-data > * {
     background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
-    padding: 0.75rem;
+    padding: 0.625rem;
     border: 1px solid rgba(255, 255, 255, 0.06);
   }
   
@@ -689,12 +682,16 @@ const morphMapper = new ServerMorphMapper();
   /* Very narrow: kompaktere Abstände */
   @container carddata (max-width: 220px) {
     .card-data {
-      gap: 0.5rem;
-      padding: 0.75rem;
+      gap: 0.375rem;
+      padding: 0.5rem;
     }
     
     .card-data > * {
-      padding: 0.5rem;
+      padding: 0.375rem;
+    }
+    
+    .card-data .morph-label {
+      font-size: 0.5625rem;
     }
   }
   
@@ -719,12 +716,12 @@ const morphMapper = new ServerMorphMapper();
   .card-data .morph-field {
     display: flex;
     flex-direction: column;
-    gap: 0.375rem;
+    gap: 0.25rem;
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
     overflow: hidden;
-    padding-bottom: 0.25rem;
+    padding-bottom: 0.125rem;
   }
   
   .card-data .morph-label {
@@ -842,8 +839,8 @@ const morphMapper = new ServerMorphMapper();
   /* Entity Grid */
   .entity-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    gap: 2.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+    gap: 2rem;
     margin-bottom: 4rem;
     padding: 1rem 0;
     align-items: start; /* Align cards to top for better visual balance */
@@ -1055,23 +1052,19 @@ const morphMapper = new ServerMorphMapper();
     console.log('✅ Perspective listeners registered');
     console.log('⏳ Waiting for MorphHeader to dispatch default perspectives...');
 
-    // View Toggle functionality with coordinated state
-    const viewBtns = document.querySelectorAll('.view-btn');
+    // View Toggle functionality - Listen to MorphHeader events
     let currentView = 'grid'; // Track current view
 
-    viewBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const view = btn.dataset.view;
-        if (view === currentView) return; // Already on this view
-        
-        currentView = view;
-        
-        // Update active state
-        viewBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        
-        // Toggle views and activate appropriate reactors
-        if (view === 'grid') {
+    // Handle view mode changes from MorphHeader
+    window.addEventListener('view-mode-changed', (e) => {
+      const view = e.detail?.mode;
+      if (!view || view === currentView) return; // Already on this view
+      
+      currentView = view;
+      console.log('[ViewToggle] Switching to:', view);
+      
+      // Toggle views and activate appropriate reactors
+      if (view === 'grid') {
           // Show Grid, Hide Bubble
           bubbleHost.style.display = 'none';
           gridHost.style.display = 'grid'; // Must be 'grid' not 'block'
@@ -1141,7 +1134,6 @@ const morphMapper = new ServerMorphMapper();
         // ✓ Search query (via amorph.state.searchQuery and search:input events)
         // ✓ Perspectives (via MorphHeader perspective-changed events)
         // ✓ User interactions persist across view switches
-      });
     });
 
     console.log('✅ View toggle initialized with', entities.length, 'entities');

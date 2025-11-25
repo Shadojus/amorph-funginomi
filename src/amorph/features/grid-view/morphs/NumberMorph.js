@@ -85,14 +85,14 @@ export class NumberMorph extends LitElement {
     }
 
     .label {
-      font-size: 0.625rem;
-      color: rgba(255, 255, 255, 0.55);
+      font-size: 0.6875rem;
+      color: rgba(255, 255, 255, 0.6);
       text-transform: uppercase;
       letter-spacing: 0.04em;
       font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.3;
     }
 
     .value-row {
@@ -115,8 +115,8 @@ export class NumberMorph extends LitElement {
     }
 
     .range {
-      font-size: 0.625rem;
-      color: rgba(255, 255, 255, 0.45);
+      font-size: 0.6875rem;
+      color: rgba(255, 255, 255, 0.5);
       margin-top: 0.125rem;
     }
 

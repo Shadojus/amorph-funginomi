@@ -49,12 +49,15 @@ export class TimelineMorph extends LitElement {
     }
 
     .timeline-label {
-      font-size: 0.625rem;
+      font-size: 0.6875rem;
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.55);
+      color: rgba(255, 255, 255, 0.6);
       text-transform: uppercase;
       letter-spacing: 0.04em;
       margin-bottom: 0.5rem;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.3;
     }
 
     .timeline-container {

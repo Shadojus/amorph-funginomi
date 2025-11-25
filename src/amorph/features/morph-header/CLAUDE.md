@@ -611,8 +611,18 @@ resetBubbleView() {
 
 MorphHeader ist vollständig implementiert und wird von allen Morphs verwendet.
 
-**Latest Updates (2025-11-15):**
-- ✅ BubbleView Controls integriert (Play/Pause, Connections, Reset)
-- ✅ Listens to `bubble-view-active` Event
-- ✅ Conditional rendering basierend auf aktiver View
-- ✅ Zentrale Control-Location für alle Morphs
+**Latest Updates (2025-11-25):**
+- ✅ **Improved Mobile Responsiveness** - Better breakpoints for small screens
+- ✅ **Very Small Screens (<480px)** - Branding hidden, compact perspective buttons
+- ✅ **Progressive Shrinking** - Buttons scale down gracefully at 768px, 480px
+
+**Previous Updates (2025-11-19):**
+- ✅ **Pulsating search bar** - Blue glow animation (3s loop, stops on focus)
+- ✅ **Default perspectives changed** - Identity, Taxonomy, Morphology, Ecology
+- ✅ **4 default perspectives** - Balanced starting view
+
+**Breakpoints:**
+- `>1200px`: Full icons + labels
+- `768-1200px`: Icons hidden, smaller labels
+- `480-768px`: Compact buttons, smaller branding
+- `<480px`: Branding hidden, very compact buttons (max-width: 60px)
