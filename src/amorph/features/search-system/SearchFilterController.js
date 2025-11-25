@@ -610,92 +610,105 @@ export class SearchFilterController {
   /**
    * Highlight matching text within an element (works with Shadow DOM)
    * ONLY highlights exact text matches, not entire elements
+   * RECURSIVELY searches all nested Shadow DOMs
    */
   highlightTextInElement(element, query) {
     let highlightCount = 0;
     
-    // Check if element uses Shadow DOM
+    // Recursive function to process a root (regular DOM or shadow root)
+    const processRoot = (root) => {
+      // Find all text nodes that might contain the query
+      const walker = document.createTreeWalker(
+        root,
+        NodeFilter.SHOW_TEXT,
+        {
+          acceptNode: (node) => {
+            // Skip script and style tags
+            const parent = node.parentElement;
+            if (!parent) return NodeFilter.FILTER_REJECT;
+            
+            const tagName = parent.tagName.toLowerCase();
+            if (tagName === 'script' || tagName === 'style') {
+              return NodeFilter.FILTER_REJECT;
+            }
+            
+            // Skip empty nodes
+            const text = node.textContent;
+            if (!text || text.trim().length === 0) return NodeFilter.FILTER_REJECT;
+            
+            // ONLY accept if this specific text contains the query (case-insensitive)
+            if (!text.toLowerCase().includes(query)) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        }
+      );
+      
+      const textNodes = [];
+      let node;
+      while (node = walker.nextNode()) {
+        textNodes.push(node);
+      }
+      
+      // Highlight matching text in each text node
+      textNodes.forEach(textNode => {
+        const text = textNode.textContent;
+        const lowerText = text.toLowerCase();
+        
+        // Double-check (should always pass due to filter above)
+        if (!lowerText.includes(query)) return;
+        
+        // Create a temporary container to build highlighted HTML
+        const parent = textNode.parentElement;
+        if (!parent) return;
+        
+        // Split text and wrap matches in span
+        const parts = [];
+        let lastIndex = 0;
+        let searchIndex = 0;
+        
+        while ((searchIndex = lowerText.indexOf(query, lastIndex)) !== -1) {
+          // Add text before match
+          if (searchIndex > lastIndex) {
+            parts.push(document.createTextNode(text.substring(lastIndex, searchIndex)));
+          }
+          
+          // Add highlighted match
+          const matchSpan = document.createElement('span');
+          matchSpan.className = 'search-highlight-text';
+          matchSpan.textContent = text.substring(searchIndex, searchIndex + query.length);
+          parts.push(matchSpan);
+          
+          highlightCount++;
+          lastIndex = searchIndex + query.length;
+        }
+        
+        // Add remaining text
+        if (lastIndex < text.length) {
+          parts.push(document.createTextNode(text.substring(lastIndex)));
+        }
+        
+        // Replace original text node with highlighted parts
+        if (parts.length > 0) {
+          parts.forEach(part => parent.insertBefore(part, textNode));
+          parent.removeChild(textNode);
+        }
+      });
+      
+      // Recursively process nested elements with shadow DOM
+      const elements = root.querySelectorAll('*');
+      elements.forEach(el => {
+        if (el.shadowRoot) {
+          processRoot(el.shadowRoot);
+        }
+      });
+    };
+    
+    // Start processing from the element's shadow root or the element itself
     const root = element.shadowRoot || element;
-    
-    // Find all text nodes that might contain the query
-    const walker = document.createTreeWalker(
-      root,
-      NodeFilter.SHOW_TEXT,
-      {
-        acceptNode: (node) => {
-          // Skip script and style tags
-          const parent = node.parentElement;
-          if (!parent) return NodeFilter.FILTER_REJECT;
-          
-          const tagName = parent.tagName.toLowerCase();
-          if (tagName === 'script' || tagName === 'style') {
-            return NodeFilter.FILTER_REJECT;
-          }
-          
-          // Skip empty nodes
-          const text = node.textContent;
-          if (!text || text.trim().length === 0) return NodeFilter.FILTER_REJECT;
-          
-          // ONLY accept if this specific text contains the query (case-insensitive)
-          if (!text.toLowerCase().includes(query)) {
-            return NodeFilter.FILTER_REJECT;
-          }
-          
-          return NodeFilter.FILTER_ACCEPT;
-        }
-      }
-    );
-    
-    const textNodes = [];
-    let node;
-    while (node = walker.nextNode()) {
-      textNodes.push(node);
-    }
-    
-    // Highlight matching text in each text node
-    textNodes.forEach(textNode => {
-      const text = textNode.textContent;
-      const lowerText = text.toLowerCase();
-      
-      // Double-check (should always pass due to filter above)
-      if (!lowerText.includes(query)) return;
-      
-      // Create a temporary container to build highlighted HTML
-      const parent = textNode.parentElement;
-      if (!parent) return;
-      
-      // Split text and wrap matches in span
-      const parts = [];
-      let lastIndex = 0;
-      let searchIndex = 0;
-      
-      while ((searchIndex = lowerText.indexOf(query, lastIndex)) !== -1) {
-        // Add text before match
-        if (searchIndex > lastIndex) {
-          parts.push(document.createTextNode(text.substring(lastIndex, searchIndex)));
-        }
-        
-        // Add highlighted match
-        const matchSpan = document.createElement('span');
-        matchSpan.className = 'search-highlight-text';
-        matchSpan.textContent = text.substring(searchIndex, searchIndex + query.length);
-        parts.push(matchSpan);
-        
-        highlightCount++;
-        lastIndex = searchIndex + query.length;
-      }
-      
-      // Add remaining text
-      if (lastIndex < text.length) {
-        parts.push(document.createTextNode(text.substring(lastIndex)));
-      }
-      
-      // Replace original text node with highlighted parts
-      if (parts.length > 0) {
-        parts.forEach(part => parent.insertBefore(part, textNode));
-        parent.removeChild(textNode);
-      }
-    });
+    processRoot(root);
     
     return highlightCount;
   }

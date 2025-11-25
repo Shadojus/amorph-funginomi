@@ -468,6 +468,9 @@ const morphMapper = new ServerMorphMapper();
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
     height: auto;
     position: relative;
+    /* Container Query: each card responds to its own width */
+    container-type: inline-size;
+    container-name: card;
   }
   
   /* Dark overlay for better readability */
@@ -878,7 +881,7 @@ const morphMapper = new ServerMorphMapper();
     }
   }
   
-  /* Kleine Screens: 1-spaltig */
+  /* Kleine Screens: 1-spaltig - VIEWPORT FALLBACK */
   @media (max-width: 480px) {
     .card-data {
       grid-template-columns: 1fr;
@@ -888,6 +891,49 @@ const morphMapper = new ServerMorphMapper();
     .card-data boolean-morph,
     .card-data number-morph,
     .card-data tag-morph,
+    .card-data .morph-field {
+      grid-column: 1 / -1;
+    }
+  }
+  
+  /* ===== CONTAINER QUERIES: Each card is individually responsive ===== */
+  
+  /* Wide card (>450px): 2-column layout */
+  @container card (min-width: 450px) {
+    .card-data {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem 1rem;
+    }
+    
+    .card-data boolean-morph,
+    .card-data number-morph {
+      grid-column: span 1;
+    }
+    
+    .card-data tag-morph,
+    .card-data range-morph,
+    .card-data key-value-morph,
+    .card-data .morph-field {
+      grid-column: span 1;
+    }
+    
+    .card-data .morph-field:has(boolean-morph),
+    .card-data .morph-field:has(number-morph) {
+      grid-column: span 1;
+    }
+  }
+  
+  /* Narrow card (<450px): 1-column layout */
+  @container card (max-width: 449px) {
+    .card-data {
+      grid-template-columns: 1fr;
+      gap: 0.625rem;
+    }
+    
+    .card-data boolean-morph,
+    .card-data number-morph,
+    .card-data tag-morph,
+    .card-data range-morph,
     .card-data .morph-field {
       grid-column: 1 / -1;
     }
