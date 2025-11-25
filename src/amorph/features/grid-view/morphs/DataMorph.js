@@ -152,17 +152,36 @@ export class DataMorph extends LitElement {
     }
 
     .perspective-section {
-      padding: 1rem;
+      padding: 0.75rem;
       border-left: 3px solid var(--perspective-color, rgba(255, 255, 255, 0.2));
       background: rgba(255, 255, 255, 0.02);
       border-radius: 4px;
     }
 
+    /* Smart Grid Layout für nested fields */
+    .nested-fields-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+
     /* Nested rendering styles */
     .nested-field {
-      margin-bottom: 0.75rem;
-      padding: 0.5rem 0;
+      margin-bottom: 0.5rem;
+      padding: 0.375rem 0;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Boolean und Number fields: kompakt nebeneinander */
+    .nested-field.compact {
+      grid-column: span 1;
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+    
+    /* Lange Text-Fields: volle Breite */
+    .nested-field.wide {
+      grid-column: 1 / -1;
     }
 
     .nested-field:last-child {
@@ -171,30 +190,75 @@ export class DataMorph extends LitElement {
 
     .nested-label {
       display: block;
-      font-size: 0.5625rem;
+      font-size: 0.5rem;
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.45);
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.125rem;
     }
 
     .nested-section {
-      margin: 0.75rem 0;
-      padding: 0.75rem;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
       border-left: 2px solid rgba(255, 255, 255, 0.15);
       background: rgba(255, 255, 255, 0.02);
       border-radius: 4px;
+      grid-column: 1 / -1;
     }
 
     .section-title {
-      font-size: 0.6875rem;
+      font-size: 0.625rem;
       font-weight: 600;
-      color: rgba(255, 255, 255, 0.8);
+      color: rgba(255, 255, 255, 0.75);
       text-transform: capitalize;
-      margin: 0 0 0.5rem 0;
+      margin: 0 0 0.375rem 0;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      padding-bottom: 0.375rem;
+      padding-bottom: 0.25rem;
+    }
+    
+    /* Inline Boolean-Darstellung für nested fields */
+    .boolean-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      width: fit-content;
+    }
+    
+    .boolean-inline.true {
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      color: #22c55e;
+    }
+    
+    .boolean-inline.false {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #ef4444;
+    }
+    
+    .bool-icon {
+      font-size: 0.875rem;
+      line-height: 1;
+    }
+    
+    .bool-label {
+      text-transform: capitalize;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+    
+    /* Number-Darstellung */
+    .data-value.number {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #667eea;
     }
 
     .nested-array {
@@ -221,9 +285,9 @@ export class DataMorph extends LitElement {
     }
 
     .nested-object {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.375rem;
     }
 
     /* Deep mode styles */
@@ -724,13 +788,34 @@ export class DataMorph extends LitElement {
         continue;
       }
       
-      // Primitive values
+      // Primitive values - detect type for layout hints
       if (typeof value === 'string') {
         if (value.trim().length > 0) {
-          results.push({ type: 'text', label, key: fullKey, value: value.trim() });
+          const isShort = value.trim().length < 30;
+          results.push({ 
+            type: 'text', 
+            label, 
+            key: fullKey, 
+            value: value.trim(),
+            compact: isShort  // Short strings can be compact
+          });
         }
-      } else if (typeof value === 'number' || typeof value === 'boolean') {
-        results.push({ type: 'text', label, key: fullKey, value: String(value) });
+      } else if (typeof value === 'boolean') {
+        results.push({ 
+          type: 'boolean', 
+          label, 
+          key: fullKey, 
+          value: value,
+          compact: true  // Booleans are always compact
+        });
+      } else if (typeof value === 'number') {
+        results.push({ 
+          type: 'number', 
+          label, 
+          key: fullKey, 
+          value: value,
+          compact: true  // Numbers are always compact
+        });
       }
     }
     
@@ -738,15 +823,16 @@ export class DataMorph extends LitElement {
   }
 
   /**
-   * Render a nested field (tags, text, or section)
+   * Render a nested field (tags, text, boolean, number, or section)
    */
   renderNestedField(field, depth = 0) {
-    const marginStyle = `margin-left: ${depth * 0.5}rem`;
+    const marginStyle = depth > 0 ? `margin-left: ${depth * 0.375}rem` : '';
+    const compactClass = field.compact ? 'compact' : 'wide';
     
     if (field.type === 'tags') {
       return html`
-        <div class="nested-field" style="${marginStyle}">
-          <label class="nested-label">${field.label}</label>
+        <div class="nested-field wide" style="${marginStyle}">
+          <label class="nested-label">${this.formatLabel(field.label)}</label>
           <div class="data-value tags">
             ${field.values.map(tag => html`<span class="tag">${tag}</span>`)}
           </div>
@@ -754,10 +840,30 @@ export class DataMorph extends LitElement {
       `;
     }
     
+    if (field.type === 'boolean') {
+      return html`
+        <div class="nested-field compact" style="${marginStyle}">
+          <div class="boolean-inline ${field.value ? 'true' : 'false'}">
+            <span class="bool-icon">${field.value ? '✓' : '✗'}</span>
+            <span class="bool-label">${this.formatLabel(field.label)}</span>
+          </div>
+        </div>
+      `;
+    }
+    
+    if (field.type === 'number') {
+      return html`
+        <div class="nested-field compact" style="${marginStyle}">
+          <label class="nested-label">${this.formatLabel(field.label)}</label>
+          <div class="data-value number">${this.formatNumber(field.value)}</div>
+        </div>
+      `;
+    }
+    
     if (field.type === 'text') {
       return html`
-        <div class="nested-field" style="${marginStyle}">
-          <label class="nested-label">${field.label}</label>
+        <div class="nested-field ${compactClass}" style="${marginStyle}">
+          <label class="nested-label">${this.formatLabel(field.label)}</label>
           <div class="data-value text">${field.value}</div>
         </div>
       `;
@@ -766,13 +872,52 @@ export class DataMorph extends LitElement {
     if (field.type === 'section') {
       return html`
         <div class="nested-section" style="${marginStyle}">
-          <h5 class="section-title">${field.label}</h5>
-          ${field.children.map(child => this.renderNestedField(child, depth + 1))}
+          <h5 class="section-title">${this.formatLabel(field.label)}</h5>
+          <div class="nested-fields-grid">
+            ${field.children.map(child => this.renderNestedField(child, depth + 1))}
+          </div>
         </div>
       `;
     }
     
     return html``;
+  }
+  
+  /**
+   * Format label: underscores to spaces, camelCase to Title Case
+   */
+  formatLabel(label) {
+    return label
+      .replace(/_/g, ' ')
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+  
+  /**
+   * Format numbers with smart abbreviation
+   */
+  formatNumber(value) {
+    const num = Number(value);
+    
+    // Check if this looks like a timestamp
+    if (Math.abs(num) > 1000000000000) {
+      try {
+        const date = new Date(num);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString();
+        }
+      } catch (e) { /* fall through */ }
+    }
+    
+    // Abbreviate large numbers
+    const absNum = Math.abs(num);
+    if (absNum >= 1000000000) return (num / 1000000000).toFixed(1) + 'B';
+    if (absNum >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (absNum >= 10000) return (num / 1000).toFixed(1) + 'K';
+    
+    // Regular number
+    return Number.isInteger(num) ? num : num.toFixed(1);
   }
 
   render() {
@@ -878,7 +1023,9 @@ export class DataMorph extends LitElement {
                   ${pIcon} ${this.formatPerspectiveName(perspectiveName)}
                 </span>
               </div>
-              ${fields.map(field => this.renderNestedField(field, 0))}
+              <div class="nested-fields-grid">
+                ${fields.map(field => this.renderNestedField(field, 0))}
+              </div>
             </div>
           `;
         })}

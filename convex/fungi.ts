@@ -281,6 +281,27 @@ export const advancedSearch = query({
         }
       }
 
+      // Helper to unwrap citedValue structures
+      // citedValue wraps: { value: actual_data, sources: [...], confidence: 0-100, ... }
+      const unwrapCitedValue = (obj: any): any => {
+        if (!obj || typeof obj !== 'object') return obj;
+        
+        // Check if this looks like a citedValue wrapper
+        // citedValue has: value, sources, confidence, consensus, last_updated
+        const isCitedValue = 'value' in obj && (
+          'sources' in obj || 
+          'confidence' in obj || 
+          'consensus' in obj || 
+          'last_updated' in obj
+        );
+        
+        if (isCitedValue && obj.value !== undefined) {
+          return obj.value; // Return the actual data
+        }
+        
+        return obj; // Not a citedValue, return as-is
+      };
+
       // Deep search all perspective objects
       // Dynamically build perspectives array from field mapping
       const perspectiveMapping = getFieldKeyToPerspectiveMapping();
@@ -294,8 +315,12 @@ export const advancedSearch = query({
       for (const perspective of perspectives) {
         if (!perspective.data) continue;
         
-        // Check each field in perspective
-        for (const [field, value] of Object.entries(perspective.data)) {
+        // UNWRAP citedValue wrapper to get actual searchable content
+        const unwrappedData = unwrapCitedValue(perspective.data);
+        if (!unwrappedData || typeof unwrappedData !== 'object') continue;
+        
+        // Check each field in perspective (now searching inside actual data)
+        for (const [field, value] of Object.entries(unwrappedData)) {
           const match = matches(value);
           if (match.matched) {
             const fieldPath = `${perspective.key}.${field}`;

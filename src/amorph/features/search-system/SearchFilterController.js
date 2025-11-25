@@ -166,12 +166,11 @@ export class SearchFilterController {
       return;
     }
     
-    // Extract slugs from results
+    // Extract slugs from results using the configured slug field
+    const slugField = window.amorph?.domainConfig?.dataSource?.slugField || 'slug';
+    
     this.filteredSlugs = new Set(
-      results.map(entity => {
-        const slugField = window.amorph?.domainConfig?.dataSource?.slugField || 'slug';
-        return entity[slugField];
-      }).filter(Boolean)
+      results.map(entity => entity[slugField]).filter(Boolean)
     );
     
     // Filter cards
@@ -397,14 +396,23 @@ export class SearchFilterController {
     this.clearHighlights();
     
     const query = this.currentQuery.toLowerCase().trim();
-    console.log(`[SearchFilterController] 🎨 Highlighting text containing: "${query}"`);
+    console.log(`[SearchFilterController] 🎨 Highlighting text containing: "${query}"`, {
+      filteredSlugs: Array.from(this.filteredSlugs),
+      allCardsCount: this.allCards.length,
+      cardSlugs: this.allCards.map(c => c.dataset.slug)
+    });
     
     let totalHighlights = 0;
+    let cardsProcessed = 0;
     const highlightedElements = []; // Track first highlighted element per card for scrolling
     
     this.allCards.forEach(card => {
       const slug = card.dataset.slug;
-      if (!slug || !this.filteredSlugs.has(slug)) return;
+      if (!slug || !this.filteredSlugs.has(slug)) {
+        console.log(`[SearchFilterController] ⏭️ Skipping card: slug="${slug}", inFilteredSlugs=${this.filteredSlugs.has(slug)}`);
+        return;
+      }
+      cardsProcessed++;
       
       let cardFirstHighlight = null;
       
@@ -421,10 +429,20 @@ export class SearchFilterController {
       ];
       
       const morphs = card.querySelectorAll(allMorphSelectors.join(', '));
+      console.log(`[SearchFilterController] 🔍 Card ${slug}: found ${morphs.length} morphs`);
+      
+      let morphsChecked = 0;
+      let morphsSkippedHidden = 0;
+      let morphsSkippedPerspective = 0;
       
       morphs.forEach(morph => {
+        morphsChecked++;
+        
         // Skip hidden elements (display:none = not in active perspective)
-        if (morph.style.display === 'none') return;
+        if (morph.style.display === 'none') {
+          morphsSkippedHidden++;
+          return;
+        }
         
         // CRITICAL: Skip morphs from inactive perspectives
         // Check if morph has perspective attribute and if it's in active perspectives
@@ -436,7 +454,7 @@ export class SearchFilterController {
           
           // Skip if this morph's perspective is not active
           if (!activePerspectiveNames.includes(morphPerspective)) {
-            console.log(`[SearchFilterController] ⏭️ Skipping morph in inactive perspective: ${morphPerspective}`, morph);
+            morphsSkippedPerspective++;
             return;
           }
         }
@@ -456,6 +474,13 @@ export class SearchFilterController {
             cardFirstHighlight = morph;
           }
         }
+      });
+      
+      console.log(`[SearchFilterController] 📊 Card ${slug} summary:`, {
+        morphsChecked,
+        morphsSkippedHidden,
+        morphsSkippedPerspective,
+        morphsProcessed: morphsChecked - morphsSkippedHidden - morphsSkippedPerspective
       });
       
       // Store first highlight for this card

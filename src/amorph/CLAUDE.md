@@ -1,6 +1,6 @@
 # 🔮 AMORPH System - Generic Data Visualization Framework
 
-**Last Updated:** 23. November 2025
+**Last Updated:** 25. November 2025
 
 ## Übersicht
 
@@ -16,7 +16,7 @@ Dies ist das Root-Verzeichnis des AMORPH Systems - ein domain-agnostisches morph
 
 **Tech Stack:** Astro + Lit + Vanilla JS Reactors + Convex + Canvas 2D + Redis Streams
 
-**Latest:** MorphMapper mit intelligenter Type Detection, BubbleView mit Similarity-based Layout, Perspective System mit FIFO queue.
+**Latest (2025-11-25):** Search system fully working with correct slug field (`seoName`), text highlighting, auto-perspective activation.
 
 ## 🔗 Quick Navigation
 

@@ -38,64 +38,70 @@ export class NumberMorph extends LitElement {
     css`
       :host {
         display: inline-block;
+        width: 100%;
       }
 
       .number-container {
         display: inline-flex;
         flex-direction: column;
-        gap: var(--space-xs);
-        padding: var(--space-md) var(--space-lg);
-        border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.05);
-      border: 1.5px solid rgba(102, 126, 234, 0.2);
-      transition: all 0.3s ease;
+        gap: 0.125rem;
+        padding: 0.375rem 0.5rem;
+        border-radius: var(--radius-md, 6px);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1.5px solid rgba(102, 126, 234, 0.2);
+        transition: all 0.3s ease;
+        width: fit-content;
+        max-width: 100%;
     }
 
     .number-container:hover {
       background: rgba(255, 255, 255, 0.08);
       border-color: rgba(102, 126, 234, 0.4);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
     }
 
     .label {
-      font-size: 0.75rem;
-      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.5625rem;
+      color: rgba(255, 255, 255, 0.5);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.05em;
       font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .value-row {
       display: flex;
       align-items: baseline;
-      gap: 0.25rem;
+      gap: 0.125rem;
     }
 
     .value {
-      font-size: 1.5rem;
+      font-size: 1.125rem;
       font-weight: 700;
       color: #667eea;
       line-height: 1;
     }
 
     .unit {
-      font-size: 0.875rem;
-      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.6875rem;
+      color: rgba(255, 255, 255, 0.6);
       font-weight: 500;
     }
 
     .range {
-      font-size: 0.75rem;
-      color: rgba(255, 255, 255, 0.5);
-      margin-top: 0.25rem;
+      font-size: 0.625rem;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 0.125rem;
     }
 
     .range-bar {
       width: 100%;
-      height: 4px;
+      height: 3px;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 2px;
-      margin-top: 0.5rem;
+      margin-top: 0.25rem;
       position: relative;
       overflow: hidden;
     }
@@ -152,8 +158,37 @@ export class NumberMorph extends LitElement {
     }
   }
 
+  /**
+   * Smart formatting: large numbers get abbreviated, timestamps detected
+   */
   getFormattedValue() {
-    return Number(this.value).toFixed(this.precision);
+    const num = Number(this.value);
+    
+    // Check if this looks like a timestamp (very large negative or positive number)
+    if (Math.abs(num) > 1000000000000) {
+      // Likely a millisecond timestamp - show as date
+      try {
+        const date = new Date(num);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString();
+        }
+      } catch (e) {
+        // Fall through to number formatting
+      }
+    }
+    
+    // Large numbers: abbreviate
+    const absNum = Math.abs(num);
+    if (absNum >= 1000000000) {
+      return (num / 1000000000).toFixed(1) + 'B';
+    } else if (absNum >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    } else if (absNum >= 10000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    
+    // Regular numbers: use precision
+    return num.toFixed(this.precision);
   }
 
   getRangePercentage() {
@@ -166,7 +201,7 @@ export class NumberMorph extends LitElement {
   render() {
     return html`
       <div class="number-container" style="border-color: ${this.color}33;">
-        ${this.label ? html`<div class="label">${this.label}</div>` : ''}
+        ${this.label ? html`<div class="label">${this.formatLabel(this.label)}</div>` : ''}
         
         <div class="value-row">
           <span class="value" style="color: ${this.color};">
@@ -186,6 +221,17 @@ export class NumberMorph extends LitElement {
         ` : ''}
       </div>
     `;
+  }
+  
+  /**
+   * Format label: replace underscores, add spaces before caps
+   */
+  formatLabel(label) {
+    return label
+      .replace(/_/g, ' ')
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 }
 

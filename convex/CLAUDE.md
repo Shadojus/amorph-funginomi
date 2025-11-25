@@ -1,8 +1,13 @@
 # 🗄️ CONVEX - Database & Backend (Instance-Specific)
 
-**Last Updated:** 23. November 2025
+**Last Updated:** 25. November 2025
 
 **⚠️ DOMAIN-SPECIFIC:** Dieses Schema ist instance-spezifisch. Das AMORPH Framework selbst ist domain-agnostisch. Jede Instance definiert ihr eigenes Schema mit domain-spezifischen Feldern, aber alle nutzen die gleiche AMORPH-Architektur.
+
+**⚠️ CRITICAL SLUG FIELDS:**
+- `slug` - Short slug (e.g., `amanita-muscaria`) - Database internal
+- `seoName` - Full SEO slug (e.g., `fly-agaric-amanita-muscaria`) - **USED BY FRONTEND**
+- **ALWAYS configure `slugField: 'seoName'` in domain.config.js!**
 
 ## Structure
 

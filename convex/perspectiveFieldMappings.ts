@@ -539,22 +539,79 @@ export function getMappingStatistics() {
 /**
  * Get mapping of field keys to their perspective IDs
  * Used to dynamically construct perspective objects in fungi.ts
+ * 
+ * Returns TOP-LEVEL database field keys (like 'ecology', 'conservation')
+ * mapped to their perspective IDs (like 'ecologyAndDistribution')
  */
 export function getFieldKeyToPerspectiveMapping(): Record<string, string> {
-  const mapping: Record<string, string> = {};
-  
-  const perspectiveIds = new Set(Object.values(fieldToPerspectiveIndex));
-  
-  for (const perspectiveId of perspectiveIds) {
-    const mainFieldKey = Object.entries(fieldToPerspectiveIndex).find(
-      ([key, perspective]) => 
-        perspective === perspectiveId && key === perspectiveId
-    )?.[0];
+  // These are the actual top-level field keys used in the database schema
+  // Each maps to its corresponding perspective ID
+  const topLevelFields: Record<string, string> = {
+    // Identity fields
+    'commonName': 'identity',
+    'latinName': 'identity',
+    'scientificNameSynonyms': 'identity',
+    'commonNameVariants': 'identity',
+    'internationalNames': 'identity',
+    'nomenclatureHistory': 'identity',
     
-    if (mainFieldKey) {
-      mapping[mainFieldKey] = perspectiveId;
-    }
-  }
+    // Visual
+    'visualIdentity': 'visualIdentity',
+    
+    // Taxonomy
+    'taxonomy': 'taxonomy',
+    
+    // Phylogeny
+    'phylogeny': 'phylogeny',
+    
+    // Morphology
+    'morphology': 'morphologyAndAnatomy',
+    
+    // Microscopy
+    'microscopy': 'microscopyAndCellular',
+    
+    // Chemistry
+    'chemistry': 'chemicalAndProperties',
+    
+    // Sensory
+    'sensoryProfile': 'sensoryProfile',
+    
+    // Ecology - NOTE: database key is 'ecology', perspective is 'ecologyAndDistribution'
+    'ecology': 'ecologyAndDistribution',
+    
+    // Temporal
+    'temporalPatterns': 'temporalPatterns',
+    
+    // Geography - NOTE: database key is 'geography', perspective is 'geographyAndDistribution'
+    'geography': 'geographyAndDistribution',
+    
+    // Cultivation
+    'cultivation': 'cultivationAndGrowing',
+    
+    // Medicinal
+    'medicinal': 'medicinalAndHealth',
+    
+    // Culinary
+    'culinary': 'culinaryAndNutritional',
+    
+    // Economics
+    'economics': 'commercialAndMarket',
+    
+    // Conservation - NOTE: database key is 'conservation', perspective is 'environmentalAndConservation'
+    'conservation': 'environmentalAndConservation',
+    
+    // Cultural - NOTE: database key is 'cultural', perspective is 'historicalAndCultural'
+    'cultural': 'historicalAndCultural',
+    
+    // Research
+    'research': 'researchAndInnovation',
+    
+    // Safety
+    'safetyAndIdentification': 'safetyAndIdentification',
+    
+    // Metadata
+    'metadata': 'metadata',
+  };
   
-  return mapping;
+  return topLevelFields;
 }

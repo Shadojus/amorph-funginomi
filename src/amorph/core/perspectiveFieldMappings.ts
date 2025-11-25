@@ -457,6 +457,19 @@ export const perspectiveSchemaFields: Record<string, { displayFields: string[] }
 })();
 
 // ============================================================================
+// SIMPLE DISPLAY FIELDS MAP - For components that just need perspective → fields[]
+// ============================================================================
+export const perspectiveDisplayFields: Record<string, string[]> = (() => {
+  const result: Record<string, string[]> = {};
+  
+  for (const [perspectiveId, data] of Object.entries(perspectiveSchemaFields)) {
+    result[perspectiveId] = data.displayFields;
+  }
+  
+  return result;
+})();
+
+// ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
 

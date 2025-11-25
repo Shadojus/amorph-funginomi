@@ -1,6 +1,6 @@
 # 📝 AMORPH Framework - Generic Data Visualization System
 
-**Last Updated:** 25. November 2025
+**Last Updated:** 23. November 2025
 
 ## 🎯 Vision
 
@@ -503,46 +503,7 @@ AmorphSystem.emit('perspective:changed') → Update all Views
 
 ---
 
-## 🔥 Latest Changes (2025-11-25)
-
-### 0. 🔧 CRITICAL FIX: Search Slug Mismatch Resolved
-
-**Problem:** Search was returning results but cards weren't being highlighted. Search showed "0 text matches in 0 cards" despite finding matching entities.
-
-**Root Cause:** Database uses TWO different slug fields:
-- `slug` - Short slug like `amanita-muscaria` (raw database field)
-- `seoName` - Full SEO slug like `fly-agaric-amanita-muscaria` (used by frontend cards)
-
-The search API returned the `slug` field, but the frontend cards use `data-slug` attribute populated from `seoName`. This mismatch caused zero matches!
-
-**Solution:** Changed `domain.config.js` line 48:
-```javascript
-// BEFORE (BROKEN):
-slugField: 'slug',
-
-// AFTER (WORKING):
-slugField: 'seoName',
-```
-
-**Files Changed:**
-- ✅ `src/amorph/core/domain.config.js` - `slugField: 'seoName'`
-- ✅ `src/amorph/core/perspectiveFieldMappings.ts` - Added missing `perspectiveDisplayFields` export (BubbleMorph import error)
-
-**Search System Status:** ✅ FULLY WORKING
-- Server-side search finds correct results
-- Card filtering works (matching cards shown)
-- Text highlighting works (matched text highlighted)
-- Auto-scroll to highlighted content
-- Perspective auto-activation based on matched fields
-
-**CRITICAL REMINDER for Future Development:**
-- **ALWAYS use `seoName` as the slug field** - This is the field used for URLs and card identification
-- The `slug` field exists but is shorter and NOT used by the frontend
-- This is documented in `convex/SCHEMA_DOCUMENTATION.md`
-
----
-
-## 🔥 Previous Changes (2025-11-23)
+## 🔥 Latest Changes (2025-11-23)
 
 ### 0. 🎨 Visualization-Ready Schema Implementation - Phase 2-4 Complete
 

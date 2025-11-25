@@ -34,17 +34,20 @@ export class BooleanMorph extends LitElement {
     css`
       :host {
         display: inline-block;
+        width: 100%;
       }
 
       .boolean-container {
         display: inline-flex;
         align-items: center;
-        gap: var(--space-sm);
-        padding: var(--space-sm) var(--space-md);
-        border-radius: var(--radius-md);
-        transition: var(--transition-base);
-        font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-medium);
+        gap: var(--space-sm, 0.375rem);
+        padding: 0.375rem 0.625rem;
+        border-radius: var(--radius-md, 6px);
+        transition: var(--transition-base, all 0.2s ease);
+        font-size: 0.75rem;
+        font-weight: var(--font-weight-medium, 500);
+        width: fit-content;
+        max-width: 100%;
     }
 
     .boolean-container.true {
@@ -60,12 +63,17 @@ export class BooleanMorph extends LitElement {
     }
 
     .icon {
-      font-size: 1.25rem;
+      font-size: 1rem;
       line-height: 1;
+      flex-shrink: 0;
     }
 
     .label {
       user-select: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-transform: capitalize;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -117,8 +125,21 @@ export class BooleanMorph extends LitElement {
     if (this.icon) return this.icon;
     return this.value ? '✓' : '✗';
   }
+  
+  /**
+   * Format label: replace underscores, add spaces before caps
+   */
+  formatLabel(label) {
+    return label
+      .replace(/_/g, ' ')
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
 
   render() {
+    const formattedLabel = this.label ? this.formatLabel(this.label) : '';
+    
     return html`
       <div 
         class="boolean-container ${this.value ? 'true' : 'false'}"
@@ -128,7 +149,7 @@ export class BooleanMorph extends LitElement {
         "
       >
         <span class="icon">${this.getIcon()}</span>
-        ${this.label ? html`<span class="label">${this.label}</span>` : ''}
+        ${formattedLabel ? html`<span class="label">${formattedLabel}</span>` : ''}
       </div>
     `;
   }

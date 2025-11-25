@@ -44,7 +44,7 @@ export const DomainConfig = {
   dataSource: {
     type: 'convex', // 'convex' | 'rest' | 'graphql' | 'supabase' | etc.
     table: 'fungi', // Table/Collection name
-    slugField: 'slug', // Field used for URL slug
+    slugField: 'seoName', // Field used for URL slug (matches Convex schema)
     nameField: 'commonName', // Primary display name field
     secondaryNameField: 'latinName', // Secondary name (scientific, etc.)
     imageField: 'images', // Field containing images array
