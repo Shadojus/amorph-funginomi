@@ -602,47 +602,68 @@ const morphMapper = new ServerMorphMapper();
   }
 
   .card-data {
-    padding: 1.5rem;
+    padding: 1.25rem;
     display: grid;
-    /* Smart 2-column grid: kleine Morphs nebeneinander, große volle Breite */
+    /* Festes 2-Spalten Grid für konsistentes Layout */
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem 0.875rem; /* Mehr vertikaler Abstand */
+    gap: 0.75rem 1rem;
     overflow-y: auto;
     overflow-x: hidden;
-    max-height: 450px;
+    max-height: 500px;
     scrollbar-width: none;
     -ms-overflow-style: none;
     width: 100%;
     box-sizing: border-box;
+    align-items: start;
   }
   
-  /* Kompakte Morphs (Booleans, Numbers, kurze Tags) - Grid-fit */
+  /* ALLE Morphs bekommen einen konsistenten Container-Look */
+  .card-data > * {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 0.625rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  
+  /* Kompakte Morphs: 1 Spalte */
   .card-data boolean-morph,
   .card-data number-morph {
     grid-column: span 1;
   }
   
-  /* Volle Breite für komplexe/lange Morphs */
-  .card-data data-morph,
-  .card-data text-morph,
-  .card-data list-morph,
-  .card-data name-morph,
+  /* Mittlere Morphs: 1 Spalte, aber können wachsen */
   .card-data tag-morph,
   .card-data range-morph,
   .card-data key-value-morph,
   .card-data .morph-field {
+    grid-column: span 1;
+  }
+  
+  /* Große Morphs: volle Breite */
+  .card-data data-morph,
+  .card-data text-morph,
+  .card-data list-morph {
     grid-column: 1 / -1;
   }
   
-  /* Kleine Tag-Morphs können auch compact sein */
-  .card-data tag-morph.compact,
-  .card-data .morph-field.compact {
+  /* Name-Morphs auch volle Breite wenn lang */
+  .card-data name-morph {
     grid-column: span 1;
+  }
+  
+  /* Wrapper für große Inhalte */
+  .card-data .morph-field:has(text-morph),
+  .card-data .morph-field:has(list-morph),
+  .card-data .morph-field:has(data-morph) {
+    grid-column: 1 / -1;
   }
   
   /* Enable flex ordering for perspective-based DataMorph positioning */
   .card-data data-morph {
     order: 999; /* Default: at bottom */
+    background: transparent;
+    border: none;
+    padding: 0;
   }
   
   .card-data data-morph[style*="order"] {
@@ -845,27 +866,10 @@ const morphMapper = new ServerMorphMapper();
       padding: 1rem;
     }
     
-    /* Auf kleinen Screens: Morphs untereinander, aber Booleans noch nebeneinander */
+    /* Tablet: bleibt 2-spaltig */
     .card-data {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.5rem;
+      gap: 0.625rem 0.75rem;
       padding: 1rem;
-    }
-    
-    /* Booleans bleiben kompakt nebeneinander */
-    .card-data boolean-morph,
-    .card-data number-morph {
-      grid-column: span 1;
-    }
-    
-    /* Alle anderen volle Breite */
-    .card-data data-morph,
-    .card-data text-morph,
-    .card-data list-morph,
-    .card-data name-morph,
-    .card-data tag-morph,
-    .card-data .morph-field:not(:has(boolean-morph)):not(:has(number-morph)) {
-      grid-column: 1 / -1;
     }
 
     header {
@@ -874,14 +878,17 @@ const morphMapper = new ServerMorphMapper();
     }
   }
   
-  /* Sehr kleine Cards: alles untereinander */
-  @media (max-width: 320px) {
+  /* Kleine Screens: 1-spaltig */
+  @media (max-width: 480px) {
     .card-data {
       grid-template-columns: 1fr;
+      gap: 0.625rem;
     }
     
     .card-data boolean-morph,
-    .card-data number-morph {
+    .card-data number-morph,
+    .card-data tag-morph,
+    .card-data .morph-field {
       grid-column: 1 / -1;
     }
   }

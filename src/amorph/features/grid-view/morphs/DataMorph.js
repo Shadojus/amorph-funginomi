@@ -103,26 +103,26 @@ export class DataMorph extends LitElement {
     }
 
     .data-value.text {
-      font-size: 0.9375rem;
+      font-size: 0.875rem;
       font-weight: 500;
-      line-height: 1.5;
+      line-height: 1.45;
+      color: rgba(255, 255, 255, 0.9);
     }
 
     .data-value.tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.375rem 0.5rem;
-      line-height: 1.3;
-      padding: 0.125rem 0;
+      gap: 0.375rem;
+      line-height: 1.2;
     }
 
     .tag {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.8125rem;
+      padding: 0.3125rem 0.5rem;
+      font-size: 0.75rem;
       font-weight: 500;
-      background: rgba(255, 255, 255, 0.08);
-      color: rgba(255, 255, 255, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(100, 120, 200, 0.15);
+      color: rgba(180, 190, 255, 0.95);
+      border: 1px solid rgba(100, 120, 200, 0.25);
       border-radius: 4px;
       display: inline-block;
     }
@@ -135,14 +135,14 @@ export class DataMorph extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 0.25rem;
-      padding: 0.1875rem 0.5rem;
+      padding: 0.25rem 0.5rem;
       border-radius: 4px;
       font-size: 0.5625rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.03em;
-      background: transparent;
-      color: var(--perspective-color, rgba(255, 255, 255, 0.5));
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--perspective-color, rgba(255, 255, 255, 0.6));
       border: 1px solid var(--perspective-color, rgba(255, 255, 255, 0.05));
       opacity: 0.32;
     }
@@ -150,55 +150,44 @@ export class DataMorph extends LitElement {
     .multi-perspective {
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
+      gap: 1.5rem;
     }
 
     .perspective-section {
-      padding: 1rem 0.875rem;
-      border-left: 3px solid var(--perspective-color, rgba(255, 255, 255, 0.2));
-      background: rgba(255, 255, 255, 0.025);
-      border-radius: 6px;
-      margin-bottom: 0.5rem;
-    }
-    
-    .perspective-section:last-child {
-      margin-bottom: 0;
+      padding: 1rem;
+      border-left: 3px solid var(--perspective-color, rgba(255, 255, 255, 0.25));
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-left-width: 3px;
     }
 
-    /* Smart Grid Layout für nested fields */
+    /* Festes 2-Spalten Grid für nested fields */
     .nested-fields-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem 1rem;
-      margin-top: 0.5rem;
+      gap: 0.625rem 0.75rem;
+      margin-top: 0.625rem;
+      align-items: start;
     }
 
-    /* Nested rendering styles */
+    /* Nested rendering styles - mit Container */
     .nested-field {
-      margin-bottom: 0.375rem;
-      padding: 0.5rem 0;
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 5px;
+      padding: 0.5rem 0.625rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
     
-    /* Boolean und Number fields: kompakt nebeneinander */
+    /* Boolean und Number fields: 1 Spalte */
     .nested-field.compact {
       grid-column: span 1;
-      border-bottom: none;
-      margin-bottom: 0;
-      padding: 0.25rem 0;
     }
     
     /* Lange Text-Fields: volle Breite */
     .nested-field.wide {
       grid-column: 1 / -1;
-      padding-bottom: 0.625rem;
-      margin-bottom: 0.375rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    }
-    
-    .nested-field.wide:last-child {
-      border-bottom: none;
-      margin-bottom: 0;
-    }
+    }", "oldString": "    /* Responsives Auto-Fit Grid für nested fields */\n    .nested-fields-grid {\n      display: grid;\n      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));\n      gap: 0.875rem 1rem;\n      margin-top: 0.75rem;\n      align-items: start;\n    }\n\n    /* Nested rendering styles */\n    .nested-field {\n      padding: 0.5rem 0;\n    }\n    \n    /* Boolean und Number fields: kompakt, passen sich an */\n    .nested-field.compact {\n      grid-column: span 1;\n      padding: 0.375rem 0;\n    }\n    \n    /* Lange Text-Fields: volle Breite */\n    .nested-field.wide {\n      grid-column: 1 / -1;\n      padding-bottom: 0.75rem;\n      margin-bottom: 0.5rem;\n      border-bottom: 1px solid rgba(255, 255, 255, 0.06);\n    }\n    \n    .nested-field.wide:last-child {\n      border-bottom: none;\n      margin-bottom: 0;\n    }
 
     .nested-field:last-child {
       border-bottom: none;
@@ -215,10 +204,11 @@ export class DataMorph extends LitElement {
     }
 
     .nested-section {
-      margin: 0.875rem 0;
+      margin: 0.75rem 0;
       padding: 0.75rem;
-      border-left: 2px solid rgba(255, 255, 255, 0.15);
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-left: 2px solid rgba(255, 255, 255, 0.2);
       border-radius: 6px;
       grid-column: 1 / -1;
     }
@@ -229,12 +219,13 @@ export class DataMorph extends LitElement {
 
     .section-title {
       font-size: 0.6875rem;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.8);
-      text-transform: capitalize;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.75);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       margin: 0 0 0.625rem 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       padding-bottom: 0.375rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
     
     /* Inline Boolean-Darstellung für nested fields */
@@ -242,27 +233,27 @@ export class DataMorph extends LitElement {
       display: inline-flex;
       align-items: center;
       gap: 0.375rem;
-      padding: 0.375rem 0.625rem;
-      border-radius: 5px;
+      padding: 0.375rem 0.5rem;
+      border-radius: 4px;
       font-size: 0.75rem;
       font-weight: 500;
       width: fit-content;
     }
     
     .boolean-inline.true {
-      background: rgba(34, 197, 94, 0.12);
-      border: 1px solid rgba(34, 197, 94, 0.25);
-      color: #22c55e;
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #4ade80;
     }
     
     .boolean-inline.false {
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.25);
-      color: #ef4444;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
     }
     
     .bool-icon {
-      font-size: 1rem;
+      font-size: 0.875rem;
       line-height: 1;
     }
     
@@ -276,10 +267,10 @@ export class DataMorph extends LitElement {
     
     /* Number-Darstellung */
     .data-value.number {
-      font-size: 0.9375rem;
-      font-weight: 600;
-      color: #667eea;
-      padding: 0.125rem 0;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #818cf8;
+      line-height: 1.2;
     }
 
     .nested-array {
@@ -308,7 +299,8 @@ export class DataMorph extends LitElement {
     .nested-object {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.625rem 0.875rem;
+      gap: 0.5rem 0.625rem;
+      align-items: start;
     }
 
     /* Deep mode styles */
@@ -318,7 +310,11 @@ export class DataMorph extends LitElement {
     }
     
     .deep-mode .perspective-section {
-      margin-bottom: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    
+    .deep-mode .perspective-section:last-child {
+      margin-bottom: 0;
     }
       padding: 0;
       border-left: none;
