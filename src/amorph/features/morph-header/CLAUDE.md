@@ -1,6 +1,6 @@
-# 🌍 AMORPH Global Components
+# 🌍 AMORPH Global Components - MorphHeader
 
-**Last Updated:** 25. November 2025
+**Last Updated:** 26. November 2025
 
 **Framework Note:** MorphHeader ist **konfigurierbar** für verschiedene Instanzen. Die Perspektiven-Buttons, Branding, und Search-Integration sind über Props/Config anpassbar. Jede Instance definiert ihre eigenen Perspektiven basierend auf ihrer Domäne.
 
@@ -8,7 +8,7 @@
 
 ```
 features/morph-header/
-├── MorphHeader.js       # Main header with search & perspective controls
+├── MorphHeader.js       # Main header with search & perspective controls (~1336 lines)
 ├── tokens.js            # Local design tokens
 └── CLAUDE.md            # This file
 ```
@@ -16,13 +16,14 @@ features/morph-header/
 ## Übersicht
 
 Globale Components für die gesamte App:
-- ✅ **MorphHeader.js**: Globaler Header mit Branding, Suche & 12 Perspektiven-Buttons
+- ✅ **MorphHeader.js**: Globaler Header mit Branding, Suche & 12+ Perspektiven-Buttons (schema-driven)
 
 ## 🔗 Related Components
 
 **Uses:**
 - `./tokens.js` - Local design tokens
 - `../../core/AmorphSystem.js` - Event publishing & perspective state
+- `../../core/perspectiveFieldMappings.js` - Schema-driven perspectives (perspectiveDefinitions)
 - `../search-system/reactors/` - Listens to search:completed events
 
 **Used by:**
@@ -32,7 +33,8 @@ Globale Components für die gesamte App:
 **Publishes Events:**
 - `perspective:activated` - When user clicks perspective button
 - `perspective:deactivated` - When perspective removed from queue
-- `search:query-changed` - When search input changes
+- `perspective-changed` - Global event (window + document) with all active perspectives
+- `data-morph:deep-mode-ready` - Triggers highlighting after perspective auto-activation
 
 **See also:**
 - `../perspective-system/` - PerspectiveHost responds to perspective events
@@ -41,588 +43,217 @@ Globale Components für die gesamte App:
 
 ---
 
-## MorphHeader.js ✨ **[UPDATED 2025-11-19]**
+## MorphHeader.js ✨ **[MAJOR UPDATE 2025-11-26]**
 
 ### Funktion
 
-**Globaler Header für das gesamte System** - **Drei Kernfunktionen:**
-- ✅ **Branding** (Funginomi + Bifröst Link)
+**Globaler Header für das gesamte System** - **Kernfunktionen:**
+- ✅ **Branding** (zentriert über Suche, responsive)
 - ✅ **Search Bar** (zentriert, glassmorphism, pulsating glow)
-- ✅ **12 Perspektiven-Buttons** (FIFO max 3 default, max 2 Reihen)
-- ✅ **Shrinkable/Expandable Buttons** (inactive/active states)
+- ✅ **12+ Perspektiven-Buttons** (schema-driven, FIFO max 4)
+- ✅ **Active Buttons First** (aktive Perspektiven immer zuerst in der Reihe)
+- ✅ **New Activation → Front** (neu aktivierte Buttons gehen an Position 0)
+- ✅ **Scroll-Compact Mode** (Header schrumpft beim Scrollen)
+- ✅ **Shrinkable Buttons** (inactive kleiner, active größer)
+- ✅ **Font Size Hierarchy** (active 0.75rem > inactive 0.625rem)
 - ✅ **Auto-Perspective Switching** (basierend auf Search Results)
 - ✅ **Debounced Auto-Switching** (400ms delay)
-- ✅ **Progressive Komprimierung** (Icons verschwinden, dann Text schrumpft)
-- ✅ **Responsive Branding** (kleiner auf Mobile, nicht versteckt)
+- ✅ **View Mode Buttons** (Grid/Bubble neben Suche)
 - ✅ Event Dispatching (window + document für Shadow DOM)
 
-**Entfernt:** ❌ Reactor Toggles, ❌ View Mode Switcher, ❌ BubbleView Controls
+**Entfernt:** ❌ Reactor Toggles
 
-**Latest Features (2025-11-23):**
-- ✅ **getActivePerspectives() API** - Public method for external access to active perspectives
+**Latest Features (2025-11-26):**
+- ✅ **Scroll-compact mode** mit Hysteresis (>150px = compact, <50px = expand)
+- ✅ **requestAnimationFrame** throttled scroll handler (keine Jitter)
+- ✅ **Active buttons first** - Rendering sortiert aktive Perspektiven nach vorne
+- ✅ **FIFO insert at front** - Neue Aktivierungen gehen an Position 0, älteste werden am Ende entfernt
+- ✅ **Font size hierarchy** - Active 0.75rem, Inactive 0.625rem
+- ✅ **Branding on own row** - Zentriert über search-perspectives-wrapper
+- ✅ **Truncated labels** - overflow:hidden ohne Ellipsis
+
+**Previous Features (2025-11-23):**
+- ✅ **getActivePerspectives() API** - Public method for external access
 - ✅ **PerspectiveReactor timing workaround** - Retrieves perspectives on first apply()
-
-**Latest Features (2025-11-19):**
 - ✅ **Pulsating search bar** - Blue glow animation (3s loop, stops on focus)
-- ✅ **Default perspectives changed** - Cultivation, Chemical, Medicinal (was: Ecology, Safety)
-- ✅ **3 default perspectives** - More focused starting view
 
-**Previous Features (2025-11-17):**
-- ✅ **Branding**: "Funginomi" Titel + "Part of the Bifröst" Untertitel mit Link
-- ✅ **Max 2 Reihen**: Perspektiven-Buttons wrappen maximal in 2 Reihen
-- ✅ **Progressive Komprimierung**:
-  - Inaktive Buttons: Keine Icons, kleiner Text
-  - Bei Platzmangel: Text schrumpft weiter
-  - Aktive Buttons: Bleiben groß mit Icon
-- ✅ **Responsive Design**:
-  - Desktop: Branding links, Suche Mitte, Spacer rechts
-  - Mobile: Branding kleiner, alle Elemente kompakter
-- ✅ Auto-activates perspectives when search finds matches in specific fields
-- ✅ 400ms debounce prevents perspective switching while user is typing
-- ✅ Only switches when user pauses typing
-- ✅ Prevents duplicate activations (checks if perspective already active)
-- ✅ FIFO queue management (removes oldest when adding 5th perspective)
-
-### Layout-Struktur
+### Layout-Struktur (Normal Mode)
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│ Top Row                                                          │
-│ Funginomi            [🔍 Search Bar - Centered]           Spacer │
-│ Part of the Bifröst                                              │
+│                         Funginomi (centered)                     │
+│                    Part of the Bifröst (centered)                │
+├──────────────────────────────────────────────────────────────────┤
+│     [🔍 Search Bar (600px max)           ] [📊] [🫧]             │
+├──────────────────────────────────────────────────────────────────┤
+│ [ACTIVE1] [ACTIVE2] [ACTIVE3] [inactive4] [inactive5] ...        │
+│ (Max 600px, wraps to max 2 rows)                                 │
 └──────────────────────────────────────────────────────────────────┘
+```
+
+### Layout-Struktur (Scroll-Compact Mode - >150px scroll)
+
+```
 ┌──────────────────────────────────────────────────────────────────┐
-│ Bottom Row (Max 2 Reihen)                                        │
-│ [🧬 Taxonomy] [👁️ Physical] [🌍 Ecology] [🍳 Culinary]          │
-│ [⚕️ Medicinal] [🌱 Cultivation] [⚠️ Safety] [🧪 Chemical]        │
-│ (Inaktive: kleiner, kein Icon | Aktive: groß, mit Icon)         │
-└──────────────────────────────────────────────────────────────────┘
-
-Mobile (< 768px):
-┌──────────────────────────────────────────────────────────────────┐
-│ Funginomi (klein)    [🔍 Search - Compact]                       │
-│ Part of the Bifröst (klein)                                      │
+│ (Branding hidden)                                                │
+│     [🔍 Search] [📊] [🫧] [ACT1] [ACT2] [in3] [in4] ...          │
+│ (Smaller padding, smaller fonts, compressed gaps)                │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-### Perspectives Configuration
+### Perspectives Configuration (Schema-Driven)
 
 ```javascript
-// Perspectives are loaded from domain.config.js
-// Each instance defines its own perspectives
-this.perspectives = DomainConfig.perspectives || [];
+// Perspectives loaded from perspectiveFieldMappings.js (NOT hardcoded!)
+this.perspectives = this._loadPerspectivesFromSchema();
 
-// Example structure:
-// { name: 'perspective1', label: 'Label', icon: '🔍', color: '#color' }
+// _loadPerspectivesFromSchema() converts perspectiveDefinitions to array format
+// Each perspective has: name, label, icon, color, description, category, order
 ```
 
-### Auto-Perspective Switching ⭐ NEW (2025-11-17)
+### Scroll Compact Behavior ⭐ NEW (2025-11-26)
 
-**Automatische Perspektiven-Aktivierung basierend auf Suchergebnissen:**
+**Hysteresis-based scroll handling:**
+- >150px scroll → Compact mode (branding hidden, smaller buttons)
+- <50px scroll → Expand mode (branding visible, normal buttons)
+- requestAnimationFrame throttled to prevent jitter
 
 ```javascript
-constructor() {
-  super();
-  // ...
-  this.autoSwitchTimer = null; // Debounce timer
-}
-
-// Event Listener für search:completed
-this.onSearchCompleted = (data) => {
-  this.searchResults = data.totalResults;
-  this.totalMorphs = data.totalMorphs;
-  this.matchedPerspectives = data.perspectiveMatchCounts || {};
+handleScroll() {
+  if (this.scrollTicking) return;
   
-  // Clear previous auto-switch timer (debounce)
-  if (this.autoSwitchTimer) {
-    clearTimeout(this.autoSwitchTimer);
-  }
-  
-  const matchedPerspectiveNames = data.matchedPerspectives || [];
-  
-  if (matchedPerspectiveNames.length > 0) {
-    // Debounce: Wait 400ms before auto-switching (user might still be typing)
-    this.autoSwitchTimer = setTimeout(() => {
-      matchedPerspectiveNames.forEach(perspectiveName => {
-        const perspective = this.perspectives.find(p => p.name === perspectiveName);
-        const isAlreadyActive = this.activePerspectives.find(p => p.name === perspectiveName);
-        
-        if (perspective && !isAlreadyActive) {
-          console.log('[MorphHeader] Auto-activating perspective from search:', perspectiveName);
-          this.togglePerspective(perspective);
-        }
-      });
-    }, 400); // 400ms debounce - nearly unnoticeable but prevents accidental switches
-  }
-};
-
-// Register listener (event name WITHOUT 'amorph:' prefix!)
-this.amorph.on('search:completed', this.onSearchCompleted);
-```
-
-**Debounce Flow:**
-1. User types "p" → Search fires → Timer starts (400ms)
-2. User types "e" → Search fires → Previous timer cancelled, new timer starts
-3. User types "p" → Search fires → Previous timer cancelled, new timer starts
-4. User types "t" → Search fires → Previous timer cancelled, new timer starts
-5. User types "i" → Search fires → Previous timer cancelled, new timer starts
-6. User types "d" → Search fires → Previous timer cancelled, new timer starts
-7. User types "e" → Search fires → Previous timer cancelled, new timer starts
-8. **User stops typing** → After 400ms → Perspectives auto-activate!
-
-**Cleanup:**
-```javascript
-disconnectedCallback() {
-  super.disconnectedCallback();
-  
-  // Clear auto-switch timer
-  if (this.autoSwitchTimer) {
-    clearTimeout(this.autoSwitchTimer);
-  }
-  
-  if (this.amorph) {
-    this.detachEventListeners();
-  }
+  this.scrollTicking = true;
+  requestAnimationFrame(() => {
+    const y = window.scrollY;
+    
+    // Hysteresis: Different thresholds for enter/exit
+    if (y > 150 && !this.isScrolled) {
+      this.isScrolled = true;
+    } else if (y < 50 && this.isScrolled) {
+      this.isScrolled = false;
+    }
+    
+    this.scrollTicking = false;
+  });
 }
 ```
 
-### FIFO Perspektiven-Management
+### FIFO Perspektiven-Management ⭐ UPDATED (2025-11-26)
+
+**New activation goes to FRONT (position 0), oldest removed from END:**
 
 ```javascript
 togglePerspective(perspective) {
   const isActive = this.activePerspectives.find(p => p.name === perspective.name);
   
   if (isActive) {
-    // Remove wenn bereits aktiv
     this.removePerspective(perspective);
   } else {
-    // Add mit FIFO-Logik
+    // FIFO: Remove LAST (oldest) when at max
     if (this.activePerspectives.length >= this.maxPerspectives) {
-      console.log(`[MorphHeader] FIFO: Removing oldest perspective`);
-      const removed = this.activePerspectives[0];
-      this.activePerspectives = this.activePerspectives.slice(1); // Remove oldest
-      console.log(`[MorphHeader] Removed:`, removed.name);
+      const removed = this.activePerspectives[this.activePerspectives.length - 1];
+      this.activePerspectives = this.activePerspectives.slice(0, -1); // Remove last
     }
     
-    this.activePerspectives = [...this.activePerspectives, perspective];
+    // Insert at FRONT (position 0)
+    this.activePerspectives = [perspective, ...this.activePerspectives];
     this.dispatchPerspectiveChange();
   }
 }
+```
 
-dispatchPerspectiveChange() {
-  const perspectiveNames = this.activePerspectives.map(p => p.name);
+### Button Rendering (Active First) ⭐ NEW (2025-11-26)
+
+**Active perspectives are always rendered first:**
+
+```javascript
+render() {
+  // Sort: active perspectives first, then inactive
+  const activePerspectives = this.perspectives.filter(p => 
+    this.activePerspectives.some(ap => ap.name === p.name)
+  );
+  const inactivePerspectives = this.perspectives.filter(p => 
+    !this.activePerspectives.some(ap => ap.name === p.name)
+  );
+  const sortedPerspectives = [...activePerspectives, ...inactivePerspectives];
   
-  // Dispatch auf BEIDE window UND document (wichtig für Shadow DOM!)
-  const event = new CustomEvent('perspective-changed', {
-    detail: { perspectives: perspectiveNames },
-    bubbles: true,
-    composed: true
-  });
-  
-  window.dispatchEvent(event);
-  document.dispatchEvent(event);
-  
-  console.log('[MorphHeader] Dispatching perspective change:', perspectiveNames);
-  console.log('[MorphHeader] Active perspectives:', this.activePerspectives.length);
+  return html`
+    <div class="perspectives-row">
+      ${sortedPerspectives.map(p => this.renderPerspectiveButton(p))}
+    </div>
+  `;
 }
 ```
 
-### Button States (CSS)
+### CSS Font Size Hierarchy
 
 ```css
-/* Alle Buttons in einer Reihe */
-.perspectives-row {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  padding: 0.5rem 0;
-}
-
-/* Basis-Button */
-.perspective-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 1.5px solid;
-  background: rgba(0, 0, 0, 0.85);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-/* Inactive: Geschrumpft */
-.perspective-btn.inactive {
-  opacity: 0.7;
-  max-width: 80px;
-  padding: 0.4rem 0.7rem;
-  font-size: 0.7rem;
-  transform: scale(0.95);
-}
-
-/* Active: Erweitert */
+/* Active buttons: larger, prominent */
 .perspective-btn.active {
-  max-width: 200px;
-  padding: 0.625rem 1.125rem;
-  font-size: 0.875rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.1);
+  padding: 0.4375rem 0.75rem;
+  font-size: 0.75rem;         /* Larger */
   font-weight: 600;
-  background: rgba(0, 0, 0, 0.95);
-  transform: scale(1.05);
-}
-
-/* Hover */
-.perspective-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
   opacity: 1;
 }
 
-### Props
+/* Inactive buttons: smaller, dimmed */
+.perspective-btn.inactive {
+  padding: 0.3125rem 0.5rem;
+  font-size: 0.625rem;        /* Smaller */
+  opacity: 0.4;
+}
 
-```javascript
-{
-  perspective: String,  // 'culinary' | 'scientific' | 'medicinal'
-  lang: String,         // 'de' | 'en' | 'la'
-  group: String,        // data-group Wert
-  mini: Boolean,        // Mini-Mode (nur Icons)
-  maxi: Boolean         // Maxi-Mode (mit Details)
+/* Scroll compact: even smaller */
+.header.scrolled .perspective-btn.active {
+  font-size: 0.5625rem;
+}
+
+.header.scrolled .perspective-btn.inactive {
+  font-size: 0.5rem;
+  max-width: 3.5rem;          /* Truncated */
 }
 ```
 
-### Verwendung
+### Auto-Perspective Switching (Search-Based)
 
-```javascript
-import { MorphHeader } from '@/amorph/global/MorphHeader';
+**Automatic perspective activation from search results (400ms debounced):**
+- Only activates FIRST missing perspective (prevents FIFO cascade)
+- Dispatches `data-morph:deep-mode-ready` after activation completes
+- Uses `_isAutoActivating` flag to prevent duplicate timers
 
-// In deinem Morph:
-class MyMorph extends LitElement {
-  render() {
-    return html`
-      <morph-header
-        perspective="scientific"
-        lang="la"
-        group="fungus-123"
-      ></morph-header>
-      
-      <div class="morph-content">
-        <!-- Dein Content -->
-      </div>
-    `;
-  }
-}
-```
+### View Mode Buttons
 
-### Implementierung
-
-```javascript
-export class MorphHeader extends LitElement {
-  static properties = {
-    perspective: { type: String },
-    lang: { type: String },
-    group: { type: String },
-    mini: { type: Boolean },
-    maxi: { type: Boolean }
-  };
-  
-  constructor() {
-    super();
-    this.perspective = 'culinary';
-    this.lang = 'de';
-    this.group = '';
-    this.mini = false;
-    this.maxi = false;
-  }
-  
-  /**
-   * Get perspective icon
-   */
-  getPerspectiveIcon(perspective) {
-    const icons = {
-      culinary: '🍄',
-      scientific: '🔬',
-      medicinal: '💊',
-      default: '📦'
-    };
-    return icons[perspective] || icons.default;
-  }
-  
-  /**
-   * Get perspective color
-   */
-  getPerspectiveColor(perspective) {
-    const colors = {
-      culinary: 'hsl(var(--hue-culinary), 70%, 60%)',
-      scientific: 'hsl(var(--hue-scientific), 70%, 60%)',
-      medicinal: 'hsl(var(--hue-medicinal), 70%, 60%)'
-    };
-    return colors[perspective] || 'hsl(0, 0%, 60%)';
-  }
-  
-  /**
-   * Get lang flag
-   */
-  getLangFlag(lang) {
-    const flags = {
-      de: '🇩🇪',
-      en: '🇬🇧',
-      la: '🏛️',
-      fr: '🇫🇷'
-    };
-    return flags[lang] || '🌐';
-  }
-  
-  render() {
-    // Mini Mode: nur Icons
-    if (this.mini) {
-      return html`
-        <div class="morph-header morph-header--mini">
-          <span class="badge badge--perspective">
-            ${this.getPerspectiveIcon(this.perspective)}
-          </span>
-          <span class="badge badge--lang">
-            ${this.getLangFlag(this.lang)}
-          </span>
-        </div>
-      `;
-    }
-    
-    // Maxi Mode: mit Details
-    if (this.maxi) {
-      return html`
-        <div class="morph-header morph-header--maxi">
-          <div class="badge-row">
-            <span class="badge badge--perspective" 
-                  style="--badge-color: ${this.getPerspectiveColor(this.perspective)}">
-              <span class="badge__icon">${this.getPerspectiveIcon(this.perspective)}</span>
-              <span class="badge__text">${this.perspective}</span>
-            </span>
-            
-            <span class="badge badge--lang">
-              <span class="badge__icon">${this.getLangFlag(this.lang)}</span>
-              <span class="badge__text">${this.lang}</span>
-            </span>
-            
-            ${this.group ? html`
-              <span class="badge badge--group">
-                <span class="badge__icon">🏷️</span>
-                <span class="badge__text">${this.group}</span>
-              </span>
-            ` : ''}
-          </div>
-        </div>
-      `;
-    }
-    
-    // Default Mode
-    return html`
-      <div class="morph-header">
-        <span class="badge badge--perspective" 
-              style="--badge-color: ${this.getPerspectiveColor(this.perspective)}">
-          ${this.getPerspectiveIcon(this.perspective)}
-          <span class="badge__text">${this.perspective}</span>
-        </span>
-        
-        <span class="badge badge--lang">
-          ${this.getLangFlag(this.lang)}
-        </span>
-        
-        ${this.group ? html`
-          <span class="badge badge--group" title="Group: ${this.group}">
-            🏷️
-          </span>
-        ` : ''}
-      </div>
-    `;
-  }
-  
-  static styles = css`
-    :host {
-      display: block;
-    }
-    
-    .morph-header {
-      display: flex;
-      gap: 0.5rem;
-      padding: 0.5rem;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-      border-radius: 0.5rem;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .morph-header--mini {
-      padding: 0.25rem;
-      gap: 0.25rem;
-    }
-    
-    .morph-header--maxi {
-      padding: 1rem;
-    }
-    
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      padding: 0.25rem 0.5rem;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 0.25rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      transition: all 0.2s ease;
-    }
-    
-    .badge:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-1px);
-    }
-    
-    .badge--perspective {
-      background: var(--badge-color, rgba(255, 255, 255, 0.1));
-      color: white;
-    }
-    
-    .badge--lang {
-      font-variant: small-caps;
-    }
-    
-    .badge--group {
-      opacity: 0.6;
-    }
-    
-    .badge__icon {
-      font-size: 1rem;
-    }
-    
-    .badge__text {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    
-    .badge-row {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-  `;
-}
-
-customElements.define('morph-header', MorphHeader);
+**Grid/Bubble toggle buttons next to search:**
+```html
+<div class="search-container">
+  <div class="search-section">...</div>
+  <div class="view-mode-buttons">
+    <button class="view-mode-btn" data-view="grid">📊</button>
+    <button class="view-mode-btn" data-view="bubble">🫧</button>
+  </div>
+</div>
 ```
 
 ---
 
-## Design Philosophy
+## Responsive Breakpoints
 
-MorphHeader folgt dem **Glass-Morphism** Prinzip:
-- Transparente Backgrounds
-- Backdrop Blur
-- Subtile Borders
-- Hover-Effekte
-
----
-
-## Verwendung in Morphs
-
-```javascript
-// NameMorph.js
-render() {
-  return html`
-    <morph-header
-      perspective=${this.perspective}
-      lang=${this.lang}
-      group=${this.dataset.group}
-    ></morph-header>
-    
-    <div class="name-morph__content">
-      <h2>${this.value}</h2>
-    </div>
-  `;
-}
-```
+| Breakpoint | Branding | Buttons | Font Sizes |
+|------------|----------|---------|------------|
+| >1200px | Full | Icons + Labels | Active 0.75rem, Inactive 0.625rem |
+| 768-1200px | Full | No icons | Same |
+| 480-768px | Smaller | Compact | Active 0.5625rem, Inactive 0.5rem |
+| <480px | Very small | Very compact | Active 0.5rem, Inactive 0.4375rem |
+| Scrolled | Hidden | Truncated | Even smaller |
 
 ---
 
-## BubbleView Controls **[NEW]**
+## Status: ✅ PRODUCTION READY
 
-MorphHeader zeigt BubbleView-spezifische Controls wenn BubbleView aktiv ist:
-
-```javascript
-// Listen to bubble-view-active event
-connectedCallback() {
-  super.connectedCallback();
-  document.addEventListener('bubble-view-active', (e) => {
-    this.bubbleViewActive = true;
-    this.bubbleViewInstance = e.detail.instance;
-    this.requestUpdate();
-  });
-}
-
-// Render BubbleView controls conditionally
-render() {
-  return html`
-    <div class="morph-header">
-      <!-- Normal badges -->
-      
-      ${this.bubbleViewActive ? html`
-        <div class="bubble-controls">
-          <button @click=${this.toggleBubbleSimulation}>
-            ${this.bubbleViewInstance?.isSimulating ? '⏸️ Pause' : '▶️ Play'}
-          </button>
-          <button @click=${this.toggleBubbleConnections}>
-            🔗 ${this.bubbleViewInstance?.showConnections ? 'Hide' : 'Show'} Connections
-          </button>
-          <button @click=${this.resetBubbleView}>
-            🔄 Reset
-          </button>
-        </div>
-      ` : ''}
-    </div>
-  `;
-}
-
-// Control methods
-toggleBubbleSimulation() {
-  if (this.bubbleViewInstance) {
-    this.bubbleViewInstance.toggleSimulation();
-  }
-}
-
-toggleBubbleConnections() {
-  if (this.bubbleViewInstance) {
-    this.bubbleViewInstance.toggleConnections();
-  }
-}
-
-resetBubbleView() {
-  if (this.bubbleViewInstance) {
-    this.bubbleViewInstance.reset();
-  }
-}
-```
-
----
-
-## Status: ✅ IMPLEMENTIERT + BUBBLEVIEW CONTROLS
-
-MorphHeader ist vollständig implementiert und wird von allen Morphs verwendet.
-
-**Latest Updates (2025-11-25):**
-- ✅ **Improved Mobile Responsiveness** - Better breakpoints for small screens
-- ✅ **Very Small Screens (<480px)** - Branding hidden, compact perspective buttons
-- ✅ **Progressive Shrinking** - Buttons scale down gracefully at 768px, 480px
-
-**Previous Updates (2025-11-19):**
-- ✅ **Pulsating search bar** - Blue glow animation (3s loop, stops on focus)
-- ✅ **Default perspectives changed** - Identity, Taxonomy, Morphology, Ecology
-- ✅ **4 default perspectives** - Balanced starting view
-
-**Breakpoints:**
-- `>1200px`: Full icons + labels
-- `768-1200px`: Icons hidden, smaller labels
-- `480-768px`: Compact buttons, smaller branding
-- `<480px`: Branding hidden, very compact buttons (max-width: 60px)
+**Latest (2025-11-26):**
+- ✅ Scroll-compact mode with hysteresis
+- ✅ Active buttons rendered first
+- ✅ New activations go to front (position 0)
+- ✅ Font size hierarchy (active > inactive)
+- ✅ Branding centered above search
+- ✅ requestAnimationFrame throttled scroll

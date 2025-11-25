@@ -1,6 +1,6 @@
 # 📊 GRID VIEW FEATURE
 
-**Last Updated:** 25. November 2025
+**Last Updated:** 26. November 2025
 
 ## Overview
 
@@ -8,13 +8,10 @@
 
 **Framework Concept:** GridView ist ein generisches Card-Layout für beliebige strukturierte Daten. Die MorphMapper-Intelligenz entscheidet automatisch, welche Visualisierung für welchen Datentyp passend ist, basierend auf der Datenstruktur (nicht auf Feldnamen).
 
-**✨ LATEST (2025-11-22):**
-- 🧑‍💻 **MorphMapper** - Fully data-driven morph type detection (NO hardcoded mappings!)
-- 📊 **RangeMorph** - Visual scale showing min/max/optimal on positioned track
-- 🏷️ **TagMorph Arrays** - Renders multiple pills for string arrays
-- 📱 **Full Responsive** - All morphs with max-width, overflow handling, word-wrap
-- 🔍 **Nested Field Extraction** - Flattens one level to expose visual morphs
-- 🪧 **Reduced Logging** - Cleaner console output, only essential events
+**✨ LATEST (2025-11-26):**
+- 📊 All morphs work with perspective color system
+- 🎨 CSS variable inheritance through Shadow DOM
+- 🔍 Search highlighting with deep mode
 
 ## Structure
 

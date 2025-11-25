@@ -1,6 +1,6 @@
 # 🗄️ CONVEX - Database & Backend (Instance-Specific)
 
-**Last Updated:** 25. November 2025
+**Last Updated:** 26. November 2025
 
 **⚠️ DOMAIN-SPECIFIC:** Dieses Schema ist instance-spezifisch. Das AMORPH Framework selbst ist domain-agnostisch. Jede Instance definiert ihr eigenes Schema mit domain-spezifischen Feldern, aber alle nutzen die gleiche AMORPH-Architektur.
 

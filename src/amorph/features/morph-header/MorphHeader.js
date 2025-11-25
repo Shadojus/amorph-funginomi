@@ -138,6 +138,7 @@ export class MorphHeader extends LitElement {
     
     // UI State
     isMobileMenuOpen: { type: Boolean },
+    isScrolled: { type: Boolean },
   };
 
   static styles = [
@@ -162,6 +163,49 @@ export class MorphHeader extends LitElement {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       width: 100%;
       box-sizing: border-box;
+    }
+    
+    /* ===== SCROLLED/COMPACT STATE ===== */
+    .header.scrolled {
+      padding: 0.375rem 1rem;
+      background: rgba(0, 0, 0, 0.75);
+    }
+    
+    .header.scrolled .branding {
+      display: none;
+    }
+    
+    .header.scrolled .header-content {
+      gap: 0.25rem;
+    }
+    
+    .header.scrolled .search-perspectives-wrapper {
+      gap: 0.375rem;
+    }
+    
+    .header.scrolled .perspectives-row {
+      gap: 0.1875rem;
+    }
+    
+    /* Compact inactive buttons: shrink and clip */
+    .header.scrolled .perspective-btn.inactive {
+      padding: 0.1875rem 0.3125rem;
+      font-size: 0.5rem;
+      max-width: 3.5rem;
+      overflow: hidden;
+    }
+    
+    .header.scrolled .perspective-btn.inactive .perspective-label {
+      max-width: 2.5rem;
+      overflow: hidden;
+      white-space: nowrap;
+      /* No ellipsis - just clip */
+    }
+    
+    /* Active buttons stay readable */
+    .header.scrolled .perspective-btn.active {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.5625rem;
     }
 
     .header-content {
@@ -332,7 +376,7 @@ export class MorphHeader extends LitElement {
     /* ===== PERSPECTIVE BUTTONS (BELOW SEARCH) ===== */
     .perspectives-row {
       display: flex;
-      gap: 0.25rem;
+      gap: 0.375rem;
       flex-wrap: wrap;
       justify-content: flex-start;
       width: 100%;
@@ -344,9 +388,9 @@ export class MorphHeader extends LitElement {
       align-items: center;
       justify-content: center;
       gap: 0.25rem;
-      padding: 0.3125rem 0.5rem;
+      padding: 0.375rem 0.625rem;
       border-radius: 6px;
-      font-size: 0.625rem;
+      font-size: 0.6875rem;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -356,19 +400,19 @@ export class MorphHeader extends LitElement {
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
       white-space: nowrap;
       text-transform: capitalize;
-      opacity: 0.5;
       line-height: 1.2;
     }
 
-    /* Inactive buttons: hide icon */
+    /* Inactive buttons: smaller, dimmed */
+    .perspective-btn.inactive {
+      padding: 0.3125rem 0.5rem;
+      font-size: 0.625rem;
+      opacity: 0.4;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    
     .perspective-btn.inactive .perspective-icon {
       display: none;
-    }
-
-    .perspective-btn.inactive {
-      gap: 0;
-      padding: 0.25rem 0.5rem;
-      font-size: 0.5625rem;
     }
 
     /* Hide icon on smaller screens */
@@ -381,9 +425,10 @@ export class MorphHeader extends LitElement {
       }
     }
 
+    /* Active buttons: prominent, larger */
     .perspective-btn.active {
-      padding: 0.375rem 0.625rem;
-      font-size: 0.6875rem;
+      padding: 0.4375rem 0.75rem;
+      font-size: 0.75rem;
       background: rgba(255, 255, 255, 0.12);
       backdrop-filter: blur(16px);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
@@ -402,16 +447,9 @@ export class MorphHeader extends LitElement {
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
       }
       50% {
-        transform: scale(1.03);
+        transform: scale(1.02);
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15) inset, 0 0 12px var(--btn-color, rgba(255, 255, 255, 0.2));
       }
-    }
-
-    .perspective-btn.inactive {
-      opacity: 0.35;
-      padding: 0.5rem 0.875rem;
-      font-size: 0.75rem;
-      background: rgba(255, 255, 255, 0.02);
     }
 
     .perspective-btn:hover {
@@ -707,9 +745,14 @@ export class MorphHeader extends LitElement {
     this.showConnections = false;
     
     this.isMobileMenuOpen = false;
+    this.isScrolled = false;
+    this.scrollTicking = false;
     
     // Auto-switch debounce timer
     this.autoSwitchTimer = null;
+    
+    // Scroll handler for compact mode
+    this.handleScroll = this.handleScroll.bind(this);
     
     // AMORPH System Reference
     this.amorph = null;
@@ -778,11 +821,33 @@ export class MorphHeader extends LitElement {
       }
     };
     document.addEventListener('click', this.handleOutsideClick);
+    
+    // Scroll listener for compact header
+    window.addEventListener('scroll', this.handleScroll, { passive: true });
+  }
+  
+  handleScroll() {
+    if (this.scrollTicking) return;
+    
+    this.scrollTicking = true;
+    requestAnimationFrame(() => {
+      const y = window.scrollY;
+      
+      // Simple position-based with hysteresis
+      if (y > 150 && !this.isScrolled) {
+        this.isScrolled = true;
+      } else if (y < 50 && this.isScrolled) {
+        this.isScrolled = false;
+      }
+      
+      this.scrollTicking = false;
+    });
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     document.removeEventListener('click', this.handleOutsideClick);
+    window.removeEventListener('scroll', this.handleScroll);
     
     // Clear auto-switch timer
     if (this.autoSwitchTimer) {
@@ -990,15 +1055,17 @@ export class MorphHeader extends LitElement {
       // Remove if already active
       this.removePerspective(perspective);
     } else {
-      // Add with FIFO logic
+      // Add with FIFO logic - NEW perspective goes to FRONT (position 0)
       if (this.activePerspectives.length >= this.maxPerspectives) {
         console.log(`[MorphHeader] FIFO: Removing oldest perspective`);
-        const removed = this.activePerspectives[0];
-        this.activePerspectives = this.activePerspectives.slice(1);
+        // Remove the LAST one (oldest, since new ones go to front)
+        const removed = this.activePerspectives[this.activePerspectives.length - 1];
+        this.activePerspectives = this.activePerspectives.slice(0, -1);
         console.log(`[MorphHeader] Removed:`, removed.name);
       }
       
-      this.activePerspectives = [...this.activePerspectives, perspective];
+      // Insert at FRONT
+      this.activePerspectives = [perspective, ...this.activePerspectives];
       this.dispatchPerspectiveChange();
       
       this.dispatchEvent(new CustomEvent('perspective-added', {
@@ -1182,7 +1249,7 @@ export class MorphHeader extends LitElement {
 
   render() {
     return html`
-      <header class="header">
+      <header class="header ${this.isScrolled ? 'scrolled' : ''}">
         <div class="header-content">
           <!-- Branding (own row, centered) -->
           <div class="branding">
@@ -1229,24 +1296,33 @@ export class MorphHeader extends LitElement {
 
             <!-- Perspective Buttons (same width as search) -->
             <div class="perspectives-row">
-            ${this.perspectives.map(p => {
-              const isActive = this.activePerspectives.find(ap => ap.name === p.name);
-              const hasMatches = this.matchedPerspectives[p.name] > 0;
-              const btnClass = `${isActive ? 'active' : 'inactive'} ${hasMatches ? 'has-matches' : ''}`;
-              const matchCount = this.matchedPerspectives[p.name] || 0;
-              const title = matchCount > 0 ? `${p.label} (${matchCount} matches)` : p.label;
-              return html`
-                <button 
-                  class="perspective-btn ${btnClass}"
-                  style="border-color: ${p.color}; color: ${p.color}; --btn-color: ${p.color};"
-                  @click=${() => this.togglePerspective(p)}
-                  title="${title}"
-                >
-                  <span class="perspective-icon">${p.icon}</span>
-                  <span class="perspective-label">${p.label}</span>
-                </button>
-              `;
-            })}
+            ${(() => {
+              // Sort: active perspectives first, then inactive
+              const activePerspectiveNames = this.activePerspectives.map(p => p.name);
+              const sortedPerspectives = [
+                ...this.activePerspectives,
+                ...this.perspectives.filter(p => !activePerspectiveNames.includes(p.name))
+              ];
+              
+              return sortedPerspectives.map(p => {
+                const isActive = activePerspectiveNames.includes(p.name);
+                const hasMatches = this.matchedPerspectives[p.name] > 0;
+                const btnClass = `${isActive ? 'active' : 'inactive'} ${hasMatches ? 'has-matches' : ''}`;
+                const matchCount = this.matchedPerspectives[p.name] || 0;
+                const title = matchCount > 0 ? `${p.label} (${matchCount} matches)` : p.label;
+                return html`
+                  <button 
+                    class="perspective-btn ${btnClass}"
+                    style="border-color: ${p.color}; color: ${p.color}; --btn-color: ${p.color};"
+                    @click=${() => this.togglePerspective(p)}
+                    title="${title}"
+                  >
+                    <span class="perspective-icon">${p.icon}</span>
+                    <span class="perspective-label">${p.label}</span>
+                  </button>
+                `;
+              });
+            })()}
             </div>
           </div>
         </div>

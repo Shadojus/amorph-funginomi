@@ -1,6 +1,6 @@
 # 👁️ PERSPECTIVE SYSTEM FEATURE
 
-**Last Updated:** 25. November 2025
+**Last Updated:** 26. November 2025
 
 ## Overview
 
@@ -9,6 +9,11 @@
 **Framework Concept:** Das Perspektiven-System ist ein generisches Tag-basiertes Filtersystem, das beliebige Datenstrukturen aus verschiedenen Blickwinkeln betrachten kann. Die Perspektiven sind domain-spezifische Konfiguration - jede Instance definiert ihre eigenen Perspektiven basierend auf ihrer Domäne.
 
 **Key Principle:** Perspektiven sind **dynamisch konfigurierbar** und basieren auf Property-Tags, nicht auf hardcodierten Logiken. Das System filtert/highlightet Morphs basierend auf deren Tags, unabhängig von der Domäne.
+
+**Latest (2025-11-26):**
+- ✅ Active perspectives rendered first in MorphHeader
+- ✅ New activations go to position 0 (front)
+- ✅ FIFO removes oldest from end (not front)
 
 ## Structure
 

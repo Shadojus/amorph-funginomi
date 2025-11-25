@@ -1,6 +1,6 @@
 # 📝 AMORPH Framework - Generic Data Visualization System
 
-**Last Updated:** 25. November 2025
+**Last Updated:** 26. November 2025
 
 ## 🎯 Vision
 
@@ -47,6 +47,13 @@ Die wirkliche Innovation ist **"beliebige strukturierte Daten automatisch sinnvo
   - Features kommunizieren über Events, nicht direkte Abhängigkeiten
   - **Multi-Instance-Ready** - Mehrere Instanzen können Daten austauschen
   - Observer-Pattern für Stream-based State Management
+
+- ✅ **MorphHeader** - Global header component (UPDATED 2025-11-26)
+  - Schema-driven perspectives (loaded from perspectiveFieldMappings.js)
+  - Scroll-compact mode with hysteresis (>150px compact, <50px expand)
+  - Active buttons rendered first, new activations go to position 0
+  - Font size hierarchy: active 0.75rem > inactive 0.625rem
+  - requestAnimationFrame throttled scroll handler
 
 ## 🌐 Multi-Instance Architecture (Roadmap)
 
