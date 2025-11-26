@@ -334,7 +334,7 @@ export const DomainConfig = {
   // ========================================
   externalLinks: {
     aggregator: {
-      name: 'Bifröst',
+      name: 'Bifroest',
       url: 'https://bifroest.io',
       description: 'Multi-domain knowledge aggregator'
     },

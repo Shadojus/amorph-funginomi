@@ -80,7 +80,7 @@ Die wirkliche Innovation ist **"beliebige strukturierte Daten automatisch sinnvo
 **Cross-Instance Features:**
 - User fügt Entity zu Collection hinzu → Event via Redis
 - Instance 2 zeigt "related to Entity X from Instance 1" → Cross-Reference
-- Aggregator (Bifröst.io) vereint alle Knowledge-Bases in eine Suche
+- Aggregator (Bifroest.io) vereint alle Knowledge-Bases in eine Suche
 
 ---
 
@@ -722,7 +722,7 @@ AmorphSystem.emit('perspective:changed') → Update all Views
 ### 2. ⭐ MorphHeader Enhancement (NEW!)
 
 **Branding & Progressive Compression:**
-- ✅ **Branding** - Instance title + "Part of the Bifröst" Link zu https://bifroest.io
+- ✅ **Branding** - Instance title + "Part of the Bifroest" Link zu https://bifroest.io
 - ✅ **Max 2 Reihen** - Perspektiven-Buttons wrappen maximal in 2 Reihen
 - ✅ **Progressive Komprimierung**:
   - Inaktive Buttons: Keine Icons, kleiner Text (0.7rem, 0.4rem padding)

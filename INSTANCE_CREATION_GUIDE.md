@@ -210,7 +210,7 @@ export const DomainConfig = {
   // ========================================
   externalLinks: {
     aggregator: {
-      name: 'Bifröst',
+      name: 'Bifroest',
       url: 'https://bifroest.io',
       description: 'Multi-domain knowledge aggregator'
     },
@@ -455,7 +455,7 @@ A: Verify `search.searchFields` includes the fields you want to search.
 1. **Customize Perspectives**: Add domain-specific perspectives
 2. **Enrich Data**: Add more fields to your schema
 3. **Custom Morphs**: Create domain-specific morphs if needed (optional)
-4. **Connect to Bifröst**: Enable cross-instance search
+4. **Connect to Bifroest**: Enable cross-instance search
 5. **Deploy Production**: Scale with your data source
 
 The framework handles the rest! 🚀

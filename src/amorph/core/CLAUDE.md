@@ -593,7 +593,7 @@ Domain-specific configuration for the Funginomi instance:
 - ✅ Data source configuration (Convex table, field mappings)
 - ✅ Perspective definitions (12 fungi perspectives)
 - ✅ UI configuration (grid/card styles, labels)
-- ✅ External links (Bifröst integration)
+- ✅ External links (Bifroest integration)
 
 ### Structure
 

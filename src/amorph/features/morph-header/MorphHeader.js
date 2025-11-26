@@ -3,7 +3,7 @@
  * =====================================
  * 
  * Globale Header-Komponente für das AMORPH System
- * DATA-DRIVEN from perspectiveFieldMappings.js
+ * DATA-DRIVEN from perspectiveFieldMappings.ts
  * 
  * Features:
  * - Perspective Selector (max 4 gleichzeitig, FIFO)
@@ -18,7 +18,7 @@
 
 import { LitElement, html, css } from 'lit';
 import { globalStyles } from './tokens.js';
-import { perspectiveDefinitions, getAllPerspectives } from '../../core/perspectiveFieldMappings.js';
+import { perspectiveDefinitions, getAllPerspectives } from '../../core/perspectiveFieldMappings.ts';
 
 /**
  * Tag to Perspective Mapping
@@ -159,7 +159,7 @@ export class MorphHeader extends LitElement {
       -webkit-backdrop-filter: blur(20px) saturate(150%);
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      padding: 0.75rem 1.5rem;
+      padding: 0.5rem 1rem;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       width: 100%;
       box-sizing: border-box;
@@ -167,73 +167,132 @@ export class MorphHeader extends LitElement {
     
     /* ===== SCROLLED/COMPACT STATE ===== */
     .header.scrolled {
-      padding: 0.375rem 1rem;
-      background: rgba(0, 0, 0, 0.75);
-    }
-    
-    .header.scrolled .branding {
-      display: none;
+      padding: 0.25rem 0.75rem;
+      background: rgba(0, 0, 0, 0.7);
     }
     
     .header.scrolled .header-content {
-      gap: 0.25rem;
-    }
-    
-    .header.scrolled .search-perspectives-wrapper {
-      gap: 0.375rem;
-    }
-    
-    .header.scrolled .perspectives-row {
       gap: 0.1875rem;
     }
     
-    /* Compact inactive buttons: shrink and clip */
+    .header.scrolled .search-perspectives-wrapper {
+      gap: 0.25rem;
+    }
+    
+    .header.scrolled .search-input {
+      height: 30px;
+      font-size: 0.75rem;
+    }
+    
+    .header.scrolled .view-mode-btn {
+      width: 30px;
+      height: 30px;
+    }
+    
+    .header.scrolled .perspectives-row.active-row {
+      gap: 0.375rem;
+      margin-bottom: 0.25rem;
+    }
+    
+    .header.scrolled .perspectives-row.inactive-row {
+      gap: 0.1875rem;
+    }
+    
+    /* Compact inactive buttons: shrink smoothly */
     .header.scrolled .perspective-btn.inactive {
-      padding: 0.1875rem 0.3125rem;
-      font-size: 0.5rem;
-      max-width: 3.5rem;
+      padding: 0.125rem 0.25rem;
+      font-size: 0.4375rem;
+      max-width: 3rem;
       overflow: hidden;
     }
     
     .header.scrolled .perspective-btn.inactive .perspective-label {
-      max-width: 2.5rem;
+      max-width: 2rem;
       overflow: hidden;
       white-space: nowrap;
-      /* No ellipsis - just clip */
     }
     
-    /* Active buttons stay readable */
+    /* Active buttons stay prominent but more compact */
     .header.scrolled .perspective-btn.active {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.5625rem;
+      padding: 0.25rem 0.4rem;
+      font-size: 0.625rem;
+    }
+    
+    .header.scrolled .perspective-btn.active .perspective-icon {
+      font-size: 0.5rem;
     }
 
     .header-content {
-      max-width: 1400px;
+      max-width: 1200px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.25rem;
       width: 100%;
       box-sizing: border-box;
       align-items: center;
+      padding: 0 1rem;
     }
     
-    /* Branding row (centered, above search) */
-    .branding {
+    /* Branding row: Funginomi left, Part of Bifroest right */
+    .branding-row {
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      gap: 0.125rem;
-      text-align: center;
+      width: 100%;
+      max-width: 800px;
+      padding: 0 0.25rem;
     }
     
-    /* Central container for search + perspectives (same width) */
+    .brand-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+    
+    .brand-subtitle {
+      font-size: 0.625rem;
+      color: rgba(255, 255, 255, 0.45);
+      margin: 0;
+      font-weight: 400;
+    }
+    
+    .brand-subtitle a {
+      color: rgba(139, 92, 246, 0.8);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    
+    .brand-subtitle a:hover {
+      color: rgba(139, 92, 246, 1);
+    }
+    
+    /* Hide branding on scroll */
+    .header.scrolled .branding-row {
+      display: none;
+    }
+    
+    /* Responsive branding - keep left/right layout */
+    @media (max-width: 480px) {
+      .branding-row {
+        padding: 0 0.125rem;
+      }
+      .brand-title {
+        font-size: 0.625rem;
+      }
+      .brand-subtitle {
+        font-size: 0.5rem;
+      }
+    }
+    
+    /* Central container for search + perspectives (wider, full width on smaller screens) */
     .search-perspectives-wrapper {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
-      max-width: 600px;
+      gap: 0.375rem;
+      max-width: 800px;
       width: 100%;
     }
     
@@ -241,100 +300,152 @@ export class MorphHeader extends LitElement {
     .search-container {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.375rem;
       width: 100%;
-    }
-
-    .brand-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: rgba(255, 255, 255, 0.95);
-      margin: 0;
-      letter-spacing: -0.02em;
-    }
-
-    .brand-subtitle {
-      font-size: 0.6875rem;
-      color: rgba(255, 255, 255, 0.5);
-      margin: 0;
-      font-weight: 400;
-    }
-
-    .brand-subtitle a {
-      color: rgba(255, 255, 255, 0.7);
-      text-decoration: none;
-      transition: color 0.2s ease;
-    }
-
-    .brand-subtitle a:hover {
-      color: rgba(255, 255, 255, 0.95);
     }
 
     /* ===== SEARCH BAR ===== */
     .search-section {
-      width: 100%;
+      flex: 1;
       position: relative;
       min-width: 0; /* Important for flex shrinking */
+      display: flex;
+      align-items: center;
+      background: rgba(10, 15, 30, 0.7);
+      border: 1.5px solid rgba(59, 130, 246, 0.35);
+      border-radius: 12px;
+      backdrop-filter: blur(12px) saturate(140%);
+      -webkit-backdrop-filter: blur(12px) saturate(140%);
+      box-shadow: 
+        0 0 25px rgba(59, 130, 246, 0.25),
+        0 0 50px rgba(59, 130, 246, 0.12),
+        0 0 80px rgba(59, 130, 246, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      animation: search-bar-pulse 3s ease-in-out infinite;
+      height: 36px;
+      padding-right: 0.25rem;
+    }
+    
+    .search-section:focus-within {
+      border-color: rgba(59, 130, 246, 0.5);
+      background: rgba(10, 15, 30, 0.75);
+      box-shadow: 
+        0 0 0 3px rgba(59, 130, 246, 0.1),
+        0 0 30px rgba(59, 130, 246, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      animation: none;
+    }
+    
+    /* Active perspectives inside search bar */
+    .active-perspectives-inside {
+      display: flex;
+      align-items: center;
+      gap: 0.1875rem;
+      flex-shrink: 0;
+      padding-right: 0.1875rem;
+      margin-left: 0.375rem;
+    }
+    
+    .active-perspectives-inside .perspective-btn.active {
+      padding: 0.0625rem 0.125rem;
+      font-size: 0.65rem;
+      height: 16px;
+      min-height: 18px;
+      gap: 0.0625rem;
+      line-height: 1;
+    }
+    
+    .active-perspectives-inside .perspective-btn.active .perspective-icon {
+      font-size: 0.4375rem;
+    }
+    
+    .active-perspectives-inside .perspective-btn.active .perspective-label {
+      transform: scaleX(0.88);
+      transform-origin: center;
+      display: inline-block;
+    }
+    
+    /* On smaller screens: hide icons, more compact */
+    @media (max-width: 768px) {
+      .active-perspectives-inside .perspective-btn.active .perspective-icon {
+        display: none;
+      }
+      .active-perspectives-inside .perspective-btn.active {
+        gap: 0;
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .active-perspectives-inside .perspective-btn.active .perspective-label {
+        transform: scaleX(0.80);
+      }
+      .active-perspectives-inside .perspective-btn.active {
+        padding: 0.125rem 0.125rem;
+      }
     }
 
     .search-input {
-      width: 100%;
-      padding: 0.75rem 1.25rem 0.75rem 2.75rem;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 20px;
-      font-size: 0.9375rem;
-      background: rgba(0, 0, 0, 0.4);
-      color: rgba(255, 255, 255, 0.9);
-      transition: all 0.3s ease;
+      flex: 1;
+      min-width: 60px;
+      padding: 0.5rem 0.75rem 0.5rem 2rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.8125rem;
+      background: rgba(30, 35, 50, 0.8);
+      color: rgba(255, 255, 255, 0.95);
+      transition: all 0.25s ease;
       outline: none;
-      backdrop-filter: blur(10px) saturate(120%);
-      -webkit-backdrop-filter: blur(10px) saturate(120%);
-      box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 0 40px rgba(59, 130, 246, 0.1);
-      animation: search-bar-pulse 3s ease-in-out infinite;
       box-sizing: border-box;
+      height: 28px;
+      margin: 4px 0 4px 4px;
+    }
+    
+    .search-input:focus {
+      background: rgba(40, 45, 60, 0.9);
     }
     
     @keyframes search-bar-pulse {
       0%, 100% {
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 0 40px rgba(59, 130, 246, 0.1);
-        border-color: rgba(255, 255, 255, 0.1);
+        box-shadow: 
+          0 0 25px rgba(59, 130, 246, 0.25),
+          0 0 50px rgba(59, 130, 246, 0.12),
+          0 0 80px rgba(59, 130, 246, 0.06),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        border-color: rgba(59, 130, 246, 0.35);
       }
       50% {
-        box-shadow: 0 0 30px rgba(59, 130, 246, 0.25), 0 0 60px rgba(59, 130, 246, 0.15);
-        border-color: rgba(59, 130, 246, 0.2);
+        box-shadow: 
+          0 0 30px rgba(59, 130, 246, 0.35),
+          0 0 60px rgba(59, 130, 246, 0.18),
+          0 0 100px rgba(59, 130, 246, 0.08),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        border-color: rgba(59, 130, 246, 0.5);
       }
     }
 
     .search-input::placeholder {
       color: rgba(255, 255, 255, 0.4);
-    }
-
-    .search-input:focus {
-      border-color: rgba(59, 130, 246, 0.4);
-      background: rgba(0, 0, 0, 0.5);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 0 40px rgba(59, 130, 246, 0.3), 0 4px 16px rgba(0, 0, 0, 0.3);
-      animation: none;
+      font-size: 0.8125rem;
     }
 
     .search-icon {
       position: absolute;
-      left: 1rem;
+      left: 12px;
       top: 50%;
       transform: translateY(-50%);
-      color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.4);
       pointer-events: none;
-      font-size: 1rem;
+      font-size: 0.75rem;
+      z-index: 1;
     }
 
     .search-results {
-      position: absolute;
-      right: 1.25rem;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.6875rem;
-      color: rgba(255, 255, 255, 0.6);
+      flex-shrink: 0;
+      font-size: 0.625rem;
+      color: rgba(255, 255, 255, 0.5);
       font-weight: 500;
       pointer-events: none;
+      padding: 0 0.5rem;
     }
 
     /* ===== REACTOR TOGGLES ===== */
@@ -373,46 +484,69 @@ export class MorphHeader extends LitElement {
       font-size: 1rem;
     }
 
+    /* ===== ACTIVE PERSPECTIVES INLINE (in search bar) ===== */
     /* ===== PERSPECTIVE BUTTONS (BELOW SEARCH) ===== */
     .perspectives-row {
       display: flex;
-      gap: 0.375rem;
       flex-wrap: wrap;
-      justify-content: flex-start;
+      justify-content: center;
       width: 100%;
       box-sizing: border-box;
+      transition: gap 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Inactive row: smaller gap, tighter layout */
+    .perspectives-row.inactive-row {
+      gap: 0.25rem;
     }
 
     .perspective-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 0.25rem;
-      padding: 0.375rem 0.625rem;
+      gap: 0.125rem;
+      padding: 0.1625rem 0.125rem;
       border-radius: 6px;
       font-size: 0.6875rem;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       border: 1px solid;
       background: rgba(255, 255, 255, 0.03);
       backdrop-filter: blur(8px);
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
       white-space: nowrap;
       text-transform: capitalize;
-      line-height: 1.2;
+      line-height: 1;
     }
 
-    /* Inactive buttons: smaller, dimmed */
+    /* Inactive buttons: slightly bigger, dimmed, no icons */
     .perspective-btn.inactive {
-      padding: 0.3125rem 0.5rem;
-      font-size: 0.625rem;
-      opacity: 0.4;
+      padding: 0.08rem 0.24rem;
+      font-size: 0.6875rem;
+      opacity: 0.55;
       background: rgba(255, 255, 255, 0.02);
     }
     
     .perspective-btn.inactive .perspective-icon {
       display: none;
+    }
+
+    /* Active buttons: smaller padding, same font, smaller icons */
+    .perspective-btn.active {
+      padding: 0.3125rem 0.5rem;
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+      font-weight: 600;
+      opacity: 0.9;
+      animation: perspective-pulse 4s ease-in-out infinite;
+    }
+
+    .perspective-btn.active .perspective-icon {
+      display: inline;
+      font-size: 0.625rem;
     }
 
     /* Hide icon on smaller screens */
@@ -425,30 +559,12 @@ export class MorphHeader extends LitElement {
       }
     }
 
-    /* Active buttons: prominent, larger */
-    .perspective-btn.active {
-      padding: 0.4375rem 0.75rem;
-      font-size: 0.75rem;
-      background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(16px);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
-      font-weight: 600;
-      opacity: 1;
-      animation: perspective-pulse 2s ease-in-out infinite;
-    }
-
-    .perspective-btn.active .perspective-icon {
-      display: inline;
-    }
-
     @keyframes perspective-pulse {
       0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
       }
       50% {
-        transform: scale(1.02);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15) inset, 0 0 12px var(--btn-color, rgba(255, 255, 255, 0.2));
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 0 6px var(--btn-color, rgba(255, 255, 255, 0.1));
       }
     }
 
@@ -520,17 +636,18 @@ export class MorphHeader extends LitElement {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       padding: 0;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(0, 0, 0, 0.35);
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s ease;
-      font-size: 1rem;
+      font-size: 0.9375rem;
       color: rgba(255, 255, 255, 0.5);
       backdrop-filter: blur(10px);
+      flex-shrink: 0;
     }
 
     .view-mode-btn:hover {
@@ -569,13 +686,31 @@ export class MorphHeader extends LitElement {
     }
 
     /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .search-perspectives-wrapper {
+        max-width: 700px;
+      }
+      
+      .perspective-btn.inactive {
+        font-size: 0.625rem;
+        padding: 0.25rem 0.5rem;
+      }
+      
+      .perspective-btn.active {
+        font-size: 0.8125rem;
+        padding: 0.4375rem 0.75rem;
+        margin: 0.0625rem 0.125rem;
+      }
+    }
+    
     @media (max-width: 768px) {
       .header {
-        padding: 0.5rem 0.75rem;
+        padding: 0.375rem 0.5rem;
       }
 
       .header-content {
-        gap: 0.375rem;
+        gap: 0.25rem;
+        padding: 0 0.5rem;
       }
 
       .brand-title {
@@ -588,56 +723,65 @@ export class MorphHeader extends LitElement {
       
       .search-perspectives-wrapper {
         max-width: 100%;
+        gap: 0.25rem;
       }
       
       .search-container {
-        width: 100%;
+        gap: 0.25rem;
       }
 
       .search-input {
-        padding: 0.5rem 1rem 0.5rem 2rem;
-        font-size: 0.8125rem;
-        border-radius: 14px;
+        padding: 0.4375rem 0.875rem 0.4375rem 2rem;
+        font-size: 0.75rem;
+        border-radius: 10px;
+        height: 32px;
       }
 
       .search-icon {
-        left: 0.75rem;
-        font-size: 0.875rem;
+        left: 0.625rem;
+        font-size: 0.8125rem;
       }
       
       .view-mode-btn {
         width: 32px;
         height: 32px;
-        font-size: 0.875rem;
+        font-size: 0.8125rem;
+        border-radius: 6px;
       }
 
       .perspectives-row {
-        gap: 0.125rem;
+        gap: 0.25rem;
       }
 
-      .perspective-btn {
-        font-size: 0.5rem;
-        padding: 0.1875rem 0.375rem;
+      .perspective-btn.inactive {
+        font-size: 0.5625rem;
+        padding: 0.21875rem 0.4375rem;
       }
 
       .perspective-btn.active {
-        font-size: 0.5625rem;
-        padding: 0.25rem 0.5rem;
+        font-size: 0.6875rem;
+        padding: 0.3125rem 0.625rem;
+        margin: 0.0625rem 0.0625rem;
       }
     }
     
-    /* Very small screens - keep branding visible */
+    /* Very small screens */
     @media (max-width: 480px) {
       .header {
-        padding: 0.375rem 0.5rem;
+        padding: 0.3125rem 0.375rem;
       }
       
       .header-content {
-        gap: 0.25rem;
+        gap: 0.1875rem;
+        padding: 0 0.25rem;
+      }
+      
+      .branding {
+        gap: 0;
       }
       
       .brand-title {
-        font-size: 0.875rem;
+        font-size: 0.9375rem;
       }
       
       .brand-subtitle {
@@ -645,9 +789,10 @@ export class MorphHeader extends LitElement {
       }
       
       .search-input {
-        padding: 0.4375rem 0.875rem 0.4375rem 1.75rem;
-        font-size: 0.75rem;
-        border-radius: 12px;
+        padding: 0.375rem 0.75rem 0.375rem 1.75rem;
+        font-size: 0.6875rem;
+        border-radius: 8px;
+        height: 30px;
       }
       
       .search-icon {
@@ -655,19 +800,27 @@ export class MorphHeader extends LitElement {
         font-size: 0.75rem;
       }
       
-      .perspectives-row {
-        gap: 0.125rem;
+      .view-mode-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.75rem;
+        border-radius: 6px;
       }
       
-      .perspective-btn {
-        font-size: 0.4375rem;
-        padding: 0.125rem 0.25rem;
+      .perspectives-row {
+        gap: 0.1875rem;
+      }
+      
+      .perspective-btn.inactive {
+        font-size: 0.5rem;
+        padding: 0.1875rem 0.375rem;
         border-radius: 4px;
       }
       
       .perspective-btn.active {
-        font-size: 0.5rem;
-        padding: 0.1875rem 0.375rem;
+        font-size: 0.5625rem;
+        padding: 0.25rem 0.5rem;
+        margin: 0.0625rem;
       }
     }
 
@@ -712,7 +865,7 @@ export class MorphHeader extends LitElement {
     
     // State - Match schema perspectives from perspectiveFieldMappings.ts
     // 🔮 DATA-DRIVEN PERSPECTIVES FROM SCHEMA
-    // All perspectives are loaded from perspectiveFieldMappings.js (perspectiveDefinitions)
+    // All perspectives are loaded from perspectiveFieldMappings.ts (perspectiveDefinitions)
     // This ensures the MorphHeader always reflects the complete schema
     this.perspectives = this._loadPerspectivesFromSchema();
     
@@ -1251,17 +1404,17 @@ export class MorphHeader extends LitElement {
     return html`
       <header class="header ${this.isScrolled ? 'scrolled' : ''}">
         <div class="header-content">
-          <!-- Branding (own row, centered) -->
-          <div class="branding">
-            <h1 class="brand-title">${window.amorph?.domainConfig?.instance?.name || 'AMORPH'}</h1>
+          <!-- Branding Row: Funginomi left, Part of Bifroest right -->
+          <div class="branding-row">
+            <h1 class="brand-title">${window.amorph?.domainConfig?.instance?.name || 'Funginomi'}</h1>
             <p class="brand-subtitle">
-              Part of the <a href="${window.amorph?.domainConfig?.externalLinks?.bifroest || 'https://bifroest.io'}" target="_blank" rel="noopener noreferrer">Bifröst</a>
+              Part of the <a href="${window.amorph?.domainConfig?.externalLinks?.bifroest || 'https://bifroest.io'}" target="_blank" rel="noopener noreferrer">Bifroest</a>
             </p>
           </div>
 
-          <!-- Search + Perspectives Wrapper (same width) -->
+          <!-- Search + Perspectives Wrapper -->
           <div class="search-perspectives-wrapper">
-            <!-- Search + View Mode Buttons -->
+            <!-- Search Row: Input with Active Buttons inside + View Mode -->
             <div class="search-container">
               <div class="search-section">
                 <span class="search-icon">🔍</span>
@@ -1269,13 +1422,31 @@ export class MorphHeader extends LitElement {
                   type="text" 
                   class="search-input"
                   placeholder="keyword.."
+                  maxlength="24"
                   .value=${this.searchQuery}
                   @input=${this.handleSearchInput}
                 />
-                ${this.searchQuery ? html`
-                  <span class="search-results">
-                    ${this.searchResults} / ${this.totalMorphs}
-                  </span>
+                <!-- Active Perspective Buttons INSIDE search bar -->
+                ${this.activePerspectives.length > 0 ? html`
+                  <div class="active-perspectives-inside">
+                    ${this.activePerspectives.map(p => {
+                      const hasMatches = this.matchedPerspectives[p.name] > 0;
+                      const btnClass = `active ${hasMatches ? 'has-matches' : ''}`;
+                      const matchCount = this.matchedPerspectives[p.name] || 0;
+                      const title = matchCount > 0 ? `${p.label} (${matchCount} matches)` : p.label;
+                      return html`
+                        <button 
+                          class="perspective-btn ${btnClass}"
+                          style="border-color: ${p.color}; color: ${p.color}; --btn-color: ${p.color};"
+                          @click=${() => this.togglePerspective(p)}
+                          title="${title}"
+                        >
+                          <span class="perspective-icon">${p.icon}</span>
+                          <span class="perspective-label">${p.label}</span>
+                        </button>
+                      `;
+                    })}
+                  </div>
                 ` : ''}
               </div>
               
@@ -1294,20 +1465,15 @@ export class MorphHeader extends LitElement {
               </div>
             </div>
 
-            <!-- Perspective Buttons (same width as search) -->
-            <div class="perspectives-row">
+            <!-- Inactive Perspective Buttons (second row) -->
+            <div class="perspectives-row inactive-row">
             ${(() => {
-              // Sort: active perspectives first, then inactive
               const activePerspectiveNames = this.activePerspectives.map(p => p.name);
-              const sortedPerspectives = [
-                ...this.activePerspectives,
-                ...this.perspectives.filter(p => !activePerspectiveNames.includes(p.name))
-              ];
+              const inactivePerspectives = this.perspectives.filter(p => !activePerspectiveNames.includes(p.name));
               
-              return sortedPerspectives.map(p => {
-                const isActive = activePerspectiveNames.includes(p.name);
+              return inactivePerspectives.map(p => {
                 const hasMatches = this.matchedPerspectives[p.name] > 0;
-                const btnClass = `${isActive ? 'active' : 'inactive'} ${hasMatches ? 'has-matches' : ''}`;
+                const btnClass = `inactive ${hasMatches ? 'has-matches' : ''}`;
                 const matchCount = this.matchedPerspectives[p.name] || 0;
                 const title = matchCount > 0 ? `${p.label} (${matchCount} matches)` : p.label;
                 return html`

@@ -23,7 +23,7 @@ Globale Components für die gesamte App:
 **Uses:**
 - `./tokens.js` - Local design tokens
 - `../../core/AmorphSystem.js` - Event publishing & perspective state
-- `../../core/perspectiveFieldMappings.js` - Schema-driven perspectives (perspectiveDefinitions)
+- `../../core/perspectiveFieldMappings.ts` - Schema-driven perspectives (perspectiveDefinitions)
 - `../search-system/reactors/` - Listens to search:completed events
 
 **Used by:**
@@ -82,7 +82,7 @@ Globale Components für die gesamte App:
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │                         Funginomi (centered)                     │
-│                    Part of the Bifröst (centered)                │
+│                    Part of the Bifroest (centered)                │
 ├──────────────────────────────────────────────────────────────────┤
 │     [🔍 Search Bar (600px max)           ] [📊] [🫧]             │
 ├──────────────────────────────────────────────────────────────────┤
@@ -104,7 +104,7 @@ Globale Components für die gesamte App:
 ### Perspectives Configuration (Schema-Driven)
 
 ```javascript
-// Perspectives loaded from perspectiveFieldMappings.js (NOT hardcoded!)
+// Perspectives loaded from perspectiveFieldMappings.ts (NOT hardcoded!)
 this.perspectives = this._loadPerspectivesFromSchema();
 
 // _loadPerspectivesFromSchema() converts perspectiveDefinitions to array format

@@ -295,7 +295,7 @@ Siehe: `STREAM_OBSERVER_SYSTEM.md` für Details
 - **Container Management**: Beide Reactors koordinieren via `reactor-astro-search-hidden` class
 
 ### ✅ TEIL 5: MorphHeader Enhancement (2025-11-17)
-- **Branding**: Instance title + "Part of the Bifröst" Link
+- **Branding**: Instance title + "Part of the Bifroest" Link
 - **Progressive Komprimierung**: Inaktive Buttons schrumpfen (kein Icon, kleiner Text)
 - **Max 2 Reihen**: Perspektiven-Buttons wrappen in max 2 Reihen
 - **Responsive Design**: Branding kleiner auf Mobile (nicht versteckt)

@@ -49,7 +49,7 @@ Die wirkliche Innovation ist **"beliebige strukturierte Daten automatisch sinnvo
   - Observer-Pattern für Stream-based State Management
 
 - ✅ **MorphHeader** - Global header component (UPDATED 2025-11-26)
-  - Schema-driven perspectives (loaded from perspectiveFieldMappings.js)
+  - Schema-driven perspectives (loaded from perspectiveFieldMappings.ts)
   - Scroll-compact mode with hysteresis (>150px compact, <50px expand)
   - Active buttons rendered first, new activations go to position 0
   - Font size hierarchy: active 0.75rem > inactive 0.625rem
@@ -87,7 +87,7 @@ Die wirkliche Innovation ist **"beliebige strukturierte Daten automatisch sinnvo
 **Cross-Instance Features:**
 - User fügt Entity zu Collection hinzu → Event via Redis
 - Instance 2 zeigt "related to Entity X from Instance 1" → Cross-Reference
-- Aggregator (Bifröst.io) vereint alle Knowledge-Bases in eine Suche
+- Aggregator (Bifroest.io) vereint alle Knowledge-Bases in eine Suche
 
 ---
 
@@ -768,7 +768,7 @@ slugField: 'seoName',
 ### 2. ⭐ MorphHeader Enhancement (NEW!)
 
 **Branding & Progressive Compression:**
-- ✅ **Branding** - Instance title + "Part of the Bifröst" Link zu https://bifroest.io
+- ✅ **Branding** - Instance title + "Part of the Bifroest" Link zu https://bifroest.io
 - ✅ **Max 2 Reihen** - Perspektiven-Buttons wrappen maximal in 2 Reihen
 - ✅ **Progressive Komprimierung**:
   - Inaktive Buttons: Keine Icons, kleiner Text (0.7rem, 0.4rem padding)

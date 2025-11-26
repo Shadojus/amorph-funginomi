@@ -279,16 +279,8 @@ export const perspectiveDefinitions: Record<string, {
     color: '#6366f1',
     order: 1,
   },
-  'visualIdentity': {
-    label: 'Visual',
-    description: 'Images, colors, 360° views, visual signatures',
-    category: 'primary',
-    icon: '🖼️',
-    color: '#8b5cf6',
-    order: 2,
-  },
   'taxonomy': {
-    label: 'Taxonomy',
+    label: 'Family',
     description: 'Hierarchical classification from kingdom to species',
     category: 'primary',
     icon: '🧬',
@@ -296,7 +288,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 3,
   },
   'phylogeny': {
-    label: 'Phylogeny',
+    label: 'Evolution',
     description: 'Evolutionary relationships, genetic markers, genome data',
     category: 'primary',
     icon: '🌳',
@@ -304,7 +296,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 4,
   },
   'morphologyAndAnatomy': {
-    label: 'Morphology',
+    label: 'Anatomy',
     description: 'Macro characteristics: cap, stem, gills, spore print',
     category: 'primary',
     icon: '👁️',
@@ -312,7 +304,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 5,
   },
   'microscopyAndCellular': {
-    label: 'Microscopy',
+    label: 'Cellular',
     description: 'Spores, basidia, hyphae, tissue structure',
     category: 'primary',
     icon: '🔬',
@@ -320,7 +312,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 6,
   },
   'chemicalAndProperties': {
-    label: 'Chemical',
+    label: 'Chemistry',
     description: 'Nutrients, metabolites, volatilome, enzymes',
     category: 'primary',
     icon: '🧪',
@@ -328,7 +320,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 7,
   },
   'sensoryProfile': {
-    label: 'Sensory',
+    label: 'Senses',
     description: 'Aroma, taste, texture, appearance, sound',
     category: 'primary',
     icon: '👃',
@@ -336,7 +328,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 8,
   },
   'ecologyAndDistribution': {
-    label: 'Ecology',
+    label: 'Habitat',
     description: 'Habitat, substrate, interactions, ecosystem services',
     category: 'primary',
     icon: '🌍',
@@ -344,7 +336,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 9,
   },
   'temporalPatterns': {
-    label: 'Temporal',
+    label: 'Cycle',
     description: 'Life cycle, phenology, circadian rhythms, history',
     category: 'primary',
     icon: '📅',
@@ -352,7 +344,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 10,
   },
   'geographyAndDistribution': {
-    label: 'Geography',
+    label: 'Geo',
     description: 'Native range, climate envelope, occurrence data',
     category: 'primary',
     icon: '🗺️',
@@ -360,7 +352,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 11,
   },
   'cultivationAndGrowing': {
-    label: 'Cultivation',
+    label: 'Grow',
     description: 'Growing conditions, substrates, production timeline',
     category: 'primary',
     icon: '🌱',
@@ -370,7 +362,7 @@ export const perspectiveDefinitions: Record<string, {
 
   // Application Perspectives (6)
   'medicinalAndHealth': {
-    label: 'Medicinal',
+    label: 'Health',
     description: 'Traditional medicine, clinical trials, safety, dosing',
     category: 'application',
     icon: '⚕️',
@@ -378,7 +370,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 13,
   },
   'culinaryAndNutritional': {
-    label: 'Culinary',
+    label: 'Nutrition',
     description: 'Edibility, recipes, nutrition, flavor profiles',
     category: 'application',
     icon: '🍳',
@@ -386,7 +378,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 14,
   },
   'commercialAndMarket': {
-    label: 'Commercial',
+    label: 'Market',
     description: 'Market value, production volume, trade data, pricing',
     category: 'application',
     icon: '💰',
@@ -394,7 +386,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 15,
   },
   'environmentalAndConservation': {
-    label: 'Environment',
+    label: 'Conserve',
     description: 'Conservation status, threats, habitat requirements',
     category: 'application',
     icon: '🌿',
@@ -402,7 +394,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 16,
   },
   'historicalAndCultural': {
-    label: 'Cultural',
+    label: 'Culture',
     description: 'Folklore, traditions, ethnobotany, cultural significance',
     category: 'application',
     icon: '📜',
@@ -410,7 +402,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 17,
   },
   'researchAndInnovation': {
-    label: 'Research',
+    label: 'Science',
     description: 'Active research, publications, patents, future potential',
     category: 'application',
     icon: '🔬',
@@ -428,7 +420,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 19,
   },
   'metadata': {
-    label: 'Metadata',
+    label: 'Info',
     description: 'System data, quality metrics, version control',
     category: 'utility',
     icon: '📋',
