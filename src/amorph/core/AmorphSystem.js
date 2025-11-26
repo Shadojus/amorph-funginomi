@@ -763,10 +763,14 @@ if (typeof window !== 'undefined') {
       amorph.log('[AmorphSystem] PerspectiveReactor found, updating...');
       
       // Map perspective names to full perspective objects
-      const perspectiveObjects = perspectives.map(name => ({
-        name,
-        color: getPerspectiveColor(name)
-      }));
+      // Color comes from domain config which imports from central perspectiveDefinitions
+      const perspectiveObjects = perspectives.map(name => {
+        const perspectiveDef = window.amorph?.domainConfig?.perspectives?.find(p => p.id === name);
+        return {
+          name,
+          color: perspectiveDef?.color || '#64748b'
+        };
+      });
       
       perspectiveReactor.updatePerspectives(perspectiveObjects);
       
@@ -781,30 +785,5 @@ if (typeof window !== 'undefined') {
   });
 }
 
-/**
- * Helper: Get perspective color by name (domain-aware)
- */
-function getPerspectiveColor(name) {
-  // Use domain config if available
-  if (window.amorph?.domainConfig?.perspectives) {
-    const perspective = window.amorph.domainConfig.perspectives.find(p => p.id === name);
-    if (perspective) return perspective.color;
-  }
-
-  // Fallback colors (should not be reached if domain config is complete)
-  const colors = {
-    'taxonomy': '#ef4444',
-    'physicalCharacteristics': '#f97316',
-    'ecologyAndHabitat': '#eab308',
-    'culinaryAndNutritional': '#22c55e',
-    'medicinalAndHealth': '#06b6d4',
-    'cultivationAndProcessing': '#3b82f6',
-    'safetyAndIdentification': '#8b5cf6',
-    'chemicalAndProperties': '#ec4899',
-    'culturalAndHistorical': '#d946ef',
-    'commercialAndMarket': '#14b8a6',
-    'environmentalAndConservation': '#10b981',
-    'researchAndInnovation': '#0ea5e9'
-  };
-  return colors[name] || '#667eea';
-}
+// NOTE: Perspective colors are defined centrally in convex/perspectiveFieldMappings.ts
+// and accessed via window.amorph.domainConfig.perspectives at runtime

@@ -259,9 +259,16 @@ export const fieldToPerspectiveIndex: Record<string, string> = {
 };
 
 // ============================================================================
-// PERSPECTIVE DEFINITIONS
+// PERSPECTIVE DEFINITIONS - HARMONISCHES FARBSPEKTRUM
 // ============================================================================
-// Definiert alle eindeutigen Perspektiven mit Metadaten
+// Zentrale Farbdefinition für alle Perspektiven
+// 
+// Farbgruppen (harmonisches Spektrum):
+// 🟢 NATUR (Grün-Spektrum): Conservation → Ecology → Cultivation → Cooking
+// 🔵 IDENTITÄT (Cyan-Blau): Name → Family Tree → Evolution  
+// 🟣 STRUKTUR (Violett-Magenta): Appearance → Micro → Chemistry → Senses
+// 🟠 PRAKTISCH (Warm): Health → Market → Culture → Safety
+//
 export const perspectiveDefinitions: Record<string, {
   label: string;
   description: string;
@@ -270,161 +277,173 @@ export const perspectiveDefinitions: Record<string, {
   color: string;
   order: number;
 }> = {
-  // Primary Perspectives (14)
-  'identity': {
-    label: 'Identity',
-    description: 'Names, etymology, common names, scientific nomenclature',
-    category: 'primary',
-    icon: '🏷️',
-    color: '#6366f1',
+  // === NATUR-GRUPPE (Grün-Spektrum) ===
+  'environmentalAndConservation': {
+    label: 'Conservation',
+    description: 'Conservation status, threats, habitat requirements',
+    category: 'application',
+    icon: '🌿',
+    color: '#059669',  // Emerald-600
     order: 1,
-  },
-  'taxonomy': {
-    label: 'Family',
-    description: 'Hierarchical classification from kingdom to species',
-    category: 'primary',
-    icon: '🧬',
-    color: '#ef4444',
-    order: 3,
-  },
-  'phylogeny': {
-    label: 'Evolution',
-    description: 'Evolutionary relationships, genetic markers, genome data',
-    category: 'primary',
-    icon: '🌳',
-    color: '#84cc16',
-    order: 4,
-  },
-  'morphologyAndAnatomy': {
-    label: 'Anatomy',
-    description: 'Macro characteristics: cap, stem, gills, spore print',
-    category: 'primary',
-    icon: '👁️',
-    color: '#f97316',
-    order: 5,
-  },
-  'microscopyAndCellular': {
-    label: 'Cellular',
-    description: 'Spores, basidia, hyphae, tissue structure',
-    category: 'primary',
-    icon: '🔬',
-    color: '#06b6d4',
-    order: 6,
-  },
-  'chemicalAndProperties': {
-    label: 'Chemistry',
-    description: 'Nutrients, metabolites, volatilome, enzymes',
-    category: 'primary',
-    icon: '🧪',
-    color: '#ec4899',
-    order: 7,
-  },
-  'sensoryProfile': {
-    label: 'Senses',
-    description: 'Aroma, taste, texture, appearance, sound',
-    category: 'primary',
-    icon: '👃',
-    color: '#a855f7',
-    order: 8,
   },
   'ecologyAndDistribution': {
     label: 'Habitat',
     description: 'Habitat, substrate, interactions, ecosystem services',
     category: 'primary',
     icon: '🌍',
-    color: '#eab308',
-    order: 9,
+    color: '#0d9488',  // Teal-600
+    order: 2,
   },
   'temporalPatterns': {
-    label: 'Cycle',
+    label: 'Seasons',
     description: 'Life cycle, phenology, circadian rhythms, history',
     category: 'primary',
     icon: '📅',
-    color: '#a855f7',
-    order: 10,
+    color: '#0f766e',  // Teal-700
+    order: 3,
   },
   'geographyAndDistribution': {
-    label: 'Geo',
+    label: 'Location',
     description: 'Native range, climate envelope, occurrence data',
     category: 'primary',
     icon: '🗺️',
-    color: '#14b8a6',
-    order: 11,
+    color: '#14b8a6',  // Teal-500
+    order: 4,
   },
   'cultivationAndGrowing': {
-    label: 'Grow',
+    label: 'Growing',
     description: 'Growing conditions, substrates, production timeline',
     category: 'primary',
     icon: '🌱',
-    color: '#3b82f6',
-    order: 12,
-  },
-
-  // Application Perspectives (6)
-  'medicinalAndHealth': {
-    label: 'Health',
-    description: 'Traditional medicine, clinical trials, safety, dosing',
-    category: 'application',
-    icon: '⚕️',
-    color: '#06b6d4',
-    order: 13,
+    color: '#16a34a',  // Green-600
+    order: 5,
   },
   'culinaryAndNutritional': {
-    label: 'Nutrition',
+    label: 'Cooking',
     description: 'Edibility, recipes, nutrition, flavor profiles',
     category: 'application',
     icon: '🍳',
-    color: '#22c55e',
-    order: 14,
+    color: '#65a30d',  // Lime-600
+    order: 6,
   },
-  'commercialAndMarket': {
-    label: 'Market',
-    description: 'Market value, production volume, trade data, pricing',
-    category: 'application',
-    icon: '💰',
-    color: '#fbbf24',
-    order: 15,
+
+  // === IDENTITÄT-GRUPPE (Cyan-Blau Spektrum) ===
+  'identity': {
+    label: 'Name',
+    description: 'Names, etymology, common names, scientific nomenclature',
+    category: 'primary',
+    icon: '🏷️',
+    color: '#0891b2',  // Cyan-600
+    order: 7,
   },
-  'environmentalAndConservation': {
-    label: 'Conserve',
-    description: 'Conservation status, threats, habitat requirements',
-    category: 'application',
-    icon: '🌿',
-    color: '#10b981',
-    order: 16,
+  'taxonomy': {
+    label: 'Family Tree',
+    description: 'Hierarchical classification from kingdom to species',
+    category: 'primary',
+    icon: '🌳',
+    color: '#0284c7',  // Sky-600
+    order: 8,
   },
-  'historicalAndCultural': {
-    label: 'Culture',
-    description: 'Folklore, traditions, ethnobotany, cultural significance',
-    category: 'application',
-    icon: '📜',
-    color: '#d946ef',
-    order: 17,
+  'phylogeny': {
+    label: 'Evolution',
+    description: 'Evolutionary relationships, genetic markers, genome data',
+    category: 'primary',
+    icon: '🧬',
+    color: '#2563eb',  // Blue-600
+    order: 9,
   },
   'researchAndInnovation': {
     label: 'Science',
     description: 'Active research, publications, patents, future potential',
     category: 'application',
     icon: '🔬',
-    color: '#0ea5e9',
-    order: 18,
+    color: '#4f46e5',  // Indigo-600
+    order: 10,
   },
 
-  // Utility Perspectives (3)
+  // === STRUKTUR-GRUPPE (Violett-Magenta Spektrum) ===
+  'morphologyAndAnatomy': {
+    label: 'Appearance',
+    description: 'Macro characteristics: cap, stem, gills, spore print',
+    category: 'primary',
+    icon: '👁️',
+    color: '#7c3aed',  // Violet-600
+    order: 11,
+  },
+  'microscopyAndCellular': {
+    label: 'Micro',
+    description: 'Spores, basidia, hyphae, tissue structure',
+    category: 'primary',
+    icon: '🔬',
+    color: '#9333ea',  // Purple-600
+    order: 12,
+  },
+  'chemicalAndProperties': {
+    label: 'Chemistry',
+    description: 'Nutrients, metabolites, volatilome, enzymes',
+    category: 'primary',
+    icon: '🧪',
+    color: '#a855f7',  // Purple-500
+    order: 13,
+  },
+  'sensoryProfile': {
+    label: 'Senses',
+    description: 'Aroma, taste, texture, appearance, sound',
+    category: 'primary',
+    icon: '👃',
+    color: '#c026d3',  // Fuchsia-600
+    order: 14,
+  },
+  'visualIdentity': {
+    label: 'Visual',
+    description: 'Images, colors, visual signature',
+    category: 'primary',
+    icon: '📸',
+    color: '#d946ef',  // Fuchsia-500
+    order: 15,
+  },
+
+  // === PRAKTISCH-GRUPPE (Warm Spektrum) ===
+  'medicinalAndHealth': {
+    label: 'Health',
+    description: 'Traditional medicine, clinical trials, safety, dosing',
+    category: 'application',
+    icon: '❤️',
+    color: '#dc2626',  // Red-600
+    order: 16,
+  },
   'safetyAndIdentification': {
     label: 'Safety',
     description: 'Toxicity, look-alikes, identification features, warnings',
     category: 'utility',
     icon: '⚠️',
-    color: '#f43f5e',
+    color: '#ea580c',  // Orange-600
+    order: 17,
+  },
+  'commercialAndMarket': {
+    label: 'Market',
+    description: 'Market value, production volume, trade data, pricing',
+    category: 'application',
+    icon: '💰',
+    color: '#ca8a04',  // Yellow-600
+    order: 18,
+  },
+  'historicalAndCultural': {
+    label: 'Culture',
+    description: 'Folklore, traditions, ethnobotany, cultural significance',
+    category: 'application',
+    icon: '📜',
+    color: '#b45309',  // Amber-700
     order: 19,
   },
+
+  // === UTILITY ===
   'metadata': {
     label: 'Info',
     description: 'System data, quality metrics, version control',
     category: 'utility',
     icon: '📋',
-    color: '#64748b',
+    color: '#64748b',  // Slate-500
     order: 20,
   },
 };
@@ -432,6 +451,32 @@ export const perspectiveDefinitions: Record<string, {
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
+
+/**
+ * Get perspective color by ID
+ * ZENTRALE FUNKTION - Verwende diese überall statt lokaler Farbdefinitionen!
+ */
+export function getPerspectiveColor(perspectiveId: string): string {
+  return perspectiveDefinitions[perspectiveId]?.color || '#64748b';
+}
+
+/**
+ * Get perspective definition by ID
+ */
+export function getPerspectiveDefinition(perspectiveId: string) {
+  return perspectiveDefinitions[perspectiveId] || null;
+}
+
+/**
+ * Get all perspective colors as a map
+ */
+export function getAllPerspectiveColors(): Record<string, string> {
+  const colors: Record<string, string> = {};
+  for (const [id, def] of Object.entries(perspectiveDefinitions)) {
+    colors[id] = def.color;
+  }
+  return colors;
+}
 
 /**
  * Get perspective for a field
@@ -503,6 +548,28 @@ export function getAllPerspectives(): Array<{
       return orderA - orderB;
     });
 }
+
+// ============================================================================
+// PERSPECTIVE SCHEMA FIELDS
+// ============================================================================
+// Groups fields by perspective, used by components to display fields per perspective
+// 
+// Structure: { perspectiveId: { displayFields: string[] } }
+// This is computed from fieldToPerspectiveIndex
+
+export const perspectiveSchemaFields: Record<string, { displayFields: string[] }> = (() => {
+  const result: Record<string, { displayFields: string[] }> = {};
+  
+  // Group fields by their perspective
+  for (const [field, perspectiveId] of Object.entries(fieldToPerspectiveIndex)) {
+    if (!result[perspectiveId]) {
+      result[perspectiveId] = { displayFields: [] };
+    }
+    result[perspectiveId].displayFields.push(field);
+  }
+  
+  return result;
+})();
 
 /**
  * Check if field is mapped

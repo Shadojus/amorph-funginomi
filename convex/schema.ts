@@ -27,7 +27,7 @@ import { v } from "convex/values";
  * ============================================================================
  */
 const citationSource = v.object({
-  id: v.optional(v.string()), // unique identifier
+  id: v.string(), // unique identifier
   type: v.optional(v.string()), // human, digital, book, journal, database, observation, traditional, museum, herbarium
   
   // Human sources
@@ -120,13 +120,13 @@ const fungi = defineTable({
   latinName: citedValue(v.string()),
   scientificNameSynonyms: citedValue(v.array(v.string())),
   commonNameVariants: citedValue(v.array(v.string())),
-  seoName: v.optional(v.string()),
-  slug: v.optional(v.string()),
+  seoName: v.string(),
+  slug: v.string(),
   
   // Multi-language names with etymology
   internationalNames: v.optional(citedValue(v.array(v.object({
-    language: v.optional(v.string()),
-    name: v.optional(v.string()),
+    language: v.string(),
+    name: v.string(),
     script: v.optional(v.string()),
     meaning: v.optional(v.string()),
     etymology: v.optional(v.string()),
@@ -135,11 +135,11 @@ const fungi = defineTable({
   
   // Naming history
   nomenclatureHistory: v.optional(citedValue(v.array(v.object({
-    name: v.optional(v.string()),
-    author: v.optional(v.string()),
-    year: v.optional(v.number()),
-    type: v.optional(v.string()), // basionym, synonym, combination
-    validity: v.optional(v.string()), // valid, invalid, disputed
+    name: v.string(),
+    author: v.string(),
+    year: v.number(),
+    type: v.string(), // basionym, synonym, combination
+    validity: v.string(), // valid, invalid, disputed
     reference: citationSource,
   })))),
   
@@ -149,31 +149,31 @@ const fungi = defineTable({
     primaryImage: citedValue(v.string()),
     
     imageGallery: v.optional(citedValue(v.array(v.object({
-      url: v.optional(v.string()),
-      type: v.optional(v.string()), // photograph, illustration, microscopy, SEM, diagram, 3D
-      viewAngle: v.optional(v.string()),
+      url: v.string(),
+      type: v.string(), // photograph, illustration, microscopy, SEM, diagram, 3D
+      viewAngle: v.string(),
       magnification: v.optional(v.number()),
-      developmentStage: v.optional(v.string()),
+      developmentStage: v.string(),
       season: v.optional(v.string()),
       habitat_shown: v.optional(v.string()),
-      photographer: v.optional(v.string()),
-      date_taken: v.optional(v.number()),
+      photographer: v.string(),
+      date_taken: v.number(),
       location: v.optional(v.object({
-        lat: v.optional(v.number()),
-        lon: v.optional(v.number()),
-        place_name: v.optional(v.string()),
+        lat: v.number(),
+        lon: v.number(),
+        place_name: v.string(),
       })),
       equipment: v.optional(v.string()),
-      license: v.optional(v.string()),
+      license: v.string(),
       color_accuracy: v.optional(v.string()), // calibrated, natural, enhanced
     })))),
     
     // 360° visualization data
     view360: v.optional(citedValue(v.optional(v.object({
-      frames: v.optional(v.array(v.string()),
-      frameCount: v.optional(v.number()),
-      rotationAxis: v.optional(v.string()),
-      capture_method: v.optional(v.string()), // photogrammetry, turntable, synthetic
+      frames: v.array(v.string()),
+      frameCount: v.number(),
+      rotationAxis: v.string(),
+      capture_method: v.string(), // photogrammetry, turntable, synthetic
       model_url: v.optional(v.string()), // 3D model file
       texture_resolution: v.optional(v.number()),
     })))),
@@ -182,50 +182,50 @@ const fungi = defineTable({
     colorData: v.optional(citedValue(v.object({
       // Standardized color measurements
       munsell_colors: v.optional(v.array(v.object({
-        location: v.optional(v.string()), // cap, stem, gills, flesh, spores
-        fresh: v.optional(v.string()), // Munsell notation
+        location: v.string(), // cap, stem, gills, flesh, spores
+        fresh: v.string(), // Munsell notation
         dry: v.optional(v.string()),
         age_changes: v.optional(v.array(v.object({
-          stage: v.optional(v.string()),
-          color: v.optional(v.string()),
+          stage: v.string(),
+          color: v.string(),
         }))),
       }))),
       
       // Digital color palette
-      rgb_palette: v.optional(v.array(v.object({
-        location: v.optional(v.string()),
-        hex: v.optional(v.string()),
-        rgb: v.object({ r: v.optional(v.number()), g: v.optional(v.number()), b: v.optional(v.number()) }),
-        lab: v.object({ l: v.optional(v.number()), a: v.optional(v.number()), b: v.optional(v.number()) }),
-        dominance: v.optional(v.number()), // 0-100%
-        variability: v.optional(v.number()), // 0-100%
+      rgb_palette: v.array(v.object({
+        location: v.string(),
+        hex: v.string(),
+        rgb: v.object({ r: v.number(), g: v.number(), b: v.number() }),
+        lab: v.object({ l: v.number(), a: v.number(), b: v.number() }),
+        dominance: v.number(), // 0-100%
+        variability: v.number(), // 0-100%
       })),
       
       // Color chemistry
       pigments: v.optional(v.array(v.object({
-        compound: v.optional(v.string()),
-        color_produced: v.optional(v.string()),
-        location: v.optional(v.array(v.string()),
-        pH_sensitive: v.optional(v.boolean()),
-        light_sensitive: v.optional(v.boolean()),
+        compound: v.string(),
+        color_produced: v.string(),
+        location: v.array(v.string()),
+        pH_sensitive: v.boolean(),
+        light_sensitive: v.boolean(),
       }))),
       
       // Staining reactions
       chemical_reactions: v.optional(v.array(v.object({
-        reagent: v.optional(v.string()), // KOH, NH4OH, FeSO4, Melzer's
-        location: v.optional(v.string()),
-        color_change: v.optional(v.string()),
-        diagnostic_value: v.optional(v.string()), // high, medium, low
+        reagent: v.string(), // KOH, NH4OH, FeSO4, Melzer's
+        location: v.string(),
+        color_change: v.string(),
+        diagnostic_value: v.string(), // high, medium, low
       }))),
     }))),
     
     // Visual signature for AI/ML
     visualSignature: citedValue(v.object({
-      shape_vector: v.optional(v.array(v.number()), // 128-dim shape embedding
-      texture_vector: v.optional(v.array(v.number()), // 128-dim texture embedding
-      color_vector: v.optional(v.array(v.number()), // 128-dim color embedding
-      pattern_vector: v.optional(v.array(v.number()), // 128-dim pattern embedding
-      uniqueness_score: v.optional(v.number()), // 0-100
+      shape_vector: v.array(v.number()), // 128-dim shape embedding
+      texture_vector: v.array(v.number()), // 128-dim texture embedding
+      color_vector: v.array(v.number()), // 128-dim color embedding
+      pattern_vector: v.array(v.number()), // 128-dim pattern embedding
+      uniqueness_score: v.number(), // 0-100
       confusion_species: v.optional(v.array(v.string())), // easily confused with
     })),
   })),
@@ -233,51 +233,51 @@ const fungi = defineTable({
   // ===== TAXONOMY & PHYLOGENY (Complete hierarchical data) =====
   taxonomy: v.optional(citedValue(v.object({
     // Standard ranks
-    domain: v.optional(v.string()), // Eukaryota
-    kingdom: v.optional(v.string()), // Fungi
+    domain: v.string(), // Eukaryota
+    kingdom: v.string(), // Fungi
     subkingdom: v.optional(v.string()),
-    phylum: v.optional(v.string()),
+    phylum: v.string(),
     subphylum: v.optional(v.string()),
-    class: v.optional(v.string()),
+    class: v.string(),
     subclass: v.optional(v.string()),
-    order: v.optional(v.string()),
+    order: v.string(),
     suborder: v.optional(v.string()),
-    family: v.optional(v.string()),
+    family: v.string(),
     subfamily: v.optional(v.string()),
     tribe: v.optional(v.string()),
-    genus: v.optional(v.string()),
+    genus: v.string(),
     subgenus: v.optional(v.string()),
     section: v.optional(v.string()),
-    species: v.optional(v.string()),
+    species: v.string(),
     subspecies: v.optional(v.string()),
     variety: v.optional(v.string()),
     forma: v.optional(v.string()),
     
     // Author citation
-    author_citation: v.optional(v.string()),
+    author_citation: v.string(),
     basionym_author: v.optional(v.string()),
     
     // Type specimen
     type_specimen: v.optional(v.object({
-      herbarium_code: v.optional(v.string()),
-      accession_number: v.optional(v.string()),
-      collector: v.optional(v.string()),
-      collection_date: v.optional(v.number()),
-      location: v.optional(v.string()),
-      holotype: v.optional(v.boolean()),
+      herbarium_code: v.string(),
+      accession_number: v.string(),
+      collector: v.string(),
+      collection_date: v.number(),
+      location: v.string(),
+      holotype: v.boolean(),
     })),
     
     // Taxonomic confidence
     confidence: v.object({
-      level: v.optional(v.number()), // 0-100
-      disputed: v.optional(v.boolean()),
-      alternative_classifications: v.optional(v.array(v.object({
-        classification: v.optional(v.string()),
-        supporters: v.optional(v.array(v.string()),
-        evidence: v.optional(v.string()),
+      level: v.number(), // 0-100
+      disputed: v.boolean(),
+      alternative_classifications: v.array(v.object({
+        classification: v.string(),
+        supporters: v.array(v.string()),
+        evidence: v.string(),
       })),
-      molecular_support: v.optional(v.boolean()),
-      morphological_support: v.optional(v.boolean()),
+      molecular_support: v.boolean(),
+      morphological_support: v.boolean(),
     }),
     
     // Index Fungorum & MycoBank
@@ -294,113 +294,113 @@ const fungi = defineTable({
   // Molecular phylogeny
   phylogeny: v.optional(citedValue(v.object({
     // Evolutionary relationships
-    clade: v.optional(v.string()),
-    sister_taxa: v.optional(v.array(v.string()),
+    clade: v.string(),
+    sister_taxa: v.array(v.string()),
     divergence_time_mya: v.optional(v.number()), // million years ago
     
     // Genetic markers
     genetic_markers: v.optional(v.array(v.object({
-      marker: v.optional(v.string()), // ITS, LSU, RPB1, RPB2, TEF1
+      marker: v.string(), // ITS, LSU, RPB1, RPB2, TEF1
       sequence: v.optional(v.string()),
       genbank_accession: v.optional(v.string()),
-      variability: v.optional(v.number()), // 0-100%
+      variability: v.number(), // 0-100%
     }))),
     
     // Genomic data
     genome: v.optional(v.object({
-      size_mb: v.optional(v.number()),
-      gc_content: v.optional(v.number()), // percentage
+      size_mb: v.number(),
+      gc_content: v.number(), // percentage
       chromosome_count: v.optional(v.number()),
       ploidy: v.optional(v.string()),
-      sequencing_status: v.optional(v.string()), // complete, draft, partial
+      sequencing_status: v.string(), // complete, draft, partial
       assembly_accession: v.optional(v.string()),
       gene_count: v.optional(v.number()),
       repeat_content: v.optional(v.number()), // percentage
     })),
     
     // Evolutionary traits
-    evolutionary_innovations: v.optional(v.array(v.object({
-      trait: v.optional(v.string()),
+    evolutionary_innovations: v.array(v.object({
+      trait: v.string(),
       emergence_mya: v.optional(v.number()),
-      adaptive_value: v.optional(v.string()),
+      adaptive_value: v.string(),
     })),
   }))),
   
   // ===== MORPHOLOGY (Complete macro & micro characteristics) =====
   morphology: v.optional(citedValue(v.object({
     // Overall growth form
-    growth_form: v.optional(v.string()), // pileate, resupinate, coralloid, clavate, gastroid
+    growth_form: v.string(), // pileate, resupinate, coralloid, clavate, gastroid
     
     // Fruiting body architecture
     fruiting_body: v.object({
-      type: v.optional(v.string()), // mushroom, bracket, puffball, cup, coral, jelly
+      type: v.string(), // mushroom, bracket, puffball, cup, coral, jelly
       
       // 3D measurements
       dimensions: v.object({
         height: v.object({ 
-          min: v.optional(v.number()), 
-          max: v.optional(v.number()), 
-          typical: v.optional(v.number()), 
-          unit: v.optional(v.string()) 
+          min: v.number(), 
+          max: v.number(), 
+          typical: v.number(), 
+          unit: v.string() 
         }),
         width: v.object({ 
-          min: v.optional(v.number()), 
-          max: v.optional(v.number()), 
-          typical: v.optional(v.number()), 
-          unit: v.optional(v.string()) 
+          min: v.number(), 
+          max: v.number(), 
+          typical: v.number(), 
+          unit: v.string() 
         }),
         thickness: v.optional(v.object({ 
-          min: v.optional(v.number()), 
-          max: v.optional(v.number()), 
-          unit: v.optional(v.string()) 
+          min: v.number(), 
+          max: v.number(), 
+          unit: v.string() 
         })),
         biomass: v.object({
-          fresh_weight_g: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-          dry_weight_g: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-          water_content_percent: v.optional(v.number()),
+          fresh_weight_g: v.object({ min: v.number(), max: v.number() }),
+          dry_weight_g: v.object({ min: v.number(), max: v.number() }),
+          water_content_percent: v.number(),
         }),
       }),
       
       // Developmental stages
-      development: v.optional(v.array(v.object({
-        stage: v.optional(v.string()), // button, young, mature, senescent
-        duration_hours: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-        morphological_changes: v.optional(v.array(v.string()),
-        size_percent_of_mature: v.optional(v.number()),
+      development: v.array(v.object({
+        stage: v.string(), // button, young, mature, senescent
+        duration_hours: v.object({ min: v.number(), max: v.number() }),
+        morphological_changes: v.array(v.string()),
+        size_percent_of_mature: v.number(),
       })),
     }),
     
     // Cap (pileus) details
     cap: v.optional(v.object({
-      shape: v.optional(v.array(v.string()), // convex, plane, depressed, umbonate
+      shape: v.array(v.string()), // convex, plane, depressed, umbonate
       shape_changes: v.optional(v.array(v.object({
-        stage: v.optional(v.string()),
-        shape: v.optional(v.string()),
+        stage: v.string(),
+        shape: v.string(),
       }))),
       
       diameter_mm: v.object({ 
-        min: v.optional(v.number()), 
-        max: v.optional(v.number()), 
-        typical: v.optional(v.number()) 
+        min: v.number(), 
+        max: v.number(), 
+        typical: v.number() 
       }),
       
       margin: v.object({
-        shape: v.optional(v.string()), // entire, crenate, split, striate
-        appendiculate: v.optional(v.boolean()), // veil remnants
-        hygrophanous: v.optional(v.boolean()), // changes color with moisture
+        shape: v.string(), // entire, crenate, split, striate
+        appendiculate: v.boolean(), // veil remnants
+        hygrophanous: v.boolean(), // changes color with moisture
       }),
       
       surface: v.object({
-        texture: v.optional(v.array(v.string()), // smooth, scaly, viscid, fibrillose
-        patterns: v.optional(v.array(v.string()), // concentric, radial, spotted
-        separability: v.optional(v.string()), // peelable, adherent
-        hygroscopic: v.optional(v.boolean()),
+        texture: v.array(v.string()), // smooth, scaly, viscid, fibrillose
+        patterns: v.array(v.string()), // concentric, radial, spotted
+        separability: v.string(), // peelable, adherent
+        hygroscopic: v.boolean(),
       }),
       
       context: v.object({
-        thickness_mm: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-        texture: v.optional(v.string()), // fleshy, tough, woody
-        color: v.optional(v.string()),
+        thickness_mm: v.object({ min: v.number(), max: v.number() }),
+        texture: v.string(), // fleshy, tough, woody
+        color: v.string(),
         color_change_on_cutting: v.optional(v.string()),
         odor: v.optional(v.string()),
         taste: v.optional(v.string()),
@@ -409,73 +409,73 @@ const fungi = defineTable({
     
     // Hymenophore (spore-bearing surface)
     hymenophore: v.object({
-      type: v.optional(v.string()), // gills, pores, teeth, smooth, ridged
+      type: v.string(), // gills, pores, teeth, smooth, ridged
       
       // Gills (if present)
       gills: v.optional(v.object({
-        attachment: v.optional(v.string()), // free, adnate, adnexed, decurrent
-        spacing: v.optional(v.string()), // crowded, close, subdistant, distant
-        edge: v.optional(v.string()), // entire, serrate, eroded
-        forking: v.optional(v.boolean()),
-        interveined: v.optional(v.boolean()),
-        lamellulae: v.optional(v.string()), // none, one-tier, two-tier, three-tier
-        color_young: v.optional(v.string()),
-        color_mature: v.optional(v.string()),
+        attachment: v.string(), // free, adnate, adnexed, decurrent
+        spacing: v.string(), // crowded, close, subdistant, distant
+        edge: v.string(), // entire, serrate, eroded
+        forking: v.boolean(),
+        interveined: v.boolean(),
+        lamellulae: v.string(), // none, one-tier, two-tier, three-tier
+        color_young: v.string(),
+        color_mature: v.string(),
         staining: v.optional(v.string()),
       })),
       
       // Pores (if present)
       pores: v.optional(v.object({
-        shape: v.optional(v.string()), // round, angular, labyrinthine
-        size_per_mm: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-        depth_mm: v.optional(v.number()),
-        color: v.optional(v.string()),
+        shape: v.string(), // round, angular, labyrinthine
+        size_per_mm: v.object({ min: v.number(), max: v.number() }),
+        depth_mm: v.number(),
+        color: v.string(),
         bruising: v.optional(v.string()),
       })),
       
       // Teeth/spines (if present)
       teeth: v.optional(v.object({
-        length_mm: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-        density_per_cm2: v.optional(v.number()),
-        shape: v.optional(v.string()), // conical, cylindrical, flattened
-        decurrent: v.optional(v.boolean()),
+        length_mm: v.object({ min: v.number(), max: v.number() }),
+        density_per_cm2: v.number(),
+        shape: v.string(), // conical, cylindrical, flattened
+        decurrent: v.boolean(),
       })),
     }),
     
     // Stem (stipe) details
     stem: v.optional(v.object({
-      present: v.optional(v.boolean()),
+      present: v.boolean(),
       
       dimensions: v.object({
-        height_mm: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
+        height_mm: v.object({ min: v.number(), max: v.number() }),
         diameter_mm: v.object({
-          apex: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-          middle: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-          base: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
+          apex: v.object({ min: v.number(), max: v.number() }),
+          middle: v.object({ min: v.number(), max: v.number() }),
+          base: v.object({ min: v.number(), max: v.number() }),
         }),
       }),
       
-      shape: v.optional(v.string()), // cylindrical, clavate, bulbous, rooting
-      position: v.optional(v.string()), // central, eccentric, lateral, absent
+      shape: v.string(), // cylindrical, clavate, bulbous, rooting
+      position: v.string(), // central, eccentric, lateral, absent
       
       surface: v.object({
-        texture: v.optional(v.array(v.string()), // smooth, fibrillose, scaly, reticulate
-        color: v.optional(v.string()),
+        texture: v.array(v.string()), // smooth, fibrillose, scaly, reticulate
+        color: v.string(),
         color_changes: v.optional(v.string()),
       }),
       
       interior: v.object({
-        consistency: v.optional(v.string()), // solid, stuffed, hollow
-        context_color: v.optional(v.string()),
+        consistency: v.string(), // solid, stuffed, hollow
+        context_color: v.string(),
         discoloration: v.optional(v.string()),
       }),
       
       base: v.object({
-        shape: v.optional(v.string()), // equal, bulbous, clavate, rooting
+        shape: v.string(), // equal, bulbous, clavate, rooting
         mycelium: v.object({
-          visible: v.optional(v.boolean()),
-          color: v.optional(v.string()),
-          rhizomorphs: v.optional(v.boolean()),
+          visible: v.boolean(),
+          color: v.string(),
+          rhizomorphs: v.boolean(),
         }),
       }),
     })),
@@ -483,22 +483,22 @@ const fungi = defineTable({
     // Veil structures
     veil: v.optional(v.object({
       universal: v.optional(v.object({
-        present: v.optional(v.boolean()),
-        remnants_on_cap: v.optional(v.string()), // warts, patches, membrane
+        present: v.boolean(),
+        remnants_on_cap: v.string(), // warts, patches, membrane
         volva: v.optional(v.object({
-          type: v.optional(v.string()), // saccate, friable, absent
-          color: v.optional(v.string()),
+          type: v.string(), // saccate, friable, absent
+          color: v.string(),
         })),
       })),
       
       partial: v.optional(v.object({
-        present: v.optional(v.boolean()),
-        type: v.optional(v.string()), // membranous, cortinate, fibrillose
+        present: v.boolean(),
+        type: v.string(), // membranous, cortinate, fibrillose
         annulus: v.optional(v.object({
-          position: v.optional(v.string()), // superior, median, inferior
-          persistence: v.optional(v.string()), // persistent, evanescent, absent
-          mobility: v.optional(v.string()), // fixed, moveable
-          texture: v.optional(v.string()),
+          position: v.string(), // superior, median, inferior
+          persistence: v.string(), // persistent, evanescent, absent
+          mobility: v.string(), // fixed, moveable
+          texture: v.string(),
         })),
       })),
     })),
@@ -510,163 +510,163 @@ const fungi = defineTable({
     spores: v.object({
       // Dimensions
       size: v.object({
-        length_um: v.object({ min: v.optional(v.number()), max: v.optional(v.number()), mean: v.optional(v.number()) }),
-        width_um: v.object({ min: v.optional(v.number()), max: v.optional(v.number()), mean: v.optional(v.number()) }),
-        Q_value: v.optional(v.number()), // length/width ratio
+        length_um: v.object({ min: v.number(), max: v.number(), mean: v.number() }),
+        width_um: v.object({ min: v.number(), max: v.number(), mean: v.number() }),
+        Q_value: v.number(), // length/width ratio
       }),
       
       // Morphology
-      shape: v.optional(v.string()), // globose, ellipsoid, cylindrical, allantoid
-      symmetry: v.optional(v.string()), // bilateral, radial, asymmetric
+      shape: v.string(), // globose, ellipsoid, cylindrical, allantoid
+      symmetry: v.string(), // bilateral, radial, asymmetric
       
       // Wall features
       wall: v.object({
-        ornamentation: v.optional(v.string()), // smooth, warted, spiny, reticulate
-        thickness_um: v.optional(v.number()),
-        layers: v.optional(v.number()),
-        color_in_water: v.optional(v.string()),
-        color_in_KOH: v.optional(v.string()),
+        ornamentation: v.string(), // smooth, warted, spiny, reticulate
+        thickness_um: v.number(),
+        layers: v.number(),
+        color_in_water: v.string(),
+        color_in_KOH: v.string(),
       }),
       
       // Contents
       contents: v.object({
-        oil_drops: v.optional(v.boolean()),
+        oil_drops: v.boolean(),
         number_of_oil_drops: v.optional(v.number()),
-        granular: v.optional(v.boolean()),
-        homogeneous: v.optional(v.boolean()),
-        guttulate: v.optional(v.boolean()),
+        granular: v.boolean(),
+        homogeneous: v.boolean(),
+        guttulate: v.boolean(),
       }),
       
       // Chemical reactions
       reactions: v.object({
-        amyloid: v.optional(v.boolean()), // blue in Melzer's
-        dextrinoid: v.optional(v.boolean()), // red-brown in Melzer's
-        cyanophilic: v.optional(v.boolean()), // blue in Cotton Blue
-        metachromatic: v.optional(v.boolean()), // purple in Cresyl Blue
+        amyloid: v.boolean(), // blue in Melzer's
+        dextrinoid: v.boolean(), // red-brown in Melzer's
+        cyanophilic: v.boolean(), // blue in Cotton Blue
+        metachromatic: v.boolean(), // purple in Cresyl Blue
       }),
       
       // Germination
       germination: v.optional(v.object({
-        pore: v.optional(v.boolean()),
+        pore: v.boolean(),
         pore_number: v.optional(v.number()),
-        slit: v.optional(v.boolean()),
+        slit: v.boolean(),
       })),
       
       // Print characteristics
       spore_print: v.object({
-        color: v.optional(v.string()),
-        density: v.optional(v.string()), // light, medium, heavy
+        color: v.string(),
+        density: v.string(), // light, medium, heavy
         pattern: v.optional(v.string()),
       }),
       
       // Production rate
       sporulation: v.object({
-        spores_per_basidium: v.optional(v.number()), // typically 2, 4, 6, or 8
+        spores_per_basidium: v.number(), // typically 2, 4, 6, or 8
         spores_per_mm2: v.optional(v.number()),
         daily_production: v.optional(v.number()),
         peak_time: v.optional(v.string()), // time of day
-        triggers: v.optional(v.array(v.string()), // humidity, light, temperature
+        triggers: v.array(v.string()), // humidity, light, temperature
       }),
     }),
     
     // Basidia
     basidia: v.object({
-      type: v.optional(v.string()), // holobasidiate, phragmobasidiate
-      shape: v.optional(v.string()), // clavate, cylindrical, urniform
+      type: v.string(), // holobasidiate, phragmobasidiate
+      shape: v.string(), // clavate, cylindrical, urniform
       
       size: v.object({
-        length_um: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-        width_um: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
+        length_um: v.object({ min: v.number(), max: v.number() }),
+        width_um: v.object({ min: v.number(), max: v.number() }),
       }),
       
       sterigmata: v.object({
-        number: v.optional(v.number()), // 2, 4, 6, 8
-        length_um: v.optional(v.number()),
+        number: v.number(), // 2, 4, 6, 8
+        length_um: v.number(),
       }),
       
-      distribution: v.optional(v.string()), // clustered, scattered, in hymenia
+      distribution: v.string(), // clustered, scattered, in hymenia
     }),
     
     // Sterile elements
     cystidia: v.object({
       // Cheilocystidia (gill edge)
       cheilocystidia: v.optional(v.object({
-        present: v.optional(v.boolean()),
-        shape: v.optional(v.string()), // fusiform, clavate, capitate, lageniform
+        present: v.boolean(),
+        shape: v.string(), // fusiform, clavate, capitate, lageniform
         size_um: v.object({
-          length: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-          width: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
+          length: v.object({ min: v.number(), max: v.number() }),
+          width: v.object({ min: v.number(), max: v.number() }),
         }),
         contents: v.optional(v.string()), // hyaline, refractive, pigmented
-        wall_thickness: v.optional(v.string()), // thin, thick
+        wall_thickness: v.string(), // thin, thick
       })),
       
       // Pleurocystidia (gill face)
       pleurocystidia: v.optional(v.object({
-        present: v.optional(v.boolean()),
-        frequency: v.optional(v.string()), // absent, rare, scattered, abundant
-        shape: v.optional(v.string()),
+        present: v.boolean(),
+        frequency: v.string(), // absent, rare, scattered, abundant
+        shape: v.string(),
         size_um: v.object({
-          length: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-          width: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
+          length: v.object({ min: v.number(), max: v.number() }),
+          width: v.object({ min: v.number(), max: v.number() }),
         }),
-        origin: v.optional(v.string()), // subhymenial, deep in trama
+        origin: v.string(), // subhymenial, deep in trama
       })),
       
       // Caulocystidia (stem)
       caulocystidia: v.optional(v.object({
-        present: v.optional(v.boolean()),
-        distribution: v.optional(v.string()), // apex only, throughout, clustered
-        shape: v.optional(v.string()),
+        present: v.boolean(),
+        distribution: v.string(), // apex only, throughout, clustered
+        shape: v.string(),
         size_um: v.object({
-          length: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-          width: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
+          length: v.object({ min: v.number(), max: v.number() }),
+          width: v.object({ min: v.number(), max: v.number() }),
         }),
       })),
       
       // Pileocystidia (cap)
       pileocystidia: v.optional(v.object({
-        present: v.optional(v.boolean()),
-        type: v.optional(v.string()),
-        shape: v.optional(v.string()),
+        present: v.boolean(),
+        type: v.string(),
+        shape: v.string(),
       })),
     }),
     
     // Hyphal system
     hyphae: v.object({
-      system: v.optional(v.string()), // monomitic, dimitic, trimitic
+      system: v.string(), // monomitic, dimitic, trimitic
       
       // Generative hyphae
       generative: v.object({
-        width_um: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-        septate: v.optional(v.boolean()),
-        clamped: v.optional(v.boolean()), // clamp connections
-        branching: v.optional(v.string()), // rare, frequent, abundant
-        wall_thickness: v.optional(v.string()), // thin, thick
+        width_um: v.object({ min: v.number(), max: v.number() }),
+        septate: v.boolean(),
+        clamped: v.boolean(), // clamp connections
+        branching: v.string(), // rare, frequent, abundant
+        wall_thickness: v.string(), // thin, thick
         contents: v.optional(v.string()),
       }),
       
       // Skeletal hyphae (if dimitic/trimitic)
       skeletal: v.optional(v.object({
-        present: v.optional(v.boolean()),
-        width_um: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-        wall_thickness: v.optional(v.string()),
-        branching: v.optional(v.string()),
+        present: v.boolean(),
+        width_um: v.object({ min: v.number(), max: v.number() }),
+        wall_thickness: v.string(),
+        branching: v.string(),
       })),
       
       // Binding hyphae (if trimitic)
       binding: v.optional(v.object({
-        present: v.optional(v.boolean()),
-        width_um: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-        branching: v.optional(v.string()), // highly branched
+        present: v.boolean(),
+        width_um: v.object({ min: v.number(), max: v.number() }),
+        branching: v.string(), // highly branched
       })),
       
       // Special structures
       specialized: v.optional(v.object({
-        oleiferous: v.optional(v.boolean()), // oil-bearing
-        lactiferous: v.optional(v.boolean()), // latex-bearing
-        gloeoplerous: v.optional(v.boolean()), // with refractive contents
-        thromboplerous: v.optional(v.boolean()), // with oil-like contents
+        oleiferous: v.boolean(), // oil-bearing
+        lactiferous: v.boolean(), // latex-bearing
+        gloeoplerous: v.boolean(), // with refractive contents
+        thromboplerous: v.boolean(), // with oil-like contents
       })),
     }),
     
@@ -674,30 +674,30 @@ const fungi = defineTable({
     tissues: v.object({
       // Cap flesh (context)
       pileus_trama: v.object({
-        type: v.optional(v.string()), // regular, irregular, cellular, interwoven
-        hyphae_orientation: v.optional(v.string()),
-        gelatinization: v.optional(v.boolean()),
+        type: v.string(), // regular, irregular, cellular, interwoven
+        hyphae_orientation: v.string(),
+        gelatinization: v.boolean(),
       }),
       
       // Gill tissue
       hymenophoral_trama: v.optional(v.object({
-        type: v.optional(v.string()), // regular, bilateral, inverse, interwoven
+        type: v.string(), // regular, bilateral, inverse, interwoven
         central_strand: v.optional(v.boolean()),
         width_um: v.optional(v.number()),
       })),
       
       // Cap surface
       pileipellis: v.object({
-        type: v.optional(v.string()), // cutis, trichoderm, hymeniderm, ixocutis
+        type: v.string(), // cutis, trichoderm, hymeniderm, ixocutis
         thickness_um: v.optional(v.number()),
-        differentiated: v.optional(v.boolean()),
-        gelatinized: v.optional(v.boolean()),
+        differentiated: v.boolean(),
+        gelatinized: v.boolean(),
       }),
       
       // Stem surface
       stipitipellis: v.optional(v.object({
-        type: v.optional(v.string()),
-        caulocystidia: v.optional(v.boolean()),
+        type: v.string(),
+        caulocystidia: v.boolean(),
       })),
     }),
   }))),
@@ -708,28 +708,28 @@ const fungi = defineTable({
     primaryMetabolites: v.object({
       // Macronutrients per 100g
       macronutrients: v.object({
-        water_g: v.optional(v.number()),
-        energy_kcal: v.optional(v.number()),
-        protein_g: v.optional(v.number()),
-        total_fat_g: v.optional(v.number()),
-        carbohydrate_g: v.optional(v.number()),
-        dietary_fiber_g: v.optional(v.number()),
+        water_g: v.number(),
+        energy_kcal: v.number(),
+        protein_g: v.number(),
+        total_fat_g: v.number(),
+        carbohydrate_g: v.number(),
+        dietary_fiber_g: v.number(),
         sugars_g: v.optional(v.number()),
-        ash_g: v.optional(v.number()),
+        ash_g: v.number(),
       }),
       
       // Complete amino acid profile
       amino_acids_mg_per_100g: v.object({
         // Essential
-        histidine: v.optional(v.number()),
-        isoleucine: v.optional(v.number()),
-        leucine: v.optional(v.number()),
-        lysine: v.optional(v.number()),
-        methionine: v.optional(v.number()),
-        phenylalanine: v.optional(v.number()),
-        threonine: v.optional(v.number()),
-        tryptophan: v.optional(v.number()),
-        valine: v.optional(v.number()),
+        histidine: v.number(),
+        isoleucine: v.number(),
+        leucine: v.number(),
+        lysine: v.number(),
+        methionine: v.number(),
+        phenylalanine: v.number(),
+        threonine: v.number(),
+        tryptophan: v.number(),
+        valine: v.number(),
         
         // Non-essential
         alanine: v.optional(v.number()),
@@ -750,17 +750,17 @@ const fungi = defineTable({
       // Fatty acid profile
       fatty_acids_mg_per_100g: v.object({
         // Saturated
-        saturated_total: v.optional(v.number()),
+        saturated_total: v.number(),
         palmitic_16_0: v.optional(v.number()),
         stearic_18_0: v.optional(v.number()),
         
         // Monounsaturated
-        monounsaturated_total: v.optional(v.number()),
+        monounsaturated_total: v.number(),
         oleic_18_1: v.optional(v.number()),
         palmitoleic_16_1: v.optional(v.number()),
         
         // Polyunsaturated
-        polyunsaturated_total: v.optional(v.number()),
+        polyunsaturated_total: v.number(),
         linoleic_18_2_n6: v.optional(v.number()),
         linolenic_18_3_n3: v.optional(v.number()),
         arachidonic_20_4_n6: v.optional(v.number()),
@@ -774,53 +774,53 @@ const fungi = defineTable({
       
       // Carbohydrate composition
       carbohydrates: v.object({
-        total_g: v.optional(v.number()),
+        total_g: v.number(),
         
         // Polysaccharides
-        polysaccharides: v.optional(v.array(v.object({
-          name: v.optional(v.string()), // chitin, beta-glucan, alpha-glucan
-          amount_g: v.optional(v.number()),
-          type: v.optional(v.string()), // structural, storage, bioactive
-          linkages: v.optional(v.string()), // β-1,3/1,6 etc
+        polysaccharides: v.array(v.object({
+          name: v.string(), // chitin, beta-glucan, alpha-glucan
+          amount_g: v.number(),
+          type: v.string(), // structural, storage, bioactive
+          linkages: v.string(), // β-1,3/1,6 etc
           molecular_weight_da: v.optional(v.number()),
           branching_degree: v.optional(v.number()),
           
           bioactivity: v.optional(v.object({
-            immunomodulation: v.optional(v.number()), // 0-10
-            antitumor: v.optional(v.number()),
-            antioxidant: v.optional(v.number()),
-            prebiotic: v.optional(v.number()),
+            immunomodulation: v.number(), // 0-10
+            antitumor: v.number(),
+            antioxidant: v.number(),
+            prebiotic: v.number(),
           })),
         })),
         
         // Simple sugars
         monosaccharides_mg: v.optional(v.object({
-          glucose: v.optional(v.number()),
-          fructose: v.optional(v.number()),
-          mannose: v.optional(v.number()),
-          galactose: v.optional(v.number()),
-          ribose: v.optional(v.number()),
-          arabinose: v.optional(v.number()),
-          xylose: v.optional(v.number()),
-          fucose: v.optional(v.number()),
+          glucose: v.number(),
+          fructose: v.number(),
+          mannose: v.number(),
+          galactose: v.number(),
+          ribose: v.number(),
+          arabinose: v.number(),
+          xylose: v.number(),
+          fucose: v.number(),
         })),
         
         // Sugar alcohols
         polyols_mg: v.optional(v.object({
-          mannitol: v.optional(v.number()),
-          arabitol: v.optional(v.number()),
-          erythritol: v.optional(v.number()),
-          xylitol: v.optional(v.number()),
-          sorbitol: v.optional(v.number()),
+          mannitol: v.number(),
+          arabitol: v.number(),
+          erythritol: v.number(),
+          xylitol: v.number(),
+          sorbitol: v.number(),
         })),
       }),
       
       // Vitamins
       vitamins: v.object({
         // Water-soluble
-        thiamin_b1_mg: v.optional(v.number()),
-        riboflavin_b2_mg: v.optional(v.number()),
-        niacin_b3_mg: v.optional(v.number()),
+        thiamin_b1_mg: v.number(),
+        riboflavin_b2_mg: v.number(),
+        niacin_b3_mg: v.number(),
         pantothenic_acid_b5_mg: v.optional(v.number()),
         pyridoxine_b6_mg: v.optional(v.number()),
         biotin_b7_ug: v.optional(v.number()),
@@ -843,20 +843,20 @@ const fungi = defineTable({
       // Minerals
       minerals: v.object({
         // Macrominerals (mg)
-        calcium_mg: v.optional(v.number()),
-        phosphorus_mg: v.optional(v.number()),
-        magnesium_mg: v.optional(v.number()),
-        sodium_mg: v.optional(v.number()),
-        potassium_mg: v.optional(v.number()),
+        calcium_mg: v.number(),
+        phosphorus_mg: v.number(),
+        magnesium_mg: v.number(),
+        sodium_mg: v.number(),
+        potassium_mg: v.number(),
         chloride_mg: v.optional(v.number()),
         sulfur_mg: v.optional(v.number()),
         
         // Trace minerals (mg or μg)
-        iron_mg: v.optional(v.number()),
-        zinc_mg: v.optional(v.number()),
-        copper_mg: v.optional(v.number()),
-        manganese_mg: v.optional(v.number()),
-        selenium_ug: v.optional(v.number()),
+        iron_mg: v.number(),
+        zinc_mg: v.number(),
+        copper_mg: v.number(),
+        manganese_mg: v.number(),
+        selenium_ug: v.number(),
         iodine_ug: v.optional(v.number()),
         chromium_ug: v.optional(v.number()),
         molybdenum_ug: v.optional(v.number()),
@@ -877,25 +877,25 @@ const fungi = defineTable({
     // Secondary metabolites
     secondaryMetabolites: v.object({
       // Bioactive compounds by class
-      compound_classes: v.optional(v.array(v.object({
-        class: v.optional(v.string()), // terpenoid, alkaloid, phenolic, peptide, polyketide
+      compound_classes: v.array(v.object({
+        class: v.string(), // terpenoid, alkaloid, phenolic, peptide, polyketide
         
-        compounds: v.optional(v.array(v.object({
-          name: v.optional(v.string()),
+        compounds: v.array(v.object({
+          name: v.string(),
           iupac_name: v.optional(v.string()),
           cas_number: v.optional(v.string()),
           
           // Structure
-          molecular_formula: v.optional(v.string()),
-          molecular_weight: v.optional(v.number()),
+          molecular_formula: v.string(),
+          molecular_weight: v.number(),
           smiles: v.optional(v.string()),
           inchi: v.optional(v.string()),
           
           // Concentration
           content: v.object({
-            value: v.optional(v.number()),
-            unit: v.optional(v.string()), // mg/g, μg/g, %
-            location: v.optional(v.string()), // fruiting body, mycelium, spores
+            value: v.number(),
+            unit: v.string(), // mg/g, μg/g, %
+            location: v.string(), // fruiting body, mycelium, spores
             variability: v.optional(v.number()), // CV%
             
             // Factors affecting content
@@ -908,58 +908,58 @@ const fungi = defineTable({
           
           // Properties
           properties: v.object({
-            solubility: v.optional(v.array(v.string()), // water, ethanol, etc
+            solubility: v.array(v.string()), // water, ethanol, etc
             stability: v.object({
-              heat: v.optional(v.string()), // stable, labile, degrades at X°C
-              pH: v.optional(v.string()),
-              light: v.optional(v.string()),
-              oxygen: v.optional(v.string()),
+              heat: v.string(), // stable, labile, degrades at X°C
+              pH: v.string(),
+              light: v.string(),
+              oxygen: v.string(),
             }),
             
             // Pharmacokinetics
             bioavailability: v.optional(v.number()), // %
             half_life: v.optional(v.object({
-              value: v.optional(v.number()),
-              unit: v.optional(v.string()),
+              value: v.number(),
+              unit: v.string(),
             })),
             metabolism: v.optional(v.array(v.string())),
             excretion: v.optional(v.array(v.string())),
           }),
           
           // Bioactivity
-          bioactivities: v.optional(v.array(v.object({
-            activity: v.optional(v.string()),
+          bioactivities: v.array(v.object({
+            activity: v.string(),
             potency: v.optional(v.object({
-              value: v.optional(v.number()),
-              unit: v.optional(v.string()), // IC50, EC50, MIC, etc
+              value: v.number(),
+              unit: v.string(), // IC50, EC50, MIC, etc
             })),
             mechanism: v.optional(v.string()),
             
             // Molecular targets
             targets: v.optional(v.array(v.object({
-              type: v.optional(v.string()), // receptor, enzyme, channel
-              name: v.optional(v.string()),
+              type: v.string(), // receptor, enzyme, channel
+              name: v.string(),
               affinity: v.optional(v.object({
-                value: v.optional(v.number()),
-                unit: v.optional(v.string()), // Ki, Kd, IC50
+                value: v.number(),
+                unit: v.string(), // Ki, Kd, IC50
               })),
-              action: v.optional(v.string()), // agonist, antagonist, inhibitor
+              action: v.string(), // agonist, antagonist, inhibitor
             }))),
             
-            evidence_level: v.optional(v.string()), // in_vitro, in_vivo, clinical
+            evidence_level: v.string(), // in_vitro, in_vivo, clinical
           })),
           
           // Toxicology
           toxicity: v.optional(v.object({
             acute_ld50: v.optional(v.object({
-              value: v.optional(v.number()),
-              unit: v.optional(v.string()),
-              route: v.optional(v.string()),
-              species: v.optional(v.string()),
+              value: v.number(),
+              unit: v.string(),
+              route: v.string(),
+              species: v.string(),
             })),
             chronic_noael: v.optional(v.object({
-              value: v.optional(v.number()),
-              unit: v.optional(v.string()),
+              value: v.number(),
+              unit: v.string(),
             })),
             genotoxic: v.optional(v.boolean()),
             carcinogenic: v.optional(v.boolean()),
@@ -970,72 +970,72 @@ const fungi = defineTable({
       
       // Biosynthetic pathways
       biosynthesis: v.optional(v.array(v.object({
-        pathway: v.optional(v.string()),
-        type: v.optional(v.string()), // PKS, NRPS, terpene, shikimate
+        pathway: v.string(),
+        type: v.string(), // PKS, NRPS, terpene, shikimate
         
         genes: v.optional(v.array(v.object({
-          gene_name: v.optional(v.string()),
-          function: v.optional(v.string()),
+          gene_name: v.string(),
+          function: v.string(),
           genbank: v.optional(v.string()),
         }))),
         
-        enzymes: v.optional(v.array(v.object({
-          name: v.optional(v.string()),
+        enzymes: v.array(v.object({
+          name: v.string(),
           ec_number: v.optional(v.string()),
-          reaction: v.optional(v.string()),
+          reaction: v.string(),
           cofactors: v.optional(v.array(v.string())),
         })),
         
-        precursors: v.optional(v.array(v.string()),
-        intermediates: v.optional(v.array(v.string()),
-        end_products: v.optional(v.array(v.string()),
+        precursors: v.array(v.string()),
+        intermediates: v.array(v.string()),
+        end_products: v.array(v.string()),
         
         regulation: v.optional(v.object({
-          inducers: v.optional(v.array(v.string()),
-          repressors: v.optional(v.array(v.string()),
-          environmental_triggers: v.optional(v.array(v.string()),
+          inducers: v.array(v.string()),
+          repressors: v.array(v.string()),
+          environmental_triggers: v.array(v.string()),
         })),
       }))),
       
       // Chemical fingerprint
       chemotype: v.object({
         profile: v.object({
-          terpenoid_index: v.optional(v.number()), // 0-100
-          alkaloid_index: v.optional(v.number()),
-          phenolic_index: v.optional(v.number()),
-          peptide_index: v.optional(v.number()),
-          polyketide_index: v.optional(v.number()),
+          terpenoid_index: v.number(), // 0-100
+          alkaloid_index: v.number(),
+          phenolic_index: v.number(),
+          peptide_index: v.number(),
+          polyketide_index: v.number(),
         }),
         
-        signature_compounds: v.optional(v.array(v.string()),
+        signature_compounds: v.array(v.string()),
         
-        chemotaxonomic_markers: v.optional(v.array(v.object({
-          compound: v.optional(v.string()),
-          diagnostic_for: v.optional(v.string()), // genus, family, etc
-          specificity: v.optional(v.string()), // unique, common, rare
+        chemotaxonomic_markers: v.array(v.object({
+          compound: v.string(),
+          diagnostic_for: v.string(), // genus, family, etc
+          specificity: v.string(), // unique, common, rare
         })),
       }),
     }),
     
     // Volatile organic compounds
     volatilome: v.object({
-      total_vocs: v.optional(v.number()),
+      total_vocs: v.number(),
       
       // Major volatiles
-      compounds: v.optional(v.array(v.object({
-        name: v.optional(v.string()),
+      compounds: v.array(v.object({
+        name: v.string(),
         cas_number: v.optional(v.string()),
         
         // Concentration
         amount: v.object({
-          value: v.optional(v.number()),
-          unit: v.optional(v.string()), // μg/g, ppm, %
-          method: v.optional(v.string()), // SPME-GC-MS, etc
+          value: v.number(),
+          unit: v.string(), // μg/g, ppm, %
+          method: v.string(), // SPME-GC-MS, etc
         }),
         
         // Sensory properties
         sensory: v.object({
-          odor_descriptor: v.optional(v.array(v.string()),
+          odor_descriptor: v.array(v.string()),
           odor_threshold_ppb: v.optional(v.number()),
           odor_activity_value: v.optional(v.number()), // concentration/threshold
           taste_descriptor: v.optional(v.array(v.string())),
@@ -1043,7 +1043,7 @@ const fungi = defineTable({
         
         // Formation
         formation: v.object({
-          pathway: v.optional(v.string()), // enzymatic, oxidation, Maillard
+          pathway: v.string(), // enzymatic, oxidation, Maillard
           precursors: v.optional(v.array(v.string())),
           conditions: v.optional(v.array(v.string())), // heat, aging, damage
         }),
@@ -1051,18 +1051,18 @@ const fungi = defineTable({
       
       // Aroma profile
       aroma_profile: v.object({
-        primary_notes: v.optional(v.array(v.string()),
-        secondary_notes: v.optional(v.array(v.string()),
+        primary_notes: v.array(v.string()),
+        secondary_notes: v.array(v.string()),
         
-        intensity: v.optional(v.number()), // 0-10
-        complexity: v.optional(v.number()), // 0-10
+        intensity: v.number(), // 0-10
+        complexity: v.number(), // 0-10
         pleasantness: v.optional(v.number()), // 0-10
         
         // Evolution over time
         temporal_changes: v.optional(v.array(v.object({
-          time_point: v.optional(v.string()), // fresh, 1hr, 24hr, dried
-          profile: v.optional(v.array(v.string()),
-          intensity: v.optional(v.number()),
+          time_point: v.string(), // fresh, 1hr, 24hr, dried
+          profile: v.array(v.string()),
+          intensity: v.number(),
         }))),
       }),
     }),
@@ -1070,41 +1070,41 @@ const fungi = defineTable({
     // Enzymes
     enzymes: v.optional(v.object({
       // Digestive enzymes
-      digestive: v.optional(v.array(v.object({
-        name: v.optional(v.string()),
-        ec_number: v.optional(v.string()),
-        substrate: v.optional(v.string()),
+      digestive: v.array(v.object({
+        name: v.string(),
+        ec_number: v.string(),
+        substrate: v.string(),
         activity: v.object({
-          value: v.optional(v.number()),
-          unit: v.optional(v.string()), // U/g, μmol/min/mg
+          value: v.number(),
+          unit: v.string(), // U/g, μmol/min/mg
         }),
-        pH_optimum: v.optional(v.number()),
-        temperature_optimum: v.optional(v.number()),
+        pH_optimum: v.number(),
+        temperature_optimum: v.number(),
       })),
       
       // Ligninolytic enzymes
       ligninolytic: v.optional(v.array(v.object({
-        enzyme: v.optional(v.string()), // laccase, manganese peroxidase, lignin peroxidase
+        enzyme: v.string(), // laccase, manganese peroxidase, lignin peroxidase
         activity: v.object({
-          value: v.optional(v.number()),
-          unit: v.optional(v.string()),
+          value: v.number(),
+          unit: v.string(),
         }),
-        substrates: v.optional(v.array(v.string()),
+        substrates: v.array(v.string()),
         industrial_applications: v.optional(v.array(v.string())),
       }))),
       
       // Other industrially relevant
       industrial: v.optional(v.array(v.object({
-        enzyme: v.optional(v.string()),
-        application: v.optional(v.string()),
+        enzyme: v.string(),
+        application: v.string(),
         activity: v.object({
-          value: v.optional(v.number()),
-          unit: v.optional(v.string()),
+          value: v.number(),
+          unit: v.string(),
         }),
         stability: v.object({
-          pH_range: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-          temp_range: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-          storage_days: v.optional(v.number()),
+          pH_range: v.object({ min: v.number(), max: v.number() }),
+          temp_range: v.object({ min: v.number(), max: v.number() }),
+          storage_days: v.number(),
         }),
       }))),
     })),
@@ -1116,31 +1116,31 @@ const fungi = defineTable({
     aroma: v.object({
       // Overall intensity
       intensity: v.object({
-        fresh: v.optional(v.number()), // 0-10
-        dried: v.optional(v.number()),
-        cooked: v.optional(v.number()),
+        fresh: v.number(), // 0-10
+        dried: v.number(),
+        cooked: v.number(),
       }),
       
       // Detailed aroma wheel
-      aroma_wheel: v.optional(v.array(v.object({
-        primary_category: v.optional(v.string()), // earthy, floral, fruity, vegetal, animal, chemical
-        secondary_category: v.optional(v.string()),
-        specific_notes: v.optional(v.array(v.string()),
-        intensity: v.optional(v.number()), // 0-10
+      aroma_wheel: v.array(v.object({
+        primary_category: v.string(), // earthy, floral, fruity, vegetal, animal, chemical
+        secondary_category: v.string(),
+        specific_notes: v.array(v.string()),
+        intensity: v.number(), // 0-10
         
         // Chemical basis
         contributing_compounds: v.optional(v.array(v.object({
-          compound: v.optional(v.string()),
-          contribution: v.optional(v.string()), // major, minor, trace
+          compound: v.string(),
+          contribution: v.string(), // major, minor, trace
         }))),
       })),
       
       // Evolution
-      temporal_evolution: v.optional(v.array(v.object({
-        stage: v.optional(v.string()), // fresh, 1hr, 24hr, dried, cooked
-        dominant_notes: v.optional(v.array(v.string()),
-        intensity: v.optional(v.number()),
-        pleasantness: v.optional(v.number()), // -5 to +5
+      temporal_evolution: v.array(v.object({
+        stage: v.string(), // fresh, 1hr, 24hr, dried, cooked
+        dominant_notes: v.array(v.string()),
+        intensity: v.number(),
+        pleasantness: v.number(), // -5 to +5
       })),
     }),
     
@@ -1148,11 +1148,11 @@ const fungi = defineTable({
     taste: v.object({
       // Basic tastes
       basic_tastes: v.object({
-        sweet: v.optional(v.number()), // 0-10
-        sour: v.optional(v.number()),
-        salty: v.optional(v.number()),
-        bitter: v.optional(v.number()),
-        umami: v.optional(v.number()),
+        sweet: v.number(), // 0-10
+        sour: v.number(),
+        salty: v.number(),
+        bitter: v.number(),
+        umami: v.number(),
         
         // Additional
         astringent: v.optional(v.number()),
@@ -1162,16 +1162,16 @@ const fungi = defineTable({
       }),
       
       // Flavor compounds
-      taste_compounds: v.optional(v.array(v.object({
-        compound: v.optional(v.string()),
-        taste_quality: v.optional(v.string()),
+      taste_compounds: v.array(v.object({
+        compound: v.string(),
+        taste_quality: v.string(),
         threshold_mg_l: v.optional(v.number()),
         content_mg_100g: v.optional(v.number()),
       })),
       
       // Umami components
       umami_compounds: v.object({
-        free_glutamate_mg: v.optional(v.number()),
+        free_glutamate_mg: v.number(),
         nucleotides: v.object({
           amp_mg: v.optional(v.number()),
           gmp_mg: v.optional(v.number()),
@@ -1182,18 +1182,18 @@ const fungi = defineTable({
       }),
       
       // Temporal profile
-      taste_timeline: v.optional(v.array(v.object({
-        time_seconds: v.optional(v.number()),
-        dominant_taste: v.optional(v.string()),
-        intensity: v.optional(v.number()),
+      taste_timeline: v.array(v.object({
+        time_seconds: v.number(),
+        dominant_taste: v.string(),
+        intensity: v.number(),
         notes: v.optional(v.string()),
       })),
       
       // Aftertaste
       aftertaste: v.object({
-        duration_seconds: v.optional(v.number()),
-        qualities: v.optional(v.array(v.string()),
-        pleasantness: v.optional(v.number()), // -5 to +5
+        duration_seconds: v.number(),
+        qualities: v.array(v.string()),
+        pleasantness: v.number(), // -5 to +5
       }),
     }),
     
@@ -1201,23 +1201,23 @@ const fungi = defineTable({
     texture: v.object({
       // Raw texture
       raw: v.object({
-        firmness: v.optional(v.number()), // 0-10
-        elasticity: v.optional(v.number()),
-        brittleness: v.optional(v.number()),
-        fibrousness: v.optional(v.number()),
-        juiciness: v.optional(v.number()),
-        sliminess: v.optional(v.number()),
+        firmness: v.number(), // 0-10
+        elasticity: v.number(),
+        brittleness: v.number(),
+        fibrousness: v.number(),
+        juiciness: v.number(),
+        sliminess: v.number(),
       }),
       
       // Cooked textures
-      cooked: v.optional(v.array(v.object({
-        cooking_method: v.optional(v.string()),
-        firmness: v.optional(v.number()),
-        elasticity: v.optional(v.number()),
-        chewiness: v.optional(v.number()),
-        juiciness: v.optional(v.number()),
-        graininess: v.optional(v.number()),
-        creaminess: v.optional(v.number()),
+      cooked: v.array(v.object({
+        cooking_method: v.string(),
+        firmness: v.number(),
+        elasticity: v.number(),
+        chewiness: v.number(),
+        juiciness: v.number(),
+        graininess: v.number(),
+        creaminess: v.number(),
       })),
       
       // Mechanical properties
@@ -1232,10 +1232,10 @@ const fungi = defineTable({
     
     // Visual (appearance)
     appearance: v.object({
-      overall_appeal: v.optional(v.number()), // 0-10
+      overall_appeal: v.number(), // 0-10
       
       color_stability: v.object({
-        fresh: v.optional(v.string()),
+        fresh: v.string(),
         oxidized_30min: v.optional(v.string()),
         bruised: v.optional(v.string()),
         cooked: v.optional(v.string()),
@@ -1243,9 +1243,9 @@ const fungi = defineTable({
       }),
       
       surface_properties: v.object({
-        glossiness: v.optional(v.number()), // 0-10
-        transparency: v.optional(v.number()),
-        uniformity: v.optional(v.number()),
+        glossiness: v.number(), // 0-10
+        transparency: v.number(),
+        uniformity: v.number(),
       }),
     }),
     
@@ -1253,19 +1253,19 @@ const fungi = defineTable({
     sound: v.optional(v.object({
       // Natural sounds
       spore_discharge: v.optional(v.object({
-        audible: v.optional(v.boolean()),
+        audible: v.boolean(),
         frequency_hz: v.optional(v.number()),
         mechanism: v.optional(v.string()),
       })),
       
       // Interaction sounds
       breaking: v.object({
-        sound_type: v.optional(v.string()), // crisp, soft, silent
+        sound_type: v.string(), // crisp, soft, silent
         loudness: v.optional(v.number()), // dB
       }),
       
       cutting: v.object({
-        resistance: v.optional(v.string()), // none, slight, moderate, high
+        resistance: v.string(), // none, slight, moderate, high
         sound: v.optional(v.string()),
       }),
     })),
@@ -1275,7 +1275,7 @@ const fungi = defineTable({
   ecology: v.optional(citedValue(v.object({
     // Functional role
     ecological_role: v.object({
-      primary_role: v.optional(v.string()),
+      primary_role: v.string(),
       nutrient_cycling: v.optional(v.object({
         carbon: v.optional(v.string()),
         nitrogen: v.optional(v.string()),
@@ -1286,69 +1286,69 @@ const fungi = defineTable({
     }),
     
     trophic_strategy: v.object({
-      primary: v.optional(v.string()),
+      primary: v.string(),
       secondary: v.optional(v.string()),
       
       // Saprotrophic details
       saprotrophic: v.optional(v.object({
-        substrate_type: v.optional(v.string()), // wood, litter, dung, soil
-        decay_type: v.optional(v.string()), // white-rot, brown-rot, soft-rot
+        substrate_type: v.string(), // wood, litter, dung, soil
+        decay_type: v.string(), // white-rot, brown-rot, soft-rot
         
-        substrates: v.optional(v.array(v.object({
-          substrate: v.optional(v.string()),
-          preference: v.optional(v.number()), // 0-10
+        substrates: v.array(v.object({
+          substrate: v.string(),
+          preference: v.number(), // 0-10
           decay_rate: v.optional(v.object({
-            value: v.optional(v.number()),
-            unit: v.optional(v.string()), // mg/day, %/month
+            value: v.number(),
+            unit: v.string(), // mg/day, %/month
           })),
           
-          succession_stage: v.optional(v.string()), // primary, secondary, tertiary
+          succession_stage: v.string(), // primary, secondary, tertiary
         })),
         
-        enzyme_profile: v.optional(v.array(v.object({
-          enzyme: v.optional(v.string()),
-          activity_level: v.optional(v.string()), // high, medium, low
+        enzyme_profile: v.array(v.object({
+          enzyme: v.string(),
+          activity_level: v.string(), // high, medium, low
         })),
       })),
       
       // Mycorrhizal details
       mycorrhizal: v.optional(v.object({
-        type: v.optional(v.string()), // ectomycorrhizal, endomycorrhizal, ericoid
+        type: v.string(), // ectomycorrhizal, endomycorrhizal, ericoid
         
-        host_plants: v.optional(v.array(v.object({
-          species: v.optional(v.string()),
-          family: v.optional(v.string()),
-          specificity: v.optional(v.string()), // obligate, preferential, facultative
+        host_plants: v.array(v.object({
+          species: v.string(),
+          family: v.string(),
+          specificity: v.string(), // obligate, preferential, facultative
           
-          benefits_to_plant: v.optional(v.array(v.string()),
-          benefits_from_plant: v.optional(v.array(v.string()),
+          benefits_to_plant: v.array(v.string()),
+          benefits_from_plant: v.array(v.string()),
           
           colonization: v.optional(v.object({
-            root_tips_percent: v.optional(v.number()),
+            root_tips_percent: v.number(),
             mantle_thickness_um: v.optional(v.number()),
             hartig_net_depth: v.optional(v.string()),
           })),
         })),
         
         mycorrhizal_network: v.optional(v.object({
-          connects_plants: v.optional(v.boolean()),
-          nutrient_transfer: v.optional(v.array(v.string()),
-          signal_transfer: v.optional(v.array(v.string()),
+          connects_plants: v.boolean(),
+          nutrient_transfer: v.array(v.string()),
+          signal_transfer: v.array(v.string()),
         })),
       })),
       
       // Parasitic details
       parasitic: v.optional(v.object({
-        pathogenicity: v.optional(v.string()), // weak, moderate, aggressive
+        pathogenicity: v.string(), // weak, moderate, aggressive
         
-        hosts: v.optional(v.array(v.object({
-          species: v.optional(v.string()),
-          tissue_infected: v.optional(v.string()),
+        hosts: v.array(v.object({
+          species: v.string(),
+          tissue_infected: v.string(),
           disease_name: v.optional(v.string()),
-          symptoms: v.optional(v.array(v.string()),
+          symptoms: v.array(v.string()),
           
           infection_process: v.object({
-            entry_point: v.optional(v.string()),
+            entry_point: v.string(),
             colonization_rate: v.optional(v.string()),
             sporulation_time: v.optional(v.string()),
           }),
@@ -1361,53 +1361,53 @@ const fungi = defineTable({
     // Habitat requirements
     habitat: v.object({
       // Primary habitat
-      primary_habitat: v.optional(v.string()),
-      habitat_specificity: v.optional(v.string()), // specialist, generalist
+      primary_habitat: v.string(),
+      habitat_specificity: v.string(), // specialist, generalist
       
       // Detailed habitats
-      habitats: v.optional(v.array(v.object({
-        type: v.optional(v.string()),
-        frequency: v.optional(v.string()), // common, occasional, rare
+      habitats: v.array(v.object({
+        type: v.string(),
+        frequency: v.string(), // common, occasional, rare
         
-        vegetation: v.optional(v.array(v.string()),
+        vegetation: v.array(v.string()),
         soil_preference: v.optional(v.string()),
         
         microhabitat: v.optional(v.object({
-          position: v.optional(v.string()), // ground, wood, tree, etc
+          position: v.string(), // ground, wood, tree, etc
           substrate_age: v.optional(v.string()),
-          moisture_preference: v.optional(v.string()),
-          light_preference: v.optional(v.string()),
+          moisture_preference: v.string(),
+          light_preference: v.string(),
         })),
       })),
       
       // Elevation range
       elevation: v.object({
-        min_m: v.optional(v.number()),
-        max_m: v.optional(v.number()),
+        min_m: v.number(),
+        max_m: v.number(),
         optimal_m: v.optional(v.number()),
       }),
       
       // Soil requirements
       soil: v.optional(v.object({
         pH: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          optimal: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          optimal: v.number(),
         }),
         
-        texture: v.optional(v.array(v.string()), // sand, silt, clay, loam
+        texture: v.array(v.string()), // sand, silt, clay, loam
         
         nutrients: v.object({
-          nitrogen: v.optional(v.string()), // low, medium, high
-          phosphorus: v.optional(v.string()),
-          potassium: v.optional(v.string()),
-          calcium: v.optional(v.string()),
-          organic_matter: v.optional(v.string()),
+          nitrogen: v.string(), // low, medium, high
+          phosphorus: v.string(),
+          potassium: v.string(),
+          calcium: v.string(),
+          organic_matter: v.string(),
         }),
         
         moisture: v.object({
-          preference: v.optional(v.string()), // xeric, mesic, hydric
-          tolerance: v.optional(v.string()), // drought, flooding
+          preference: v.string(), // xeric, mesic, hydric
+          tolerance: v.string(), // drought, flooding
         }),
       })),
     }),
@@ -1415,31 +1415,31 @@ const fungi = defineTable({
     // Species interactions
     interactions: v.object({
       // Symbioses
-      symbionts: v.optional(v.array(v.object({
-        organism: v.optional(v.string()),
-        type: v.optional(v.string()), // bacteria, fungi, plant, animal
-        relationship: v.optional(v.string()), // mutualistic, commensal
+      symbionts: v.array(v.object({
+        organism: v.string(),
+        type: v.string(), // bacteria, fungi, plant, animal
+        relationship: v.string(), // mutualistic, commensal
         
         interaction: v.object({
-          benefits_given: v.optional(v.array(v.string()),
-          benefits_received: v.optional(v.array(v.string()),
+          benefits_given: v.array(v.string()),
+          benefits_received: v.array(v.string()),
           mechanism: v.optional(v.string()),
           
-          strength: v.optional(v.number()), // 0-10
-          obligate: v.optional(v.boolean()),
+          strength: v.number(), // 0-10
+          obligate: v.boolean(),
         }),
       })),
       
       // Competition
-      competitors: v.optional(v.array(v.object({
-        species: v.optional(v.string()),
-        resource: v.optional(v.string()),
+      competitors: v.array(v.object({
+        species: v.string(),
+        resource: v.string(),
         
         competition: v.object({
-          type: v.optional(v.string()), // interference, exploitation
-          intensity: v.optional(v.number()), // 0-10
+          type: v.string(), // interference, exploitation
+          intensity: v.number(), // 0-10
           
-          outcome: v.optional(v.string()), // dominates, dominated, coexists
+          outcome: v.string(), // dominates, dominated, coexists
           
           mechanisms: v.optional(v.array(v.string())), // antibiotics, faster growth
         }),
@@ -1447,12 +1447,12 @@ const fungi = defineTable({
       
       // Predation/Grazing
       consumers: v.optional(v.array(v.object({
-        organism: v.optional(v.string()),
-        type: v.optional(v.string()), // insect, mollusk, mammal
+        organism: v.string(),
+        type: v.string(), // insect, mollusk, mammal
         
         consumption: v.object({
-          part_consumed: v.optional(v.string()),
-          impact: v.optional(v.string()), // beneficial, neutral, harmful
+          part_consumed: v.string(),
+          impact: v.string(), // beneficial, neutral, harmful
           
           defenses: v.optional(v.array(v.string())), // toxins, spines, taste
         }),
@@ -1460,53 +1460,53 @@ const fungi = defineTable({
       
       // Facilitation
       facilitated_by: v.optional(v.array(v.object({
-        organism: v.optional(v.string()),
-        mechanism: v.optional(v.string()),
-        importance: v.optional(v.string()), // essential, beneficial, minor
+        organism: v.string(),
+        mechanism: v.string(),
+        importance: v.string(), // essential, beneficial, minor
       }))),
       
       facilitates: v.optional(v.array(v.object({
-        organism: v.optional(v.string()),
-        mechanism: v.optional(v.string()),
-        importance: v.optional(v.string()),
+        organism: v.string(),
+        mechanism: v.string(),
+        importance: v.string(),
       }))),
     }),
     
     // Ecosystem functions
     ecosystem_services: v.object({
       // Nutrient cycling
-      nutrient_cycling: v.optional(v.array(v.object({
-        process: v.optional(v.string()), // decomposition, mineralization, immobilization
-        nutrients: v.optional(v.array(v.string()),
+      nutrient_cycling: v.array(v.object({
+        process: v.string(), // decomposition, mineralization, immobilization
+        nutrients: v.array(v.string()),
         rate: v.optional(v.string()),
-        importance: v.optional(v.string()), // high, medium, low
+        importance: v.string(), // high, medium, low
       })),
       
       // Soil formation
       soil_processes: v.optional(v.array(v.object({
-        process: v.optional(v.string()),
-        mechanism: v.optional(v.string()),
-        impact: v.optional(v.string()),
+        process: v.string(),
+        mechanism: v.string(),
+        impact: v.string(),
       }))),
       
       // Carbon cycling
       carbon_dynamics: v.optional(v.object({
         sequestration_rate: v.optional(v.object({
-          value: v.optional(v.number()),
-          unit: v.optional(v.string()), // kg C/m²/year
+          value: v.number(),
+          unit: v.string(), // kg C/m²/year
         })),
         
         decomposition_rate: v.optional(v.object({
-          value: v.optional(v.number()),
-          unit: v.optional(v.string()),
+          value: v.number(),
+          unit: v.string(),
         })),
       })),
       
       // Other services
       additional_services: v.optional(v.array(v.object({
-        service: v.optional(v.string()),
-        beneficiaries: v.optional(v.array(v.string()),
-        importance: v.optional(v.string()),
+        service: v.string(),
+        beneficiaries: v.array(v.string()),
+        importance: v.string(),
       }))),
     }),
     
@@ -1514,12 +1514,12 @@ const fungi = defineTable({
     population: v.optional(v.object({
       // Dispersal
       dispersal: v.object({
-        primary_vector: v.optional(v.string()), // wind, water, animal
+        primary_vector: v.string(), // wind, water, animal
         
-        vectors: v.optional(v.array(v.object({
-          vector: v.optional(v.string()),
-          effectiveness: v.optional(v.number()), // 0-10
-          distance: v.optional(v.string()), // short, medium, long
+        vectors: v.array(v.object({
+          vector: v.string(),
+          effectiveness: v.number(), // 0-10
+          distance: v.string(), // short, medium, long
         })),
         
         propagule_production: v.optional(v.object({
@@ -1531,24 +1531,24 @@ const fungi = defineTable({
       
       // Reproductive strategy
       reproduction: v.object({
-        primary_mode: v.optional(v.string()), // sexual, asexual, both
+        primary_mode: v.string(), // sexual, asexual, both
         
         sexual: v.optional(v.object({
-          mating_system: v.optional(v.string()), // homotallic, heterothallic
+          mating_system: v.string(), // homotallic, heterothallic
           mating_types: v.optional(v.number()),
           
-          fruiting_triggers: v.optional(v.array(v.string()),
-          fruiting_frequency: v.optional(v.string()),
+          fruiting_triggers: v.array(v.string()),
+          fruiting_frequency: v.string(),
         })),
         
         asexual: v.optional(v.object({
-          methods: v.optional(v.array(v.string()), // conidia, sclerotia, fragmentation
-          frequency: v.optional(v.string()),
+          methods: v.array(v.string()), // conidia, sclerotia, fragmentation
+          frequency: v.string(),
         })),
         
         generation_time: v.optional(v.object({
-          value: v.optional(v.number()),
-          unit: v.optional(v.string()), // days, years
+          value: v.number(),
+          unit: v.string(), // days, years
         })),
       }),
       
@@ -1569,26 +1569,26 @@ const fungi = defineTable({
     // Life cycle
     lifecycle: v.object({
       // Complete developmental sequence
-      stages: v.optional(v.array(v.object({
-        stage: v.optional(v.string()),
+      stages: v.array(v.object({
+        stage: v.string(),
         
         duration: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          typical: v.optional(v.number()),
-          unit: v.optional(v.string()), // hours, days, weeks
+          min: v.number(),
+          max: v.number(),
+          typical: v.number(),
+          unit: v.string(), // hours, days, weeks
         }),
         
         conditions: v.object({
-          temperature_c: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-          humidity_percent: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
+          temperature_c: v.object({ min: v.number(), max: v.number() }),
+          humidity_percent: v.object({ min: v.number(), max: v.number() }),
           light: v.optional(v.string()),
         }),
         
-        triggers: v.optional(v.array(v.string()),
+        triggers: v.array(v.string()),
         
         morphology: v.object({
-          description: v.optional(v.string()),
+          description: v.string(),
           size: v.optional(v.string()),
           color: v.optional(v.string()),
         }),
@@ -1599,12 +1599,12 @@ const fungi = defineTable({
       // Generation time
       generation_time: v.object({
         sexual: v.optional(v.object({
-          value: v.optional(v.number()),
-          unit: v.optional(v.string()),
+          value: v.number(),
+          unit: v.string(),
         })),
         asexual: v.optional(v.object({
-          value: v.optional(v.number()),
-          unit: v.optional(v.string()),
+          value: v.number(),
+          unit: v.string(),
         })),
       }),
     }),
@@ -1612,14 +1612,14 @@ const fungi = defineTable({
     // Phenology
     phenology: v.object({
       // Seasonal patterns
-      seasonality: v.optional(v.array(v.object({
-        month: v.optional(v.number()), // 1-12
+      seasonality: v.array(v.object({
+        month: v.number(), // 1-12
         
         activity: v.object({
-          mycelial_growth: v.optional(v.number()), // 0-100
-          primordia_formation: v.optional(v.number()),
-          fruiting: v.optional(v.number()),
-          sporulation: v.optional(v.number()),
+          mycelial_growth: v.number(), // 0-100
+          primordia_formation: v.number(),
+          fruiting: v.number(),
+          sporulation: v.number(),
         }),
         
         environmental_correlation: v.optional(v.object({
@@ -1630,15 +1630,15 @@ const fungi = defineTable({
       })),
       
       peak_periods: v.object({
-        fruiting: v.optional(v.array(v.string()), // months
-        sporulation: v.optional(v.array(v.string()),
+        fruiting: v.array(v.string()), // months
+        sporulation: v.array(v.string()),
       }),
       
       // Geographic variation
       geographic_variation: v.optional(v.array(v.object({
-        region: v.optional(v.string()),
-        climate_zone: v.optional(v.string()),
-        peak_months: v.optional(v.array(v.number()),
+        region: v.string(),
+        climate_zone: v.string(),
+        peak_months: v.array(v.number()),
       }))),
     }),
     
@@ -1646,24 +1646,24 @@ const fungi = defineTable({
     circadian: v.optional(v.object({
       // Daily patterns
       spore_release: v.optional(v.array(v.object({
-        hour: v.optional(v.number()), // 0-23
-        relative_rate: v.optional(v.number()), // 0-100
+        hour: v.number(), // 0-23
+        relative_rate: v.number(), // 0-100
       }))),
       
       growth_rate: v.optional(v.array(v.object({
-        hour: v.optional(v.number()),
-        rate: v.optional(v.number()), // μm/hour
+        hour: v.number(),
+        rate: v.number(), // μm/hour
       }))),
       
       metabolic_rhythm: v.optional(v.array(v.object({
-        hour: v.optional(v.number()),
-        process: v.optional(v.string()),
-        activity: v.optional(v.number()), // 0-100
+        hour: v.number(),
+        process: v.string(),
+        activity: v.number(), // 0-100
       }))),
       
       light_response: v.optional(v.object({
-        phototropism: v.optional(v.boolean()),
-        photoperiod_sensitive: v.optional(v.boolean()),
+        phototropism: v.boolean(),
+        photoperiod_sensitive: v.boolean(),
         optimal_photoperiod: v.optional(v.number()), // hours
       })),
     })),
@@ -1672,39 +1672,39 @@ const fungi = defineTable({
     history: v.object({
       // Discovery and taxonomy
       first_description: v.object({
-        year: v.optional(v.number()),
-        author: v.optional(v.string()),
-        publication: v.optional(v.string()),
+        year: v.number(),
+        author: v.string(),
+        publication: v.string(),
         type_location: v.optional(v.string()),
       }),
       
       // Key milestones
-      milestones: v.optional(v.array(v.object({
-        year: v.optional(v.number()),
-        event: v.optional(v.string()),
-        category: v.optional(v.string()), // discovery, cultivation, research, commercial
-        significance: v.optional(v.string()),
+      milestones: v.array(v.object({
+        year: v.number(),
+        event: v.string(),
+        category: v.string(), // discovery, cultivation, research, commercial
+        significance: v.string(),
         
         reference: citationSource,
       })),
       
       // Cultivation history
       cultivation_timeline: v.optional(v.array(v.object({
-        year: v.optional(v.number()),
-        location: v.optional(v.string()),
-        method: v.optional(v.string()),
-        scale: v.optional(v.string()), // experimental, commercial
+        year: v.number(),
+        location: v.string(),
+        method: v.string(),
+        scale: v.string(), // experimental, commercial
       }))),
     }),
     
     // Future projections
     projections: v.optional(v.object({
       // Climate change impacts
-      climate_response: v.optional(v.array(v.object({
-        scenario: v.optional(v.string()), // RCP 2.6, 4.5, 6.0, 8.5
-        year: v.optional(v.number()),
+      climate_response: v.array(v.object({
+        scenario: v.string(), // RCP 2.6, 4.5, 6.0, 8.5
+        year: v.number(),
         
-        habitat_suitability: v.optional(v.number()), // 0-100
+        habitat_suitability: v.number(), // 0-100
         range_shift_km: v.optional(v.number()),
         
         phenology_shift_days: v.optional(v.number()),
@@ -1712,11 +1712,11 @@ const fungi = defineTable({
       
       // Conservation outlook
       conservation_forecast: v.optional(v.object({
-        threat_trajectory: v.optional(v.string()), // increasing, stable, decreasing
+        threat_trajectory: v.string(), // increasing, stable, decreasing
         
         population_viability: v.optional(v.object({
-          extinction_risk_percent: v.optional(v.number()),
-          time_horizon_years: v.optional(v.number()),
+          extinction_risk_percent: v.number(),
+          time_horizon_years: v.number(),
         })),
       })),
     })),
@@ -1726,34 +1726,34 @@ const fungi = defineTable({
   geography: v.optional(citedValue(v.object({
     // Native range
     native_range: v.object({
-      continents: v.optional(v.array(v.string()),
+      continents: v.array(v.string()),
       
-      countries: v.optional(v.array(v.object({
-        country: v.optional(v.string()),
-        status: v.optional(v.string()), // common, rare, threatened
+      countries: v.array(v.object({
+        country: v.string(),
+        status: v.string(), // common, rare, threatened
         
         regions: v.optional(v.array(v.object({
-          region: v.optional(v.string()),
-          frequency: v.optional(v.string()),
+          region: v.string(),
+          frequency: v.string(),
         }))),
       })),
       
-      biogeographic_realms: v.optional(v.array(v.string()),
-      ecoregions: v.optional(v.array(v.string()),
+      biogeographic_realms: v.array(v.string()),
+      ecoregions: v.array(v.string()),
     }),
     
     // Introduced range
     introduced_range: v.optional(v.object({
-      countries: v.optional(v.array(v.object({
-        country: v.optional(v.string()),
+      countries: v.array(v.object({
+        country: v.string(),
         year_first_recorded: v.optional(v.number()),
-        status: v.optional(v.string()), // established, casual, eradicated
+        status: v.string(), // established, casual, eradicated
         
         pathway: v.optional(v.string()), // cultivation, accidental
       })),
       
       invasiveness: v.optional(v.object({
-        invasive: v.optional(v.boolean()),
+        invasive: v.boolean(),
         impact: v.optional(v.string()),
         management: v.optional(v.array(v.string())),
       })),
@@ -1762,14 +1762,14 @@ const fungi = defineTable({
     // Occurrence data
     occurrences: v.object({
       // Observation records
-      total_records: v.optional(v.number()),
+      total_records: v.number(),
       
-      data_sources: v.optional(v.array(v.object({
-        database: v.optional(v.string()), // GBIF, iNaturalist, etc
-        record_count: v.optional(v.number()),
+      data_sources: v.array(v.object({
+        database: v.string(), // GBIF, iNaturalist, etc
+        record_count: v.number(),
         date_range: v.object({
-          start: v.optional(v.number()),
-          end: v.optional(v.number()),
+          start: v.number(),
+          end: v.number(),
         }),
       })),
       
@@ -1786,27 +1786,27 @@ const fungi = defineTable({
     climate_envelope: v.object({
       // Temperature
       temperature: v.object({
-        mean_annual_c: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
+        mean_annual_c: v.object({ min: v.number(), max: v.number() }),
         
-        coldest_month_c: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-        warmest_month_c: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
+        coldest_month_c: v.object({ min: v.number(), max: v.number() }),
+        warmest_month_c: v.object({ min: v.number(), max: v.number() }),
         
-        frost_tolerance: v.optional(v.string()), // none, light, hard
+        frost_tolerance: v.string(), // none, light, hard
       }),
       
       // Precipitation
       precipitation: v.object({
-        annual_mm: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
+        annual_mm: v.object({ min: v.number(), max: v.number() }),
         
-        wettest_month_mm: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
-        driest_month_mm: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
+        wettest_month_mm: v.object({ min: v.number(), max: v.number() }),
+        driest_month_mm: v.object({ min: v.number(), max: v.number() }),
         
-        seasonality: v.optional(v.string()), // uniform, summer, winter, monsoonal
+        seasonality: v.string(), // uniform, summer, winter, monsoonal
       }),
       
       // Other factors
       humidity: v.optional(v.object({
-        annual_mean: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
+        annual_mean: v.object({ min: v.number(), max: v.number() }),
       })),
       
       // Bioclimatic variables
@@ -1817,22 +1817,22 @@ const fungi = defineTable({
       })),
       
       // Köppen climate zones
-      koppen_zones: v.optional(v.array(v.string()),
+      koppen_zones: v.array(v.string()),
     }),
   }))),
   
   // ===== CULTIVATION =====
   cultivation: v.optional(citedValue(v.object({
     // Cultivation status
-    cultivation_status: v.optional(v.string()), // not cultivated, experimental, commercial
+    cultivation_status: v.string(), // not cultivated, experimental, commercial
     
     difficulty: v.object({
-      overall: v.optional(v.number()), // 0-10 (easy to very difficult)
+      overall: v.number(), // 0-10 (easy to very difficult)
       
-      factors: v.optional(v.array(v.object({
-        factor: v.optional(v.string()),
-        difficulty: v.optional(v.number()),
-        solutions: v.optional(v.array(v.string()),
+      factors: v.array(v.object({
+        factor: v.string(),
+        difficulty: v.number(),
+        solutions: v.array(v.string()),
       })),
       
       success_rate: v.optional(v.number()), // %
@@ -1843,63 +1843,63 @@ const fungi = defineTable({
       // Temperature requirements
       temperature_c: v.object({
         spawn_run: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          optimal: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          optimal: v.number(),
         }),
         primordia: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          optimal: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          optimal: v.number(),
         }),
         fruiting: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          optimal: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          optimal: v.number(),
         }),
       }),
       
       // Humidity
       humidity_percent: v.object({
         spawn_run: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          optimal: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          optimal: v.number(),
         }),
         primordia: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          optimal: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          optimal: v.number(),
         }),
         fruiting: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          optimal: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          optimal: v.number(),
         }),
       }),
       
       // CO2
       co2_ppm: v.object({
         spawn_run: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          optimal: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          optimal: v.number(),
         }),
         fruiting: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          optimal: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          optimal: v.number(),
         }),
       }),
       
       // Light
       light: v.object({
-        required_for_fruiting: v.optional(v.boolean()),
+        required_for_fruiting: v.boolean(),
         
         intensity_lux: v.optional(v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          optimal: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          optimal: v.number(),
         })),
         
         photoperiod_hours: v.optional(v.number()),
@@ -1909,119 +1909,119 @@ const fungi = defineTable({
       // pH
       pH: v.object({
         spawn: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          optimal: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          optimal: v.number(),
         }),
         substrate: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          optimal: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          optimal: v.number(),
         }),
         casing: v.optional(v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          optimal: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          optimal: v.number(),
         })),
       }),
     }),
     
     // Substrates
-    substrates: v.optional(v.array(v.object({
-      type: v.optional(v.string()),
-      category: v.optional(v.string()), // primary, supplemented, experimental
+    substrates: v.array(v.object({
+      type: v.string(),
+      category: v.string(), // primary, supplemented, experimental
       
-      composition: v.optional(v.array(v.object({
-        ingredient: v.optional(v.string()),
-        percentage: v.optional(v.number()),
+      composition: v.array(v.object({
+        ingredient: v.string(),
+        percentage: v.number(),
       })),
       
       performance: v.object({
-        colonization_days: v.optional(v.number()),
+        colonization_days: v.number(),
         
-        biological_efficiency: v.optional(v.number()), // %
+        biological_efficiency: v.number(), // %
         
         yield_g_per_kg: v.object({
-          first_flush: v.optional(v.number()),
-          total: v.optional(v.number()),
+          first_flush: v.number(),
+          total: v.number(),
         }),
         
-        contamination_rate: v.optional(v.number()), // %
+        contamination_rate: v.number(), // %
         
-        quality_score: v.optional(v.number()), // 0-10
+        quality_score: v.number(), // 0-10
       }),
       
       preparation: v.object({
-        moisture_content: v.optional(v.number()), // %
-        sterilization: v.optional(v.string()),
+        moisture_content: v.number(), // %
+        sterilization: v.string(),
         supplements: v.optional(v.array(v.string())),
       }),
       
       cost: v.optional(v.object({
-        per_kg: v.optional(v.number()),
-        currency: v.optional(v.string()),
+        per_kg: v.number(),
+        currency: v.string(),
       })),
     })),
     
     // Production cycle
     production_timeline: v.object({
       // Phases
-      phases: v.optional(v.array(v.object({
-        phase: v.optional(v.string()),
+      phases: v.array(v.object({
+        phase: v.string(),
         
         duration_days: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          typical: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          typical: v.number(),
         }),
         
-        key_parameters: v.optional(v.array(v.string()),
+        key_parameters: v.array(v.string()),
         
-        critical_points: v.optional(v.array(v.string()),
+        critical_points: v.array(v.string()),
       })),
       
       // Total cycle
       total_cycle_days: v.object({
-        min: v.optional(v.number()),
-        max: v.optional(v.number()),
-        typical: v.optional(v.number()),
+        min: v.number(),
+        max: v.number(),
+        typical: v.number(),
       }),
       
       // Flushes
       flushes: v.object({
         number: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          typical: v.optional(v.number()),
+          min: v.number(),
+          max: v.number(),
+          typical: v.number(),
         }),
         
-        interval_days: v.optional(v.number()),
+        interval_days: v.number(),
         
-        yield_distribution: v.optional(v.array(v.object({
-          flush: v.optional(v.number()),
-          percentage_of_total: v.optional(v.number()),
+        yield_distribution: v.array(v.object({
+          flush: v.number(),
+          percentage_of_total: v.number(),
         })),
       }),
     }),
     
     // Strains
     strains: v.optional(v.array(v.object({
-      name: v.optional(v.string()),
+      name: v.string(),
       code: v.optional(v.string()),
       
       origin: v.optional(v.object({
-        location: v.optional(v.string()),
+        location: v.string(),
         year: v.optional(v.number()),
-        source: v.optional(v.string()), // wild, cultivated, hybrid
+        source: v.string(), // wild, cultivated, hybrid
       })),
       
       characteristics: v.object({
-        vigor: v.optional(v.number()), // 0-10
-        yield: v.optional(v.number()),
+        vigor: v.number(), // 0-10
+        yield: v.number(),
         
         temperature_preference: v.optional(v.string()), // cold, moderate, warm
         
-        fruiting_reliability: v.optional(v.number()), // 0-10
+        fruiting_reliability: v.number(), // 0-10
         
         morphology: v.optional(v.string()),
         
@@ -2029,7 +2029,7 @@ const fungi = defineTable({
       }),
       
       availability: v.object({
-        commercial: v.optional(v.boolean()),
+        commercial: v.boolean(),
         suppliers: v.optional(v.array(v.string())),
       }),
     }))),
@@ -2037,33 +2037,33 @@ const fungi = defineTable({
     // Pests and diseases
     cultivation_problems: v.optional(v.object({
       // Contaminants
-      contaminants: v.optional(v.array(v.object({
-        organism: v.optional(v.string()),
-        type: v.optional(v.string()), // bacteria, mold, yeast
+      contaminants: v.array(v.object({
+        organism: v.string(),
+        type: v.string(), // bacteria, mold, yeast
         
-        occurrence_rate: v.optional(v.number()), // %
+        occurrence_rate: v.number(), // %
         
-        conditions_favoring: v.optional(v.array(v.string()),
+        conditions_favoring: v.array(v.string()),
         
-        prevention: v.optional(v.array(v.string()),
-        treatment: v.optional(v.array(v.string()),
+        prevention: v.array(v.string()),
+        treatment: v.array(v.string()),
       })),
       
       // Pests
       pests: v.optional(v.array(v.object({
-        pest: v.optional(v.string()),
-        damage: v.optional(v.string()),
+        pest: v.string(),
+        damage: v.string(),
         
-        control: v.optional(v.array(v.string()),
+        control: v.array(v.string()),
       }))),
       
       // Physiological disorders
       disorders: v.optional(v.array(v.object({
-        disorder: v.optional(v.string()),
-        symptoms: v.optional(v.array(v.string()),
-        causes: v.optional(v.array(v.string()),
+        disorder: v.string(),
+        symptoms: v.array(v.string()),
+        causes: v.array(v.string()),
         
-        prevention: v.optional(v.array(v.string()),
+        prevention: v.array(v.string()),
       }))),
     })),
   }))),
@@ -2071,24 +2071,24 @@ const fungi = defineTable({
   // ===== MEDICINAL PROPERTIES =====
   medicinal: v.optional(citedValue(v.object({
     // Traditional use
-    traditional_medicine: v.optional(v.array(v.object({
-      system: v.optional(v.string()), // TCM, Ayurveda, Native American, etc
+    traditional_medicine: v.array(v.object({
+      system: v.string(), // TCM, Ayurveda, Native American, etc
       
-      traditional_name: v.optional(v.string()),
+      traditional_name: v.string(),
       
-      uses: v.optional(v.array(v.object({
-        condition: v.optional(v.string()),
-        preparation: v.optional(v.string()),
+      uses: v.array(v.object({
+        condition: v.string(),
+        preparation: v.string(),
         dosage: v.optional(v.string()),
         
-        administration: v.optional(v.string()),
+        administration: v.string(),
         
         efficacy: v.optional(v.string()), // traditional claim
       })),
       
       contraindications: v.optional(v.array(v.string())),
       
-      cultural_importance: v.optional(v.number()), // 0-10
+      cultural_importance: v.number(), // 0-10
       
       documentation: v.object({
         first_recorded: v.optional(v.number()),
@@ -2098,35 +2098,35 @@ const fungi = defineTable({
     })),
     
     // Modern therapeutic applications
-    therapeutic_categories: v.optional(v.array(v.object({
-      category: v.optional(v.string()), // immunomodulation, neuroprotection, etc
+    therapeutic_categories: v.array(v.object({
+      category: v.string(), // immunomodulation, neuroprotection, etc
       
-      mechanisms: v.optional(v.array(v.object({
-        mechanism: v.optional(v.string()),
+      mechanisms: v.array(v.object({
+        mechanism: v.string(),
         
         molecular_targets: v.optional(v.array(v.object({
-          target_type: v.optional(v.string()),
-          target_name: v.optional(v.string()),
+          target_type: v.string(),
+          target_name: v.string(),
           
-          interaction: v.optional(v.string()),
+          interaction: v.string(),
           
           affinity: v.optional(v.object({
-            value: v.optional(v.number()),
-            unit: v.optional(v.string()),
+            value: v.number(),
+            unit: v.string(),
           })),
         }))),
         
         pathways: v.optional(v.array(v.string())),
         
-        evidence_level: v.optional(v.string()), // in_vitro, animal, human
+        evidence_level: v.string(), // in_vitro, animal, human
       })),
       
-      active_compounds: v.optional(v.array(v.object({
-        compound: v.optional(v.string()),
-        contribution: v.optional(v.string()), // major, minor, synergistic
+      active_compounds: v.array(v.object({
+        compound: v.string(),
+        contribution: v.string(), // major, minor, synergistic
       })),
       
-      efficacy_score: v.optional(v.number()), // 0-10
+      efficacy_score: v.number(), // 0-10
     })),
     
     // Clinical evidence
@@ -2134,31 +2134,31 @@ const fungi = defineTable({
       // Trial identification
       trial_id: v.optional(v.string()), // NCT number
       
-      title: v.optional(v.string()),
-      year: v.optional(v.number()),
+      title: v.string(),
+      year: v.number(),
       
       // Design
       design: v.object({
-        type: v.optional(v.string()), // RCT, observational, case-control
+        type: v.string(), // RCT, observational, case-control
         
-        blinding: v.optional(v.string()), // single, double, open
+        blinding: v.string(), // single, double, open
         
-        sample_size: v.optional(v.number()),
+        sample_size: v.number(),
         
         duration: v.object({
-          value: v.optional(v.number()),
-          unit: v.optional(v.string()),
+          value: v.number(),
+          unit: v.string(),
         }),
       }),
       
       // Intervention
       intervention: v.object({
-        preparation: v.optional(v.string()),
+        preparation: v.string(),
         
         dosage: v.object({
-          amount: v.optional(v.number()),
-          unit: v.optional(v.string()),
-          frequency: v.optional(v.string()),
+          amount: v.number(),
+          unit: v.string(),
+          frequency: v.string(),
         }),
         
         standardization: v.optional(v.string()),
@@ -2166,9 +2166,9 @@ const fungi = defineTable({
       
       // Outcomes
       outcomes: v.object({
-        primary: v.optional(v.array(v.object({
-          measure: v.optional(v.string()),
-          result: v.optional(v.string()),
+        primary: v.array(v.object({
+          measure: v.string(),
+          result: v.string(),
           
           significance: v.optional(v.object({
             p_value: v.optional(v.number()),
@@ -2178,14 +2178,14 @@ const fungi = defineTable({
         })),
         
         secondary: v.optional(v.array(v.object({
-          measure: v.optional(v.string()),
-          result: v.optional(v.string()),
+          measure: v.string(),
+          result: v.string(),
         }))),
         
         adverse_events: v.optional(v.array(v.object({
-          event: v.optional(v.string()),
-          frequency: v.optional(v.string()),
-          severity: v.optional(v.string()),
+          event: v.string(),
+          frequency: v.string(),
+          severity: v.string(),
         }))),
       }),
       
@@ -2205,86 +2205,86 @@ const fungi = defineTable({
       toxicity: v.object({
         acute: v.optional(v.object({
           ld50: v.optional(v.object({
-            value: v.optional(v.number()),
-            unit: v.optional(v.string()),
-            route: v.optional(v.string()),
-            species: v.optional(v.string()),
+            value: v.number(),
+            unit: v.string(),
+            route: v.string(),
+            species: v.string(),
           })),
         })),
         
         chronic: v.optional(v.object({
           noael: v.optional(v.object({
-            value: v.optional(v.number()),
-            unit: v.optional(v.string()),
+            value: v.number(),
+            unit: v.string(),
           })),
           
           loael: v.optional(v.object({
-            value: v.optional(v.number()),
-            unit: v.optional(v.string()),
+            value: v.number(),
+            unit: v.string(),
           })),
         })),
         
         organ_specific: v.optional(v.array(v.object({
-          organ: v.optional(v.string()),
-          effect: v.optional(v.string()),
-          severity: v.optional(v.string()),
+          organ: v.string(),
+          effect: v.string(),
+          severity: v.string(),
         }))),
       }),
       
       // Adverse effects
-      adverse_effects: v.optional(v.array(v.object({
-        effect: v.optional(v.string()),
-        frequency: v.optional(v.string()), // common, uncommon, rare
-        severity: v.optional(v.string()), // mild, moderate, severe
+      adverse_effects: v.array(v.object({
+        effect: v.string(),
+        frequency: v.string(), // common, uncommon, rare
+        severity: v.string(), // mild, moderate, severe
         
         mechanism: v.optional(v.string()),
       })),
       
       // Drug interactions
       drug_interactions: v.optional(v.array(v.object({
-        drug_class: v.optional(v.string()),
+        drug_class: v.string(),
         
-        interaction_type: v.optional(v.string()),
-        severity: v.optional(v.string()),
+        interaction_type: v.string(),
+        severity: v.string(),
         
-        mechanism: v.optional(v.string()),
+        mechanism: v.string(),
         
-        management: v.optional(v.string()),
+        management: v.string(),
       }))),
       
       // Contraindications
-      contraindications: v.optional(v.array(v.string()),
+      contraindications: v.array(v.string()),
       
       // Special populations
       special_populations: v.optional(v.object({
-        pregnancy: v.optional(v.string()),
-        lactation: v.optional(v.string()),
-        pediatric: v.optional(v.string()),
-        geriatric: v.optional(v.string()),
+        pregnancy: v.string(),
+        lactation: v.string(),
+        pediatric: v.string(),
+        geriatric: v.string(),
       })),
     }),
     
     // Dosage and administration
     dosing: v.optional(v.object({
       // Standard dosing
-      standard: v.optional(v.array(v.object({
-        indication: v.optional(v.string()),
+      standard: v.array(v.object({
+        indication: v.string(),
         
-        preparation: v.optional(v.string()),
+        preparation: v.string(),
         
         dose: v.object({
           amount: v.object({
-            min: v.optional(v.number()),
-            max: v.optional(v.number()),
-            unit: v.optional(v.string()),
+            min: v.number(),
+            max: v.number(),
+            unit: v.string(),
           }),
           
-          frequency: v.optional(v.string()),
+          frequency: v.string(),
           
           duration: v.optional(v.string()),
         }),
         
-        route: v.optional(v.string()),
+        route: v.string(),
       })),
       
       // Therapeutic monitoring
@@ -2296,7 +2296,7 @@ const fungi = defineTable({
   culinary: v.optional(citedValue(v.object({
     // Edibility
     edibility: v.object({
-      status: v.optional(v.string()), // choice, edible, conditionally edible, inedible, poisonous
+      status: v.string(), // choice, edible, conditionally edible, inedible, poisonous
       
       rating: v.optional(v.number()), // 0-10
       
@@ -2306,35 +2306,35 @@ const fungi = defineTable({
     }),
     
     // Culinary traditions
-    traditions: v.optional(v.array(v.object({
-      culture: v.optional(v.string()),
+    traditions: v.array(v.object({
+      culture: v.string(),
       
-      names: v.optional(v.array(v.string()),
+      names: v.array(v.string()),
       
-      dishes: v.optional(v.array(v.object({
-        name: v.optional(v.string()),
+      dishes: v.array(v.object({
+        name: v.string(),
         
-        description: v.optional(v.string()),
+        description: v.string(),
         
-        preparation_method: v.optional(v.string()),
+        preparation_method: v.string(),
         
-        accompaniments: v.optional(v.array(v.string()),
+        accompaniments: v.array(v.string()),
         
         occasion: v.optional(v.string()), // everyday, festive, medicinal
       })),
       
-      preservation_methods: v.optional(v.array(v.string()),
+      preservation_methods: v.array(v.string()),
       
-      cultural_significance: v.optional(v.number()), // 0-10
+      cultural_significance: v.number(), // 0-10
     })),
     
     // Flavor pairings
-    pairings: v.optional(v.array(v.object({
-      ingredient: v.optional(v.string()),
+    pairings: v.array(v.object({
+      ingredient: v.string(),
       
-      affinity: v.optional(v.number()), // 0-10
+      affinity: v.number(), // 0-10
       
-      basis: v.optional(v.string()), // traditional, chemical, textural
+      basis: v.string(), // traditional, chemical, textural
       
       shared_compounds: v.optional(v.array(v.string())),
       
@@ -2342,71 +2342,71 @@ const fungi = defineTable({
     })),
     
     // Cooking methods
-    cooking: v.optional(v.array(v.object({
-      method: v.optional(v.string()),
+    cooking: v.array(v.object({
+      method: v.string(),
       
       temperature: v.optional(v.object({
-        value: v.optional(v.number()),
-        unit: v.optional(v.string()),
+        value: v.number(),
+        unit: v.string(),
       })),
       
       time: v.optional(v.object({
-        min: v.optional(v.number()),
-        max: v.optional(v.number()),
-        unit: v.optional(v.string()),
+        min: v.number(),
+        max: v.number(),
+        unit: v.string(),
       })),
       
       effect_on_properties: v.object({
-        texture: v.optional(v.string()),
-        flavor: v.optional(v.string()),
+        texture: v.string(),
+        flavor: v.string(),
         
         nutritional_retention: v.optional(v.number()), // %
         
         bioactive_retention: v.optional(v.number()),
       }),
       
-      tips: v.optional(v.array(v.string()),
+      tips: v.array(v.string()),
     })),
     
     // Nutritional highlights
-    nutritional_highlights: v.optional(v.array(v.object({
-      nutrient: v.optional(v.string()),
+    nutritional_highlights: v.array(v.object({
+      nutrient: v.string(),
       
       amount_per_100g: v.object({
-        value: v.optional(v.number()),
-        unit: v.optional(v.string()),
+        value: v.number(),
+        unit: v.string(),
       }),
       
       daily_value_percent: v.optional(v.number()),
       
-      significance: v.optional(v.string()),
+      significance: v.string(),
     })),
     
     // Storage and preservation
     storage: v.object({
       fresh: v.object({
-        temperature_c: v.object({ min: v.optional(v.number()), max: v.optional(v.number()) }),
+        temperature_c: v.object({ min: v.number(), max: v.number() }),
         
         humidity: v.optional(v.string()),
         
-        container: v.optional(v.string()),
+        container: v.string(),
         
-        shelf_life_days: v.optional(v.number()),
+        shelf_life_days: v.number(),
         
-        quality_indicators: v.optional(v.array(v.string()),
+        quality_indicators: v.array(v.string()),
       }),
       
-      preservation: v.optional(v.array(v.object({
-        method: v.optional(v.string()), // drying, freezing, pickling, etc
+      preservation: v.array(v.object({
+        method: v.string(), // drying, freezing, pickling, etc
         
-        process: v.optional(v.string()),
+        process: v.string(),
         
         shelf_life: v.object({
-          value: v.optional(v.number()),
-          unit: v.optional(v.string()),
+          value: v.number(),
+          unit: v.string(),
         }),
         
-        quality_retention: v.optional(v.number()), // %
+        quality_retention: v.number(), // %
       })),
     }),
   }))),
@@ -2414,51 +2414,51 @@ const fungi = defineTable({
   // ===== ECONOMIC DATA =====
   economics: v.optional(citedValue(v.object({
     // Market status
-    market_status: v.optional(v.string()), // not traded, local, regional, international
+    market_status: v.string(), // not traded, local, regional, international
     
     // Production
     production: v.optional(v.object({
       global_production_tons: v.optional(v.number()),
       
-      major_producers: v.optional(v.array(v.object({
-        country: v.optional(v.string()),
+      major_producers: v.array(v.object({
+        country: v.string(),
         
         production_tons: v.optional(v.number()),
         
-        production_type: v.optional(v.string()), // wild, cultivated
+        production_type: v.string(), // wild, cultivated
       })),
       
-      production_trend: v.optional(v.string()), // increasing, stable, decreasing
+      production_trend: v.string(), // increasing, stable, decreasing
     })),
     
     // Pricing
     pricing: v.optional(v.object({
       // Retail prices
-      retail: v.optional(v.array(v.object({
-        market: v.optional(v.string()),
+      retail: v.array(v.object({
+        market: v.string(),
         
-        product_form: v.optional(v.string()), // fresh, dried, extract
+        product_form: v.string(), // fresh, dried, extract
         
         price: v.object({
-          min: v.optional(v.number()),
-          max: v.optional(v.number()),
-          typical: v.optional(v.number()),
-          currency: v.optional(v.string()),
-          unit: v.optional(v.string()),
+          min: v.number(),
+          max: v.number(),
+          typical: v.number(),
+          currency: v.string(),
+          unit: v.string(),
         }),
         
-        date: v.optional(v.number()),
+        date: v.number(),
         
         quality_grade: v.optional(v.string()),
       })),
       
       // Wholesale
       wholesale: v.optional(v.array(v.object({
-        market: v.optional(v.string()),
+        market: v.string(),
         
         price_per_kg: v.object({
-          value: v.optional(v.number()),
-          currency: v.optional(v.string()),
+          value: v.number(),
+          currency: v.string(),
         }),
         
         minimum_order: v.optional(v.number()),
@@ -2466,11 +2466,11 @@ const fungi = defineTable({
       
       // Price volatility
       volatility: v.optional(v.object({
-        coefficient_of_variation: v.optional(v.number()),
+        coefficient_of_variation: v.number(),
         
-        seasonal_variation: v.optional(v.array(v.object({
-          month: v.optional(v.number()),
-          relative_price: v.optional(v.number()), // % of annual average
+        seasonal_variation: v.array(v.object({
+          month: v.number(),
+          relative_price: v.number(), // % of annual average
         })),
       })),
     })),
@@ -2479,14 +2479,14 @@ const fungi = defineTable({
     trade: v.optional(v.object({
       // International trade
       exports: v.optional(v.array(v.object({
-        exporter: v.optional(v.string()),
+        exporter: v.string(),
         
         volume_tons: v.optional(v.number()),
         value_usd: v.optional(v.number()),
       }))),
       
       imports: v.optional(v.array(v.object({
-        importer: v.optional(v.string()),
+        importer: v.string(),
         
         volume_tons: v.optional(v.number()),
         value_usd: v.optional(v.number()),
@@ -2494,33 +2494,33 @@ const fungi = defineTable({
       
       // Trade agreements
       regulations: v.optional(v.array(v.object({
-        type: v.optional(v.string()),
-        description: v.optional(v.string()),
+        type: v.string(),
+        description: v.string(),
         
-        countries_affected: v.optional(v.array(v.string()),
+        countries_affected: v.array(v.string()),
       }))),
     })),
     
     // Value chain
     value_chain: v.optional(v.object({
       // Stages
-      stages: v.optional(v.array(v.object({
-        stage: v.optional(v.string()),
+      stages: v.array(v.object({
+        stage: v.string(),
         
-        value_added: v.optional(v.number()), // %
+        value_added: v.number(), // %
         
-        actors: v.optional(v.array(v.string()),
+        actors: v.array(v.string()),
         
         constraints: v.optional(v.array(v.string())),
       })),
       
       // End products
-      products: v.optional(v.array(v.object({
-        product: v.optional(v.string()),
+      products: v.array(v.object({
+        product: v.string(),
         
-        market_segment: v.optional(v.string()),
+        market_segment: v.string(),
         
-        value_multiplier: v.optional(v.number()), // vs raw material
+        value_multiplier: v.number(), // vs raw material
       })),
     })),
     
@@ -2537,14 +2537,14 @@ const fungi = defineTable({
       
       // Indirect value
       indirect_value: v.optional(v.array(v.object({
-        type: v.optional(v.string()), // ecosystem service, tourism, etc
+        type: v.string(), // ecosystem service, tourism, etc
         
         estimated_value: v.optional(v.object({
-          amount: v.optional(v.number()),
-          currency: v.optional(v.string()),
+          amount: v.number(),
+          currency: v.string(),
         })),
         
-        beneficiaries: v.optional(v.array(v.string()),
+        beneficiaries: v.array(v.string()),
       }))),
     }),
   }))),
@@ -2555,47 +2555,47 @@ const fungi = defineTable({
     status: v.object({
       // IUCN Red List
       iucn: v.optional(v.object({
-        category: v.optional(v.string()), // EX, EW, CR, EN, VU, NT, LC, DD, NE
+        category: v.string(), // EX, EW, CR, EN, VU, NT, LC, DD, NE
         
         criteria: v.optional(v.string()),
         
-        year_assessed: v.optional(v.number()),
+        year_assessed: v.number(),
         
-        trend: v.optional(v.string()), // decreasing, stable, increasing, unknown
+        trend: v.string(), // decreasing, stable, increasing, unknown
       })),
       
       // National assessments
       national: v.optional(v.array(v.object({
-        country: v.optional(v.string()),
+        country: v.string(),
         
-        status: v.optional(v.string()),
+        status: v.string(),
         
-        legal_protection: v.optional(v.boolean()),
+        legal_protection: v.boolean(),
         
         year_assessed: v.optional(v.number()),
       }))),
       
       // CITES
       cites: v.optional(v.object({
-        appendix: v.optional(v.string()), // I, II, III
+        appendix: v.string(), // I, II, III
         
-        year_listed: v.optional(v.number()),
+        year_listed: v.number(),
         
         annotation: v.optional(v.string()),
       })),
     }),
     
     // Threats
-    threats: v.optional(v.array(v.object({
-      threat: v.optional(v.string()),
+    threats: v.array(v.object({
+      threat: v.string(),
       
-      category: v.optional(v.string()), // habitat loss, overharvesting, climate change, etc
+      category: v.string(), // habitat loss, overharvesting, climate change, etc
       
-      severity: v.optional(v.string()), // critical, high, medium, low
+      severity: v.string(), // critical, high, medium, low
       
-      scope: v.optional(v.string()), // whole range, majority, minority
+      scope: v.string(), // whole range, majority, minority
       
-      timing: v.optional(v.string()), // ongoing, future, past
+      timing: v.string(), // ongoing, future, past
       
       details: v.optional(v.string()),
     })),
@@ -2604,7 +2604,7 @@ const fungi = defineTable({
     actions: v.object({
       // In-situ
       in_situ: v.optional(v.array(v.object({
-        action: v.optional(v.string()),
+        action: v.string(),
         
         location: v.optional(v.string()),
         
@@ -2615,7 +2615,7 @@ const fungi = defineTable({
       
       // Ex-situ
       ex_situ: v.optional(v.array(v.object({
-        method: v.optional(v.string()), // culture collection, seed bank, etc
+        method: v.string(), // culture collection, seed bank, etc
         
         institution: v.optional(v.string()),
         
@@ -2625,46 +2625,46 @@ const fungi = defineTable({
       }))),
       
       // Research needs
-      research_needs: v.optional(v.array(v.string()),
+      research_needs: v.array(v.string()),
       
       // Management recommendations
-      recommendations: v.optional(v.array(v.string()),
+      recommendations: v.array(v.string()),
     }),
   }))),
   
   // ===== CULTURAL SIGNIFICANCE =====
   cultural: v.optional(citedValue(v.object({
     // Ethnomycology
-    ethnomycology: v.optional(v.array(v.object({
-      culture: v.optional(v.string()),
+    ethnomycology: v.array(v.object({
+      culture: v.string(),
       
-      indigenous_name: v.optional(v.string()),
+      indigenous_name: v.string(),
       
       meaning: v.optional(v.string()),
       
       // Uses
-      uses: v.optional(v.array(v.object({
-        use_type: v.optional(v.string()), // food, medicine, spiritual, craft
+      uses: v.array(v.object({
+        use_type: v.string(), // food, medicine, spiritual, craft
         
-        description: v.optional(v.string()),
+        description: v.string(),
         
         preparation: v.optional(v.string()),
         
-        importance: v.optional(v.string()), // essential, important, minor
+        importance: v.string(), // essential, important, minor
       })),
       
       // Knowledge transmission
       knowledge_system: v.object({
-        transmission: v.optional(v.string()), // oral, written, practice
+        transmission: v.string(), // oral, written, practice
         
-        holders: v.optional(v.string()), // elders, specialists, community
+        holders: v.string(), // elders, specialists, community
         
-        status: v.optional(v.string()), // thriving, maintained, threatened, lost
+        status: v.string(), // thriving, maintained, threatened, lost
       }),
       
       // Spiritual/religious
       spiritual: v.optional(v.object({
-        significance: v.optional(v.string()),
+        significance: v.string(),
         
         rituals: v.optional(v.array(v.string())),
         
@@ -2675,39 +2675,39 @@ const fungi = defineTable({
     })),
     
     // Historical references
-    history: v.optional(v.array(v.object({
-      period: v.optional(v.string()),
+    history: v.array(v.object({
+      period: v.string(),
       
-      culture: v.optional(v.string()),
+      culture: v.string(),
       
       reference: v.object({
-        type: v.optional(v.string()), // text, artifact, art
+        type: v.string(), // text, artifact, art
         
-        description: v.optional(v.string()),
+        description: v.string(),
         
         source: v.optional(v.string()),
         
         date: v.optional(v.number()),
       }),
       
-      significance: v.optional(v.string()),
+      significance: v.string(),
     })),
     
     // Art and literature
     arts: v.optional(v.array(v.object({
-      medium: v.optional(v.string()), // painting, sculpture, literature, film
+      medium: v.string(), // painting, sculpture, literature, film
       
       work: v.object({
-        title: v.optional(v.string()),
+        title: v.string(),
         
-        creator: v.optional(v.string()),
+        creator: v.string(),
         
         year: v.optional(v.number()),
         
-        description: v.optional(v.string()),
+        description: v.string(),
       }),
       
-      role: v.optional(v.string()), // subject, symbol, prop
+      role: v.string(), // subject, symbol, prop
       
       cultural_impact: v.optional(v.string()),
     }))),
@@ -2716,27 +2716,27 @@ const fungi = defineTable({
     contemporary: v.optional(v.object({
       // Popular culture
       pop_culture: v.optional(v.array(v.object({
-        medium: v.optional(v.string()),
+        medium: v.string(),
         
-        reference: v.optional(v.string()),
+        reference: v.string(),
         
-        context: v.optional(v.string()),
+        context: v.string(),
       }))),
       
       // Social movements
       movements: v.optional(v.array(v.object({
-        movement: v.optional(v.string()), // slow food, foraging revival, etc
+        movement: v.string(), // slow food, foraging revival, etc
         
-        role: v.optional(v.string()),
+        role: v.string(),
         
         advocates: v.optional(v.array(v.string())),
       }))),
       
       // Tourism
       tourism: v.optional(v.object({
-        destinations: v.optional(v.array(v.string()),
+        destinations: v.array(v.string()),
         
-        activities: v.optional(v.array(v.string()), // foraging tours, festivals
+        activities: v.array(v.string()), // foraging tours, festivals
         
         economic_value: v.optional(v.string()),
       })),
@@ -2747,24 +2747,24 @@ const fungi = defineTable({
   research: citedValue(v.object({
     // Research activity
     activity: v.object({
-      publication_count: v.optional(v.number()),
+      publication_count: v.number(),
       
-      publication_trend: v.optional(v.string()), // increasing, stable, decreasing
+      publication_trend: v.string(), // increasing, stable, decreasing
       
       // Key research groups
       research_groups: v.optional(v.array(v.object({
-        institution: v.optional(v.string()),
+        institution: v.string(),
         
-        country: v.optional(v.string()),
+        country: v.string(),
         
-        focus_areas: v.optional(v.array(v.string()),
+        focus_areas: v.array(v.string()),
         
         key_researchers: v.optional(v.array(v.string())),
       }))),
       
       // Hot topics
-      current_topics: v.optional(v.array(v.object({
-        topic: v.optional(v.string()),
+      current_topics: v.array(v.object({
+        topic: v.string(),
         
         publications_per_year: v.optional(v.number()),
         
@@ -2774,92 +2774,92 @@ const fungi = defineTable({
     
     // Patents
     patents: v.optional(v.array(v.object({
-      patent_number: v.optional(v.string()),
+      patent_number: v.string(),
       
-      title: v.optional(v.string()),
+      title: v.string(),
       
-      year: v.optional(v.number()),
+      year: v.number(),
       
-      inventors: v.optional(v.array(v.string()),
+      inventors: v.array(v.string()),
       
       assignee: v.optional(v.string()),
       
-      application: v.optional(v.string()),
+      application: v.string(),
       
-      status: v.optional(v.string()), // pending, granted, expired
+      status: v.string(), // pending, granted, expired
     }))),
     
     // Biotechnology
     biotechnology: v.optional(v.object({
       // Applications
-      applications: v.optional(v.array(v.object({
-        application: v.optional(v.string()),
+      applications: v.array(v.object({
+        application: v.string(),
         
-        technology: v.optional(v.string()),
+        technology: v.string(),
         
-        development_stage: v.optional(v.string()), // research, pilot, commercial
+        development_stage: v.string(), // research, pilot, commercial
         
-        potential_impact: v.optional(v.string()),
+        potential_impact: v.string(),
       })),
       
       // Genetic engineering
       genetic_engineering: v.optional(v.object({
         modified_strains: v.optional(v.array(v.object({
-          modification: v.optional(v.string()),
+          modification: v.string(),
           
-          purpose: v.optional(v.string()),
+          purpose: v.string(),
           
-          status: v.optional(v.string()),
+          status: v.string(),
         }))),
         
         gene_editing: v.optional(v.array(v.object({
-          technique: v.optional(v.string()), // CRISPR, etc
+          technique: v.string(), // CRISPR, etc
           
-          target: v.optional(v.string()),
+          target: v.string(),
           
-          outcome: v.optional(v.string()),
+          outcome: v.string(),
         }))),
       })),
       
       // Synthetic biology
       synthetic_biology: v.optional(v.array(v.object({
-        approach: v.optional(v.string()),
+        approach: v.string(),
         
-        product: v.optional(v.string()),
+        product: v.string(),
         
-        status: v.optional(v.string()),
+        status: v.string(),
       }))),
     })),
     
     // Future potential
     potential: v.object({
       // Emerging applications
-      emerging: v.optional(v.array(v.object({
-        application: v.optional(v.string()),
+      emerging: v.array(v.object({
+        application: v.string(),
         
-        rationale: v.optional(v.string()),
+        rationale: v.string(),
         
         development_timeline: v.optional(v.string()),
         
-        challenges: v.optional(v.array(v.string()),
+        challenges: v.array(v.string()),
       })),
       
       // Research gaps
-      gaps: v.optional(v.array(v.object({
-        area: v.optional(v.string()),
+      gaps: v.array(v.object({
+        area: v.string(),
         
-        importance: v.optional(v.string()), // critical, high, medium
+        importance: v.string(), // critical, high, medium
         
-        description: v.optional(v.string()),
+        description: v.string(),
       })),
       
       // Investment opportunities
       investment: v.optional(v.array(v.object({
-        opportunity: v.optional(v.string()),
+        opportunity: v.string(),
         
         market_size: v.optional(v.object({
-          value: v.optional(v.number()),
-          currency: v.optional(v.string()),
+          value: v.number(),
+          currency: v.string(),
         })),
         
         roi_potential: v.optional(v.string()),
@@ -2871,48 +2871,48 @@ const fungi = defineTable({
   interactions: v.optional(citedValue(v.object({
     // Multi-species interactions
     multispecies: v.optional(v.array(v.object({
-      organisms: v.optional(v.array(v.string()),
+      organisms: v.array(v.string()),
       
-      interaction_type: v.optional(v.string()),
+      interaction_type: v.string(),
       
-      network_position: v.optional(v.string()), // central, peripheral, bridging
+      network_position: v.string(), // central, peripheral, bridging
       
-      stability: v.optional(v.string()), // stable, dynamic, ephemeral
+      stability: v.string(), // stable, dynamic, ephemeral
     }))),
     
     // Chemical ecology
     chemical_ecology: v.optional(v.object({
       // Allelopathy
       allelopathy: v.optional(v.array(v.object({
-        target: v.optional(v.string()),
+        target: v.string(),
         
-        compound: v.optional(v.string()),
+        compound: v.string(),
         
-        effect: v.optional(v.string()),
+        effect: v.string(),
         
-        ecological_role: v.optional(v.string()),
+        ecological_role: v.string(),
       }))),
       
       // Chemical communication
       communication: v.optional(v.array(v.object({
-        signal: v.optional(v.string()),
+        signal: v.string(),
         
-        receiver: v.optional(v.string()),
+        receiver: v.string(),
         
-        message: v.optional(v.string()),
+        message: v.string(),
         
-        ecological_context: v.optional(v.string()),
+        ecological_context: v.string(),
       }))),
       
       // Defense compounds
       defense: v.optional(v.array(v.object({
-        compound: v.optional(v.string()),
+        compound: v.string(),
         
-        against: v.optional(v.string()),
+        against: v.string(),
         
-        mechanism: v.optional(v.string()),
+        mechanism: v.string(),
         
-        effectiveness: v.optional(v.string()),
+        effectiveness: v.string(),
       }))),
     })),
     
@@ -2920,31 +2920,31 @@ const fungi = defineTable({
     microbiome: v.optional(v.object({
       // Associated bacteria
       bacteria: v.optional(v.array(v.object({
-        taxon: v.optional(v.string()),
+        taxon: v.string(),
         
-        location: v.optional(v.string()), // surface, internal
+        location: v.string(), // surface, internal
         
-        relationship: v.optional(v.string()),
+        relationship: v.string(),
         
         function: v.optional(v.string()),
       }))),
       
       // Associated fungi
       fungi: v.optional(v.array(v.object({
-        species: v.optional(v.string()),
+        species: v.string(),
         
-        interaction: v.optional(v.string()),
+        interaction: v.string(),
         
-        outcome: v.optional(v.string()),
+        outcome: v.string(),
       }))),
       
       // Community structure
       community: v.optional(v.object({
-        diversity: v.optional(v.string()), // high, medium, low
+        diversity: v.string(), // high, medium, low
         
-        core_taxa: v.optional(v.array(v.string()),
+        core_taxa: v.array(v.string()),
         
-        functional_groups: v.optional(v.array(v.string()),
+        functional_groups: v.array(v.string()),
       })),
     })),
   }))),
@@ -3175,15 +3175,15 @@ const relationships = defineTable({
  */
 const compounds = defineTable({
   // Identity
-  name: v.optional(v.string()),
+  name: v.string(),
   iupac_name: v.optional(v.string()),
   cas_number: v.optional(v.string()),
   pubchem_cid: v.optional(v.string()),
   chemspider_id: v.optional(v.string()),
   
   // Structure
-  molecular_formula: v.optional(v.string()),
-  molecular_weight: v.optional(v.number()),
+  molecular_formula: v.string(),
+  molecular_weight: v.number(),
   smiles: v.optional(v.string()),
   inchi: v.optional(v.string()),
   inchi_key: v.optional(v.string()),
@@ -3196,7 +3196,7 @@ const compounds = defineTable({
   })),
   
   // Classification
-  class: v.optional(v.string()), // terpenoid, alkaloid, phenolic, peptide, polyketide, etc.
+  class: v.string(), // terpenoid, alkaloid, phenolic, peptide, polyketide, etc.
   subclass: v.optional(v.string()),
   scaffold: v.optional(v.string()),
   
@@ -3238,9 +3238,9 @@ const compounds = defineTable({
   }),
   
   // Fungi containing this compound
-  found_in: v.optional(v.array(v.object({
+  found_in: v.array(v.object({
     fungus_id: v.id("fungi"),
-    fungus_name: v.optional(v.string()), // for quick reference
+    fungus_name: v.string(), // for quick reference
     
     concentration: v.optional(v.object({
       value: v.optional(v.number()),
@@ -3248,7 +3248,7 @@ const compounds = defineTable({
       variance: v.optional(v.number()),
     })),
     
-    location: v.optional(v.array(v.string()), // fruiting body, mycelium, spores
+    location: v.array(v.string()), // fruiting body, mycelium, spores
     
     conditions: v.optional(v.object({
       growth_stage: v.optional(v.string()),
@@ -3260,8 +3260,8 @@ const compounds = defineTable({
   })),
   
   // Bioactivities
-  bioactivities: v.optional(v.array(v.object({
-    activity: v.optional(v.string()),
+  bioactivities: v.array(v.object({
+    activity: v.string(),
     
     potency: v.optional(v.object({
       value: v.optional(v.number()),
@@ -3367,69 +3367,69 @@ const observations = defineTable({
   
   // Identification confidence
   identification: v.object({
-    confidence: v.optional(v.number()), // 0-100
-    method: v.optional(v.string()), // visual, microscopy, molecular
+    confidence: v.number(), // 0-100
+    method: v.string(), // visual, microscopy, molecular
     identified_by: v.optional(v.string()),
-    verified: v.optional(v.boolean()),
+    verified: v.boolean(),
     
     alternative_ids: v.optional(v.array(v.object({
-      species: v.optional(v.string()),
-      probability: v.optional(v.number()),
+      species: v.string(),
+      probability: v.number(),
     }))),
   }),
   
   // When
-  observation_date: v.optional(v.number()),
+  observation_date: v.number(),
   observation_time: v.optional(v.string()),
   
   // Where
   location: v.object({
     coordinates: v.object({
-      latitude: v.optional(v.number()),
-      longitude: v.optional(v.number()),
+      latitude: v.number(),
+      longitude: v.number(),
       accuracy_m: v.optional(v.number()),
       elevation_m: v.optional(v.number()),
     }),
     
-    place_name: v.optional(v.string()),
-    country: v.optional(v.string()),
+    place_name: v.string(),
+    country: v.string(),
     state_province: v.optional(v.string()),
     locality: v.optional(v.string()),
     
     protected_area: v.optional(v.string()),
     
     habitat: v.object({
-      type: v.optional(v.string()),
-      substrate: v.optional(v.string()),
+      type: v.string(),
+      substrate: v.string(),
       host_species: v.optional(v.array(v.string())),
-      vegetation_type: v.optional(v.string()),
+      vegetation_type: v.string(),
       disturbance_level: v.optional(v.string()),
     }),
   }),
   
   // Who
   observer: v.object({
-    name: v.optional(v.string()),
+    name: v.string(),
     user_id: v.optional(v.string()),
     affiliation: v.optional(v.string()),
     contact: v.optional(v.string()),
-    experience_level: v.optional(v.string()), // expert, advanced, intermediate, beginner
+    experience_level: v.string(), // expert, advanced, intermediate, beginner
     
     equipment_used: v.optional(v.array(v.string())),
   }),
   
   // What was observed
   specimen_data: v.object({
-    life_stage: v.optional(v.string()),
-    development_stage: v.optional(v.string()),
+    life_stage: v.string(),
+    development_stage: v.string(),
     
     abundance: v.object({
       count: v.optional(v.number()),
       coverage_m2: v.optional(v.number()),
-      abundance_class: v.optional(v.string()), // single, few, many, abundant
+      abundance_class: v.string(), // single, few, many, abundant
     }),
     
-    condition: v.optional(v.string()), // pristine, good, fair, poor, dead
+    condition: v.string(), // pristine, good, fair, poor, dead
     
     measurements: v.optional(v.object({
       cap_diameter_mm: v.optional(v.array(v.number())),
@@ -3437,22 +3437,22 @@ const observations = defineTable({
       stem_diameter_mm: v.optional(v.array(v.number())),
       weight_g: v.optional(v.number()),
       custom: v.optional(v.array(v.object({
-        parameter: v.optional(v.string()),
-        value: v.optional(v.number()),
-        unit: v.optional(v.string()),
+        parameter: v.string(),
+        value: v.number(),
+        unit: v.string(),
       }))),
     })),
     
     phenology: v.object({
-      fruiting: v.optional(v.boolean()),
-      sporulating: v.optional(v.boolean()),
-      primordia_present: v.optional(v.boolean()),
+      fruiting: v.boolean(),
+      sporulating: v.boolean(),
+      primordia_present: v.boolean(),
     }),
     
     associated_species: v.optional(v.array(v.object({
-      species: v.optional(v.string()),
-      relationship: v.optional(v.string()),
-      abundance: v.optional(v.string()),
+      species: v.string(),
+      relationship: v.string(),
+      abundance: v.string(),
     }))),
     
     notes: v.optional(v.string()),
@@ -3484,9 +3484,9 @@ const observations = defineTable({
   
   // Documentation
   documentation: v.object({
-    photos: v.optional(v.array(v.object({
-      url: v.optional(v.string()),
-      type: v.optional(v.string()), // habitat, specimen, microscopy, spore print
+    photos: v.array(v.object({
+      url: v.string(),
+      type: v.string(), // habitat, specimen, microscopy, spore print
       caption: v.optional(v.string()),
       metadata: v.optional(v.object({
         camera: v.optional(v.string()),
@@ -3496,57 +3496,57 @@ const observations = defineTable({
     })),
     
     audio: v.optional(v.array(v.object({
-      url: v.optional(v.string()),
-      description: v.optional(v.string()),
-      duration_seconds: v.optional(v.number()),
+      url: v.string(),
+      description: v.string(),
+      duration_seconds: v.number(),
     }))),
     
     specimens: v.optional(v.object({
-      collected: v.optional(v.boolean()),
+      collected: v.boolean(),
       
       herbarium: v.optional(v.object({
-        institution: v.optional(v.string()),
-        accession_number: v.optional(v.string()),
-        preservation_method: v.optional(v.string()),
+        institution: v.string(),
+        accession_number: v.string(),
+        preservation_method: v.string(),
       })),
       
       cultures: v.optional(v.object({
-        isolated: v.optional(v.boolean()),
+        isolated: v.boolean(),
         strain_id: v.optional(v.string()),
         repository: v.optional(v.string()),
       })),
       
       samples: v.optional(v.array(v.object({
-        type: v.optional(v.string()), // tissue, spores, DNA
-        storage_method: v.optional(v.string()),
-        location: v.optional(v.string()),
+        type: v.string(), // tissue, spores, DNA
+        storage_method: v.string(),
+        location: v.string(),
       }))),
     })),
   }),
   
   // Source platform
   source: v.object({
-    platform: v.optional(v.string()), // iNaturalist, GBIF, MushroomObserver, direct
+    platform: v.string(), // iNaturalist, GBIF, MushroomObserver, direct
     
     platform_id: v.optional(v.string()),
     url: v.optional(v.string()),
     
-    license: v.optional(v.string()),
+    license: v.string(),
     
-    import_date: v.optional(v.number()),
+    import_date: v.number(),
   }),
   
   // Data quality
   quality: v.object({
-    completeness: v.optional(v.number()), // 0-100
+    completeness: v.number(), // 0-100
     
-    georeferencing_quality: v.optional(v.string()),
-    identification_quality: v.optional(v.string()),
-    documentation_quality: v.optional(v.string()),
+    georeferencing_quality: v.string(),
+    identification_quality: v.string(),
+    documentation_quality: v.string(),
     
     flags: v.optional(v.array(v.string())), // needs_id, location_uncertain, date_uncertain
     
-    research_grade: v.optional(v.boolean()),
+    research_grade: v.boolean(),
   }),
 })
   .index("by_fungus", ["fungus_id"])
@@ -3562,31 +3562,31 @@ const observations = defineTable({
  */
 const userCollections = defineTable({
   // Owner
-  user_id: v.optional(v.string()),
+  user_id: v.string(),
   
   // Collection metadata
-  name: v.optional(v.string()),
+  name: v.string(),
   description: v.optional(v.string()),
   
-  type: v.optional(v.string()), // favorites, research, cultivation, foraging, medicinal, edible
-  visibility: v.optional(v.string()), // private, public, shared
+  type: v.string(), // favorites, research, cultivation, foraging, medicinal, edible
+  visibility: v.string(), // private, public, shared
   
   // Fungi in collection
-  fungi: v.optional(v.array(v.object({
+  fungi: v.array(v.object({
     fungus_id: v.id("fungi"),
     
-    added_date: v.optional(v.number()),
+    added_date: v.number(),
     
     notes: v.optional(v.string()),
     
-    tags: v.optional(v.array(v.string()),
+    tags: v.array(v.string()),
     
     personal_data: v.optional(v.object({
       locations: v.optional(v.array(v.object({
-        name: v.optional(v.string()),
+        name: v.string(),
         coordinates: v.optional(v.object({
-          lat: v.optional(v.number()),
-          lon: v.optional(v.number()),
+          lat: v.number(),
+          lon: v.number(),
         })),
         last_seen: v.optional(v.number()),
       }))),
@@ -3601,10 +3601,10 @@ const userCollections = defineTable({
   
   // Collection statistics
   statistics: v.object({
-    total_species: v.optional(v.number()),
-    families_represented: v.optional(v.number()),
+    total_species: v.number(),
+    families_represented: v.number(),
     
-    last_updated: v.optional(v.number()),
+    last_updated: v.number(),
     
     view_count: v.optional(v.number()),
     
@@ -3614,9 +3614,9 @@ const userCollections = defineTable({
   // Sharing
   sharing: v.object({
     shared_with: v.optional(v.array(v.object({
-      user_id: v.optional(v.string()),
-      permission: v.optional(v.string()), // view, edit
-      shared_date: v.optional(v.number()),
+      user_id: v.string(),
+      permission: v.string(), // view, edit
+      shared_date: v.number(),
     }))),
     
     public_link: v.optional(v.string()),
@@ -3625,12 +3625,12 @@ const userCollections = defineTable({
   }),
   
   // Metadata
-  created: v.optional(v.number()),
-  modified: v.optional(v.number()),
+  created: v.number(),
+  modified: v.number(),
   
-  version: v.optional(v.number()),
+  version: v.number(),
   
-  tags: v.optional(v.array(v.string()),
+  tags: v.array(v.string()),
 })
   .index("by_user", ["user_id"])
   .index("by_type", ["type"])
@@ -3643,60 +3643,60 @@ const userCollections = defineTable({
  */
 const researchProjects = defineTable({
   // Project identification
-  project_id: v.optional(v.string()),
+  project_id: v.string(),
   
-  title: v.optional(v.string()),
+  title: v.string(),
   
-  description: v.optional(v.string()),
+  description: v.string(),
   
   // Principal investigator
   pi: v.object({
-    name: v.optional(v.string()),
-    institution: v.optional(v.string()),
-    contact: v.optional(v.string()),
+    name: v.string(),
+    institution: v.string(),
+    contact: v.string(),
   }),
   
   // Team
-  team: v.optional(v.array(v.object({
-    name: v.optional(v.string()),
-    role: v.optional(v.string()),
+  team: v.array(v.object({
+    name: v.string(),
+    role: v.string(),
     institution: v.optional(v.string()),
   })),
   
   // Fungi studied
-  fungi_studied: v.optional(v.array(v.object({
+  fungi_studied: v.array(v.object({
     fungus_id: v.id("fungi"),
     
-    role_in_study: v.optional(v.string()),
+    role_in_study: v.string(),
     
     sample_size: v.optional(v.number()),
   })),
   
   // Research details
   research: v.object({
-    type: v.optional(v.string()), // basic, applied, clinical
+    type: v.string(), // basic, applied, clinical
     
-    field: v.optional(v.array(v.string()), // taxonomy, ecology, chemistry, medicine, etc.
+    field: v.array(v.string()), // taxonomy, ecology, chemistry, medicine, etc.
     
-    methods: v.optional(v.array(v.string()),
+    methods: v.array(v.string()),
     
-    objectives: v.optional(v.array(v.string()),
+    objectives: v.array(v.string()),
     
     hypotheses: v.optional(v.array(v.string())),
   }),
   
   // Timeline
   timeline: v.object({
-    start_date: v.optional(v.number()),
+    start_date: v.number(),
     
     end_date: v.optional(v.number()),
     
-    status: v.optional(v.string()), // planning, active, completed, published
+    status: v.string(), // planning, active, completed, published
     
-    milestones: v.optional(v.array(v.object({
-      date: v.optional(v.number()),
-      description: v.optional(v.string()),
-      completed: v.optional(v.boolean()),
+    milestones: v.array(v.object({
+      date: v.number(),
+      description: v.string(),
+      completed: v.boolean(),
     })),
   }),
   
@@ -3705,7 +3705,7 @@ const researchProjects = defineTable({
     publications: v.optional(v.array(citationSource)),
     
     datasets: v.optional(v.array(v.object({
-      name: v.optional(v.string()),
+      name: v.string(),
       url: v.optional(v.string()),
       doi: v.optional(v.string()),
     }))),
@@ -3713,27 +3713,27 @@ const researchProjects = defineTable({
     patents: v.optional(v.array(v.string())),
     
     presentations: v.optional(v.array(v.object({
-      title: v.optional(v.string()),
-      event: v.optional(v.string()),
-      date: v.optional(v.number()),
+      title: v.string(),
+      event: v.string(),
+      date: v.number(),
     }))),
   }),
   
   // Funding
   funding: v.optional(v.array(v.object({
-    source: v.optional(v.string()),
+    source: v.string(),
     
     grant_number: v.optional(v.string()),
     
     amount: v.optional(v.object({
-      value: v.optional(v.number()),
-      currency: v.optional(v.string()),
+      value: v.number(),
+      currency: v.string(),
     })),
   }))),
   
   // Ethics
   ethics: v.optional(v.object({
-    approval_required: v.optional(v.boolean()),
+    approval_required: v.boolean(),
     
     approval_number: v.optional(v.string()),
     
@@ -3744,7 +3744,7 @@ const researchProjects = defineTable({
   
   // Data availability
   data_availability: v.object({
-    open_access: v.optional(v.boolean()),
+    open_access: v.boolean(),
     
     repositories: v.optional(v.array(v.string())),
     
@@ -3763,7 +3763,7 @@ const researchProjects = defineTable({
  */
 const userInteractions = defineTable({
   // Interaction type
-  type: v.optional(v.string()), // search, click, hover, view, filter
+  type: v.string(), // search, click, hover, view, filter
   
   // Entity reference
   entitySlug: v.optional(v.string()),
@@ -3775,7 +3775,7 @@ const userInteractions = defineTable({
   perspectiveId: v.optional(v.string()),
   
   // Timing
-  timestamp: v.optional(v.number()),
+  timestamp: v.number(),
   
   // Session tracking
   sessionId: v.optional(v.string()),

@@ -245,18 +245,33 @@ export class MorphHeader extends LitElement {
     }
     
     .brand-title {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.85);
+      font-size: 0.9rem;
+      font-weight: 700;
       margin: 0;
-      letter-spacing: 0.02em;
+      letter-spacing: 0.04em;
+      /* Multicolor Gradient Text */
+      background: linear-gradient(135deg, 
+        #10b981,    /* Emerald */
+        #06b6d4,    /* Cyan */
+        #6366f1,    /* Indigo */
+        #a855f7,    /* Purple */
+        #ec4899     /* Pink */
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      /* Glow effect */
+      filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.4))
+              drop-shadow(0 0 16px rgba(168, 85, 247, 0.2));
+      text-transform: uppercase;
     }
     
     .brand-subtitle {
       font-size: 0.625rem;
-      color: rgba(255, 255, 255, 0.45);
+      color: rgba(255, 255, 255, 0.5);
       margin: 0;
       font-weight: 400;
+      letter-spacing: 0.03em;
     }
     
     .brand-subtitle a {
@@ -312,14 +327,24 @@ export class MorphHeader extends LitElement {
       display: flex;
       align-items: center;
       background: rgba(10, 15, 30, 0.7);
-      border: 1.5px solid rgba(59, 130, 246, 0.35);
+      border: 1.5px solid transparent;
       border-radius: 12px;
       backdrop-filter: blur(12px) saturate(140%);
       -webkit-backdrop-filter: blur(12px) saturate(140%);
+      /* Multicolor gradient border */
+      background: 
+        linear-gradient(rgba(10, 15, 30, 0.85), rgba(10, 15, 30, 0.85)) padding-box,
+        linear-gradient(135deg, 
+          rgba(5, 150, 105, 0.5),    /* Emerald */
+          rgba(8, 145, 178, 0.5),    /* Cyan */
+          rgba(79, 70, 229, 0.5),    /* Indigo */
+          rgba(147, 51, 234, 0.5),   /* Purple */
+          rgba(236, 72, 153, 0.5)    /* Pink */
+        ) border-box;
       box-shadow: 
-        0 0 25px rgba(59, 130, 246, 0.25),
-        0 0 50px rgba(59, 130, 246, 0.12),
-        0 0 80px rgba(59, 130, 246, 0.06),
+        0 0 20px rgba(79, 70, 229, 0.2),
+        0 0 40px rgba(147, 51, 234, 0.1),
+        0 0 60px rgba(5, 150, 105, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
       animation: search-bar-pulse 3s ease-in-out infinite;
       height: 36px;
@@ -327,11 +352,19 @@ export class MorphHeader extends LitElement {
     }
     
     .search-section:focus-within {
-      border-color: rgba(59, 130, 246, 0.5);
-      background: rgba(10, 15, 30, 0.75);
+      background: 
+        linear-gradient(rgba(10, 15, 30, 0.9), rgba(10, 15, 30, 0.9)) padding-box,
+        linear-gradient(135deg, 
+          rgba(5, 150, 105, 0.8),    /* Emerald */
+          rgba(8, 145, 178, 0.8),    /* Cyan */
+          rgba(79, 70, 229, 0.8),    /* Indigo */
+          rgba(147, 51, 234, 0.8),   /* Purple */
+          rgba(236, 72, 153, 0.8)    /* Pink */
+        ) border-box;
       box-shadow: 
-        0 0 0 3px rgba(59, 130, 246, 0.1),
-        0 0 30px rgba(59, 130, 246, 0.25),
+        0 0 0 3px rgba(79, 70, 229, 0.15),
+        0 0 30px rgba(79, 70, 229, 0.3),
+        0 0 50px rgba(147, 51, 234, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.08);
       animation: none;
     }
@@ -388,38 +421,59 @@ export class MorphHeader extends LitElement {
       flex: 1;
       min-width: 60px;
       padding: 0.5rem 0.75rem 0.5rem 2rem;
-      border: none;
+      border: 2px solid transparent;
       border-radius: 10px;
       font-size: 0.8125rem;
-      background: rgba(30, 35, 50, 0.8);
+      /* Farbiger Gradient-Hintergrund mit dunklem Overlay */
+      background: linear-gradient(135deg, 
+        rgba(5, 150, 105, 0.15),    /* Emerald */
+        rgba(8, 145, 178, 0.15),    /* Cyan */
+        rgba(79, 70, 229, 0.18),    /* Indigo */
+        rgba(147, 51, 234, 0.18),   /* Purple */
+        rgba(236, 72, 153, 0.15)    /* Pink */
+      );
       color: rgba(255, 255, 255, 0.95);
-      transition: all 0.25s ease;
+      transition: all 0.3s ease;
       outline: none;
       box-sizing: border-box;
-      height: 28px;
+      height: 32px;
       margin: 4px 0 4px 4px;
+      box-shadow: 
+        0 0 12px rgba(79, 70, 229, 0.15),
+        inset 0 0 30px rgba(0, 0, 0, 0.5);
     }
     
     .search-input:focus {
-      background: rgba(40, 45, 60, 0.9);
+      border: 2px solid transparent;
+      background: 
+        linear-gradient(#0a0a0f, #0a0a0f) padding-box,
+        linear-gradient(135deg, 
+          rgba(5, 150, 105, 0.8),    /* Emerald */
+          rgba(8, 145, 178, 0.8),    /* Cyan */
+          rgba(79, 70, 229, 0.8),    /* Indigo */
+          rgba(147, 51, 234, 0.8),   /* Purple */
+          rgba(236, 72, 153, 0.8)    /* Pink */
+        ) border-box;
+      box-shadow: 
+        0 0 20px rgba(79, 70, 229, 0.25),
+        0 0 35px rgba(147, 51, 234, 0.15),
+        inset 0 0 25px rgba(0, 0, 0, 0.4);
     }
     
     @keyframes search-bar-pulse {
       0%, 100% {
         box-shadow: 
-          0 0 25px rgba(59, 130, 246, 0.25),
-          0 0 50px rgba(59, 130, 246, 0.12),
-          0 0 80px rgba(59, 130, 246, 0.06),
+          0 0 20px rgba(79, 70, 229, 0.2),
+          0 0 40px rgba(147, 51, 234, 0.1),
+          0 0 60px rgba(5, 150, 105, 0.08),
           inset 0 1px 0 rgba(255, 255, 255, 0.08);
-        border-color: rgba(59, 130, 246, 0.35);
       }
       50% {
         box-shadow: 
-          0 0 30px rgba(59, 130, 246, 0.35),
-          0 0 60px rgba(59, 130, 246, 0.18),
-          0 0 100px rgba(59, 130, 246, 0.08),
+          0 0 25px rgba(79, 70, 229, 0.3),
+          0 0 50px rgba(147, 51, 234, 0.18),
+          0 0 80px rgba(236, 72, 153, 0.12),
           inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        border-color: rgba(59, 130, 246, 0.5);
       }
     }
 
@@ -832,7 +886,6 @@ export class MorphHeader extends LitElement {
       }
 
       .perspective-pill,
-      .search-input,
       .reactor-toggle,
       .view-mode-btn.active {
         background: rgba(255, 255, 255, 0.1);

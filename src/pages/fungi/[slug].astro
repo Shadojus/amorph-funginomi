@@ -1,10 +1,23 @@
 ---
 import BaseLayout from '@/amorph/core/layouts/BaseLayout.astro';
 import { fetchEntity } from '@/amorph/core/convex';
+import { perspectiveDefinitions, getPerspectiveColor } from '../../../convex/perspectiveFieldMappings';
 
 const { slug } = Astro.params;
 const entity = await fetchEntity(slug!);
 if (!entity) return Astro.redirect('/fungi');
+
+// Helper to get perspective config from central definitions
+function getPerspectiveConfig(id: string, dataField: string) {
+  const def = perspectiveDefinitions[id];
+  return {
+    id,
+    title: def?.label || id,
+    icon: def?.icon || '📋',
+    color: def?.color || '#64748b',
+    data: (entity as any)[dataField]
+  };
+}
 
 // Deep recursive renderer - renders ALL nested data
 function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): any[] {
@@ -96,19 +109,20 @@ function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): a
   return results;
 }
 
+// Build perspectives from central definitions (SINGLE SOURCE OF TRUTH)
 const perspectives = [
-  { id: 'taxonomy', title: 'Taxonomy', icon: '🧬', color: '#ef4444', data: entity.taxonomy },
-  { id: 'morphology', title: 'Physical', icon: '👁️', color: '#f97316', data: entity.morphology },
-  { id: 'ecologicalNetwork', title: 'Ecology', icon: '🌍', color: '#eab308', data: entity.ecologicalNetwork },
-  { id: 'culinaryDimensions', title: 'Culinary', icon: '🍳', color: '#22c55e', data: entity.culinaryDimensions },
-  { id: 'medicinalIntelligence', title: 'Medicinal', icon: '⚕️', color: '#06b6d4', data: entity.medicinalIntelligence },
-  { id: 'cultivationIntelligence', title: 'Cultivation', icon: '🌱', color: '#3b82f6', data: entity.cultivationIntelligence },
-  { id: 'sensoryProfile', title: 'Sensory', icon: '⚠️', color: '#8b5cf6', data: entity.sensoryProfile },
-  { id: 'chemicalUniverse', title: 'Chemical', icon: '🧪', color: '#ec4899', data: entity.chemicalUniverse },
-  { id: 'culturalDimensions', title: 'Cultural', icon: '📜', color: '#d946ef', data: entity.culturalDimensions },
-  { id: 'economicDimensions', title: 'Economic', icon: '💰', color: '#14b8a6', data: entity.economicDimensions },
-  { id: 'environmentalIntelligence', title: 'Environment', icon: '🌿', color: '#10b981', data: entity.environmentalIntelligence },
-  { id: 'researchAndInnovation', title: 'Innovation', icon: '🔬', color: '#0ea5e9', data: entity.researchAndInnovation }
+  getPerspectiveConfig('taxonomy', 'taxonomy'),
+  getPerspectiveConfig('morphologyAndAnatomy', 'morphology'),
+  getPerspectiveConfig('ecologyAndDistribution', 'ecologicalNetwork'),
+  getPerspectiveConfig('culinaryAndNutritional', 'culinaryDimensions'),
+  getPerspectiveConfig('medicinalAndHealth', 'medicinalIntelligence'),
+  getPerspectiveConfig('cultivationAndGrowing', 'cultivationIntelligence'),
+  getPerspectiveConfig('sensoryProfile', 'sensoryProfile'),
+  getPerspectiveConfig('chemicalAndProperties', 'chemicalUniverse'),
+  getPerspectiveConfig('historicalAndCultural', 'culturalDimensions'),
+  getPerspectiveConfig('commercialAndMarket', 'economicDimensions'),
+  getPerspectiveConfig('environmentalAndConservation', 'environmentalIntelligence'),
+  getPerspectiveConfig('researchAndInnovation', 'researchAndInnovation')
 ];
 ---
 

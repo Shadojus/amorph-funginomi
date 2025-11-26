@@ -1,34 +1,21 @@
 ---
 import BaseLayout from '@/amorph/core/layouts/BaseLayout.astro';
 import { fetchEntity } from '@/amorph/core/convex';
+import { perspectiveDefinitions } from '../../convex/perspectiveFieldMappings';
 
 const { slug } = Astro.params;
 const entity = await fetchEntity(slug!);
 if (!entity) return Astro.redirect('/fungi');
 
-// Dynamic perspective configuration from schema mappings
-const perspectiveConfig: Record<string, { title: string; icon: string; color: string }> = {
-  identity: { title: 'Identity', icon: '🏷️', color: '#6366f1' },
-  visualIdentity: { title: 'Visual', icon: '👁️', color: '#f97316' },
-  taxonomy: { title: 'Taxonomy', icon: '🧬', color: '#ef4444' },
-  phylogeny: { title: 'Phylogeny', icon: '🌳', color: '#d946ef' },
-  morphologyAndAnatomy: { title: 'Morphology', icon: '🔬', color: '#f97316' },
-  microscopyAndCellular: { title: 'Microscopy', icon: '🔬', color: '#ec4899' },
-  chemicalAndProperties: { title: 'Chemistry', icon: '🧪', color: '#ec4899' },
-  sensoryProfile: { title: 'Sensory', icon: '👃', color: '#8b5cf6' },
-  ecologyAndDistribution: { title: 'Ecology', icon: '🌍', color: '#eab308' },
-  temporalPatterns: { title: 'Temporal', icon: '⏰', color: '#06b6d4' },
-  geographyAndDistribution: { title: 'Geography', icon: '🗺️', color: '#10b981' },
-  cultivationAndGrowing: { title: 'Cultivation', icon: '🌱', color: '#3b82f6' },
-  medicinalAndHealth: { title: 'Medicinal', icon: '⚕️', color: '#06b6d4' },
-  culinaryAndNutritional: { title: 'Culinary', icon: '🍳', color: '#22c55e' },
-  commercialAndMarket: { title: 'Commercial', icon: '💰', color: '#14b8a6' },
-  environmentalAndConservation: { title: 'Environment', icon: '🌿', color: '#10b981' },
-  historicalAndCultural: { title: 'Cultural', icon: '📜', color: '#d946ef' },
-  researchAndInnovation: { title: 'Innovation', icon: '🔬', color: '#0ea5e9' },
-  safetyAndIdentification: { title: 'Safety', icon: '⚠️', color: '#ef4444' },
-  metadata: { title: 'Metadata', icon: '📋', color: '#64748b' }
-};
+// Build perspective config from central definitions (SINGLE SOURCE OF TRUTH)
+const perspectiveConfig: Record<string, { title: string; icon: string; color: string }> = {};
+for (const [id, def] of Object.entries(perspectiveDefinitions)) {
+  perspectiveConfig[id] = {
+    title: def.label,
+    icon: def.icon,
+    color: def.color
+  };
+}
 
 // Build perspectives array from entity data and config
 const perspectives = Object.entries(perspectiveConfig)

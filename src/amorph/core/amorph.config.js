@@ -3,10 +3,29 @@
  * 
  * Hier wird ALLES konfiguriert:
  * - System Settings
- * - Perspektiven mit Farben & Icons
  * - Default States
  * - Performance Settings
+ * 
+ * ⚠️ WICHTIG: Perspektiv-Farben & Icons
+ * =====================================
+ * Alle Perspektiv-Definitionen (Farben, Labels, Icons) sind ZENTRAL in:
+ * → convex/perspectiveFieldMappings.ts (SINGLE SOURCE OF TRUTH)
+ * 
+ * Diese Datei importiert die Perspektiven von dort!
  */
+
+import { perspectiveDefinitions } from '../../../convex/perspectiveFieldMappings';
+
+// Build perspectives array from central definitions
+const buildPerspectivesFromDefinitions = () => {
+  return Object.entries(perspectiveDefinitions).map(([id, def]) => ({
+    id,
+    name: def.label,
+    icon: def.icon,
+    color: def.color,
+    description: def.description
+  }));
+};
 
 export const AmorphConfig = {
   // ==========================================
@@ -21,94 +40,9 @@ export const AmorphConfig = {
   },
   
   // ==========================================
-  // PERSPEKTIVEN (Aus Convex Schema)
+  // PERSPEKTIVEN (Importiert aus convex/perspectiveFieldMappings.ts)
   // ==========================================
-  perspectives: [
-    {
-      id: 'culinaryAndNutritional',
-      name: 'Culinary',
-      icon: '🍳',
-      color: '#22c55e',
-      description: 'Kulinarische und ernährungswissenschaftliche Aspekte'
-    },
-    {
-      id: 'medicinalProperties',
-      name: 'Medicinal',
-      icon: '💊',
-      color: '#ef4444',
-      description: 'Medizinische Eigenschaften und Heilwirkungen'
-    },
-    {
-      id: 'cultivation',
-      name: 'Cultivation',
-      icon: '🌱',
-      color: '#f59e0b',
-      description: 'Anbau und Kultivierung'
-    },
-    {
-      id: 'safetyAndToxicity',
-      name: 'Safety',
-      icon: '⚠️',
-      color: '#dc2626',
-      description: 'Sicherheit, Toxizität und Gefahren'
-    },
-    {
-      id: 'ecologyAndHabitat',
-      name: 'Ecology',
-      icon: '🌲',
-      color: '#10b981',
-      description: 'Ökologie und Lebensraum'
-    },
-    {
-      id: 'morphology',
-      name: 'Morphology',
-      icon: '🔬',
-      color: '#8b5cf6',
-      description: 'Morphologische Merkmale und Mikroskopie'
-    },
-    {
-      id: 'biochemistry',
-      name: 'Biochemistry',
-      icon: '🧪',
-      color: '#06b6d4',
-      description: 'Biochemische Zusammensetzung und Wirkstoffe'
-    },
-    {
-      id: 'cultural',
-      name: 'Cultural',
-      icon: '🎭',
-      color: '#ec4899',
-      description: 'Kulturelle und historische Bedeutung'
-    },
-    {
-      id: 'commercial',
-      name: 'Commercial',
-      icon: '💰',
-      color: '#f97316',
-      description: 'Kommerzielle Nutzung und Wirtschaft'
-    },
-    {
-      id: 'legal',
-      name: 'Legal',
-      icon: '⚖️',
-      color: '#64748b',
-      description: 'Rechtlicher Status und Regulierung'
-    },
-    {
-      id: 'research',
-      name: 'Research',
-      icon: '📚',
-      color: '#0ea5e9',
-      description: 'Wissenschaftliche Forschung und Studien'
-    },
-    {
-      id: 'sustainability',
-      name: 'Sustainability',
-      icon: '♻️',
-      color: '#84cc16',
-      description: 'Nachhaltigkeit und Umweltschutz'
-    }
-  ],
+  perspectives: buildPerspectivesFromDefinitions(),
   
   // ==========================================
   // MULTI-PERSPEKTIVEN SETTINGS

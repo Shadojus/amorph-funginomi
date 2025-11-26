@@ -7,23 +7,34 @@
  * The AMORPH framework itself is domain-agnostic.
  * This config adapts the framework to a specific knowledge domain.
  * 
- * ⚠️ IMPORTANT: Field-to-Perspective Mappings
- * ============================================
- * The `fieldToPerspective` mapping below is CENTRALIZED in:
- * → src/amorph/core/perspectiveFieldMappings.ts
- * → src/amorph/core/perspectiveFieldMappings.astro
+ * ⚠️ IMPORTANT: Perspective Colors & Definitions
+ * ==============================================
+ * ALL perspective colors, labels, and icons are CENTRALIZED in:
+ * → convex/perspectiveFieldMappings.ts (SINGLE SOURCE OF TRUTH)
  * 
- * When your database schema changes:
- * 1. Update ONLY perspectiveFieldMappings.ts
- * 2. All other components automatically use the updated mappings:
- *    - PerspectiveCard.js
- *    - BubbleMorph.js
- *    - index.astro
- *    - DataMorph.js
- *    - Any other component that imports from perspectiveFieldMappings.ts
+ * This file IMPORTS from perspectiveFieldMappings.ts and adds
+ * domain-specific tags and schemaField mappings.
  * 
- * This single-source-of-truth approach eliminates maintenance pain!
+ * When updating colors/labels/icons:
+ * 1. Update ONLY convex/perspectiveFieldMappings.ts
+ * 2. All other files automatically use the updated values
  */
+
+import { perspectiveDefinitions, getPerspectiveColor } from '../../../convex/perspectiveFieldMappings';
+
+// Helper to build perspective config from central definitions
+function buildPerspective(id, schemaField, tags) {
+  const def = perspectiveDefinitions[id] || {};
+  return {
+    id,
+    label: def.label || id,
+    icon: def.icon || '📋',
+    color: def.color || '#64748b',
+    description: def.description || '',
+    schemaField: schemaField || id,
+    tags: tags || []
+  };
+}
 
 export const DomainConfig = {
   // ========================================
@@ -54,115 +65,54 @@ export const DomainConfig = {
   // ========================================
   // PERSPECTIVES
   // ========================================
+  // Colors, labels, icons come from perspectiveDefinitions (central source)
+  // Only tags and schemaField are domain-specific
   perspectives: [
-    {
-      id: 'culinaryAndNutritional',
-      label: 'Culinary',
-      icon: '🍳',
-      color: '#10b981',
-      description: 'Culinary uses and nutritional information',
-      schemaField: 'culinaryAndNutritional', // Field in data schema
-      tags: ['culinary', 'nutrition', 'edible', 'cooking', 'flavor', 'taste']
-    },
-    {
-      id: 'medicinalAndHealth',
-      label: 'Medicinal',
-      icon: '⚕️',
-      color: '#3b82f6',
-      description: 'Health benefits and medicinal properties',
-      schemaField: 'medicinalAndHealth',
-      tags: ['medicinal', 'health', 'therapeutic', 'bioactive', 'compounds']
-    },
-    {
-      id: 'chemicalAndProperties',
-      label: 'Chemical',
-      icon: '🧪',
-      color: '#8b5cf6',
-      description: 'Chemical composition and properties',
-      schemaField: 'chemicalAndProperties',
-      tags: ['chemical', 'compounds', 'properties', 'analysis', 'composition']
-    },
-    {
-      id: 'ecologyAndDistribution',
-      label: 'Ecology',
-      icon: '🌍',
-      color: '#059669',
-      description: 'Ecological role and distribution',
-      schemaField: 'ecologyAndDistribution',
-      tags: ['ecology', 'habitat', 'distribution', 'season', 'substrate']
-    },
-    {
-      id: 'safetyAndIdentification',
-      label: 'Safety',
-      icon: '⚠️',
-      color: '#ef4444',
-      description: 'Safety information and identification',
-      schemaField: 'safetyAndIdentification',
-      tags: ['safety', 'toxicity', 'identification', 'lookalikes', 'warning']
-    },
-    {
-      id: 'cultivationAndGrowing',
-      label: 'Cultivation',
-      icon: '🌱',
-      color: '#84cc16',
-      description: 'Cultivation methods and growing conditions',
-      schemaField: 'cultivationAndGrowing',
-      tags: ['cultivation', 'growing', 'farming', 'substrate', 'conditions']
-    },
-    {
-      id: 'taxonomy',
-      label: 'Taxonomy',
-      icon: '🔬',
-      color: '#06b6d4',
-      description: 'Scientific classification',
-      schemaField: 'taxonomy',
-      tags: ['taxonomy', 'classification', 'family', 'genus', 'species']
-    },
-    {
-      id: 'historicalAndCultural',
-      label: 'Cultural',
-      icon: '📚',
-      color: '#f59e0b',
-      description: 'Historical and cultural significance',
-      schemaField: 'historicalAndCultural',
-      tags: ['cultural', 'historical', 'folklore', 'tradition', 'significance']
-    },
-    {
-      id: 'commercialAndMarket',
-      label: 'Commercial',
-      icon: '💼',
-      color: '#6366f1',
-      description: 'Commercial availability and market information',
-      schemaField: 'commercialAndMarket',
-      tags: ['commercial', 'market', 'price', 'trade', 'availability']
-    },
-    {
-      id: 'environmentalAndConservation',
-      label: 'Conservation',
-      icon: '🌿',
-      color: '#14b8a6',
-      description: 'Conservation status and environmental impact',
-      schemaField: 'environmentalAndConservation',
-      tags: ['conservation', 'endangered', 'protection', 'environment', 'sustainability']
-    },
-    {
-      id: 'researchAndInnovation',
-      label: 'Research',
-      icon: '🔬',
-      color: '#a855f7',
-      description: 'Current research and innovations',
-      schemaField: 'researchAndInnovation',
-      tags: ['research', 'innovation', 'studies', 'scientific', 'development']
-    },
-    {
-      id: 'morphologyAndAnatomy',
-      label: 'Morphology',
-      icon: '🔍',
-      color: '#ec4899',
-      description: 'Physical characteristics and anatomy',
-      schemaField: 'physicalCharacteristics',
-      tags: ['morphology', 'anatomy', 'structure', 'physical', 'characteristics']
-    }
+    // === NATUR-GRUPPE (Grün-Spektrum) ===
+    buildPerspective('environmentalAndConservation', 'environmentalAndConservation', 
+      ['conservation', 'endangered', 'protection', 'environment', 'sustainability']),
+    buildPerspective('ecologyAndDistribution', 'ecologyAndDistribution', 
+      ['ecology', 'habitat', 'distribution', 'season', 'substrate']),
+    buildPerspective('temporalPatterns', 'temporalPatterns',
+      ['seasons', 'lifecycle', 'phenology', 'timing', 'fruiting']),
+    buildPerspective('geographyAndDistribution', 'geographyAndDistribution',
+      ['geography', 'location', 'range', 'climate', 'distribution']),
+    buildPerspective('cultivationAndGrowing', 'cultivationAndGrowing', 
+      ['cultivation', 'growing', 'farming', 'substrate', 'conditions']),
+    buildPerspective('culinaryAndNutritional', 'culinaryAndNutritional', 
+      ['culinary', 'nutrition', 'edible', 'cooking', 'flavor', 'taste']),
+    
+    // === IDENTITÄT-GRUPPE (Cyan-Blau) ===
+    buildPerspective('identity', 'identity',
+      ['name', 'nomenclature', 'common', 'scientific', 'etymology']),
+    buildPerspective('taxonomy', 'taxonomy', 
+      ['taxonomy', 'classification', 'family', 'genus', 'species']),
+    buildPerspective('phylogeny', 'phylogeny',
+      ['evolution', 'phylogeny', 'genetics', 'clade', 'lineage']),
+    buildPerspective('researchAndInnovation', 'researchAndInnovation', 
+      ['research', 'innovation', 'studies', 'scientific', 'development']),
+    
+    // === STRUKTUR-GRUPPE (Violett-Spektrum) ===
+    buildPerspective('morphologyAndAnatomy', 'physicalCharacteristics', 
+      ['morphology', 'anatomy', 'structure', 'physical', 'characteristics']),
+    buildPerspective('microscopyAndCellular', 'microscopyAndCellular',
+      ['microscopy', 'cellular', 'spores', 'hyphae', 'cells']),
+    buildPerspective('chemicalAndProperties', 'chemicalAndProperties', 
+      ['chemical', 'compounds', 'properties', 'analysis', 'composition']),
+    buildPerspective('sensoryProfile', 'sensoryProfile',
+      ['sensory', 'smell', 'taste', 'texture', 'aroma']),
+    buildPerspective('visualIdentity', 'visualIdentity',
+      ['visual', 'image', 'photo', 'color', 'appearance']),
+    
+    // === PRAKTISCH-GRUPPE (Warm) ===
+    buildPerspective('medicinalAndHealth', 'medicinalAndHealth', 
+      ['medicinal', 'health', 'therapeutic', 'bioactive', 'compounds']),
+    buildPerspective('safetyAndIdentification', 'safetyAndIdentification', 
+      ['safety', 'toxicity', 'identification', 'lookalikes', 'warning']),
+    buildPerspective('commercialAndMarket', 'commercialAndMarket', 
+      ['commercial', 'market', 'price', 'trade', 'availability']),
+    buildPerspective('historicalAndCultural', 'historicalAndCultural', 
+      ['cultural', 'historical', 'folklore', 'tradition', 'significance']),
   ],
 
   // ========================================
