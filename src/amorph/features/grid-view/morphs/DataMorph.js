@@ -1103,4 +1103,7 @@ export class DataMorph extends LitElement {
   }
 }
 
-customElements.define('data-morph', DataMorph);
+// Safe registration - skip if already defined by detail-view
+if (!customElements.get('data-morph')) {
+  customElements.define('data-morph', DataMorph);
+}

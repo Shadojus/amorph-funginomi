@@ -1,5 +1,5 @@
 /**
- * 📊 RANGE MORPH - Datengetrieben
+ * 📊 RANGE MORPH (Detail View)
  * 
  * Zeigt min/max/optimal Werte als visuellen Balken
  * REIN DATENGETRIEBEN - Erkennt automatisch Range-Objekte
@@ -13,7 +13,9 @@ import { globalStyles } from './tokens.js';
 
 export class RangeMorph extends LitElement {
   static properties = {
-    data: { type: Object }
+    data: { type: Object },
+    label: { type: String },
+    color: { type: String }
   };
 
   static styles = [
@@ -34,6 +36,18 @@ export class RangeMorph extends LitElement {
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        padding: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .range-label {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
       }
 
       .range-track {
@@ -50,12 +64,12 @@ export class RangeMorph extends LitElement {
         top: 2px;
         bottom: 2px;
         background: linear-gradient(90deg, 
-          rgba(34, 197, 94, 0.4), 
-          rgba(34, 197, 94, 0.6), 
-          rgba(34, 197, 94, 0.4));
+          var(--range-color, rgba(34, 197, 94, 0.4)), 
+          var(--range-color, rgba(34, 197, 94, 0.6)), 
+          var(--range-color, rgba(34, 197, 94, 0.4)));
         border-radius: 8px;
-        border: 1.5px solid rgba(34, 197, 94, 0.8);
-        box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+        border: 1.5px solid var(--range-color, rgba(34, 197, 94, 0.8));
+        box-shadow: 0 0 12px var(--range-color, rgba(34, 197, 94, 0.3));
       }
 
       .range-optimal {
@@ -64,10 +78,10 @@ export class RangeMorph extends LitElement {
         transform: translate(-50%, -50%);
         width: 10px;
         height: 10px;
-        background: #22c55e;
+        background: var(--range-color, #22c55e);
         border-radius: 50%;
         border: 2px solid rgba(0, 0, 0, 0.4);
-        box-shadow: 0 0 8px rgba(34, 197, 94, 0.8),
+        box-shadow: 0 0 8px var(--range-color, rgba(34, 197, 94, 0.8)),
                     0 0 3px rgba(255, 255, 255, 0.5) inset;
         z-index: 3;
       }
@@ -103,15 +117,15 @@ export class RangeMorph extends LitElement {
         display: flex;
         align-items: baseline;
         gap: 2px;
-        color: rgba(16, 185, 129, 1);
+        color: var(--range-color, rgba(16, 185, 129, 1));
         white-space: nowrap;
         font-size: 0.8125rem;
       }
 
       .range-value.optimal { 
-        color: rgba(16, 185, 129, 1);
+        color: var(--range-color, rgba(16, 185, 129, 1));
         font-weight: 700;
-        text-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+        text-shadow: 0 0 6px var(--range-color, rgba(16, 185, 129, 0.5));
       }
 
       .range-unit {
@@ -125,12 +139,26 @@ export class RangeMorph extends LitElement {
   constructor() {
     super();
     this.data = {};
+    this.label = '';
+    this.color = '';
+  }
+
+  /**
+   * Unwrap citedValue wrapper if present
+   */
+  unwrapCitedValue(value) {
+    if (value && typeof value === 'object' && 'value' in value) {
+      return value.value;
+    }
+    return value;
   }
 
   render() {
-    if (!this.data || typeof this.data !== 'object') return html``;
+    const data = this.unwrapCitedValue(this.data);
     
-    const { min, max, optimal, unit } = this.data;
+    if (!data || typeof data !== 'object') return html``;
+    
+    const { min, max, optimal, unit } = data;
     
     // Muss min UND max haben
     if (min === undefined || max === undefined) return html``;
@@ -148,43 +176,65 @@ export class RangeMorph extends LitElement {
     const segmentLeft = ((min - totalMin) / totalRange) * 100;
     const segmentWidth = (dataRange / totalRange) * 100;
     
-    // Position des optimal-Markers INNERHALB des Segments
-    const optimalPercent = (optimal !== undefined && typeof optimal === 'number') 
-      ? segmentLeft + ((optimal - min) / dataRange) * segmentWidth
-      : null;
+    // Optional: Position des Optimal-Markers
+    let optimalLeft = null;
+    if (optimal !== undefined && typeof optimal === 'number') {
+      optimalLeft = ((optimal - totalMin) / totalRange) * 100;
+    }
+
+    const colorStyle = this.color ? `--range-color: ${this.color}` : '';
 
     return html`
-      <div class="range-container">
+      <div class="range-container" style="${colorStyle}">
+        ${this.label ? html`<div class="range-label">${this.label}</div>` : ''}
+        
         <div class="range-track">
           <div 
             class="range-segment" 
-            style="left: ${segmentLeft}%; width: ${segmentWidth}%;"
+            style="left: ${segmentLeft}%; width: ${segmentWidth}%"
           ></div>
-          ${optimalPercent !== null ? html`
-            <div class="range-optimal" style="left: ${optimalPercent}%"></div>
+          ${optimalLeft !== null ? html`
+            <div 
+              class="range-optimal" 
+              style="left: ${optimalLeft}%"
+              title="Optimal: ${optimal}${unit ? ' ' + unit : ''}"
+            ></div>
           ` : ''}
         </div>
+        
         <div class="range-labels">
-          <span class="range-value">
-            ${min}<span class="range-unit">${unit || ''}</span>
-          </span>
-          
-          ${optimalPercent !== null ? html`
-            <span class="range-value optimal">
-              ⊛${optimal}<span class="range-unit">${unit || ''}</span>
+          <div class="range-label-item">
+            <span class="range-label-text">Min</span>
+            <span class="range-value">
+              ${min}
+              ${unit ? html`<span class="range-unit">${unit}</span>` : ''}
             </span>
-          ` : html`<span style="flex: 1;"></span>`}
+          </div>
           
-          <span class="range-value">
-            ${max}<span class="range-unit">${unit || ''}</span>
-          </span>
+          ${optimal !== undefined ? html`
+            <div class="range-label-item">
+              <span class="range-label-text">Optimal</span>
+              <span class="range-value optimal">
+                ${optimal}
+                ${unit ? html`<span class="range-unit">${unit}</span>` : ''}
+              </span>
+            </div>
+          ` : ''}
+          
+          <div class="range-label-item">
+            <span class="range-label-text">Max</span>
+            <span class="range-value">
+              ${max}
+              ${unit ? html`<span class="range-unit">${unit}</span>` : ''}
+            </span>
+          </div>
         </div>
       </div>
     `;
   }
 }
 
-// Safe registration - skip if already defined by detail-view
+// Register with standard name - detail-view owns these morphs
 if (!customElements.get('range-morph')) {
   customElements.define('range-morph', RangeMorph);
 }

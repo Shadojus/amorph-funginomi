@@ -214,4 +214,7 @@ export class TagMorph extends LitElement {
   }
 }
 
-customElements.define('tag-morph', TagMorph);
+// Safe registration - skip if already defined by detail-view
+if (!customElements.get('tag-morph')) {
+  customElements.define('tag-morph', TagMorph);
+}

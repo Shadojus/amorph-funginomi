@@ -298,5 +298,8 @@ export class TimelineMorph extends LitElement {
   }
 }
 
-customElements.define('timeline-morph', TimelineMorph);
+// Safe registration - skip if already defined by detail-view
+if (!customElements.get('timeline-morph')) {
+  customElements.define('timeline-morph', TimelineMorph);
+}
 export default TimelineMorph;

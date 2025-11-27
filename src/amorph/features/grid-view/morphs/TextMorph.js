@@ -175,4 +175,7 @@ export class TextMorph extends LitElement {
   }
 }
 
-customElements.define('text-morph', TextMorph);
+// Safe registration - skip if already defined by detail-view
+if (!customElements.get('text-morph')) {
+  customElements.define('text-morph', TextMorph);
+}

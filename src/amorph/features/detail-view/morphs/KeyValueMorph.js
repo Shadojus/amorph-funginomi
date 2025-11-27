@@ -1,5 +1,5 @@
 /**
- * 🔑 KEY-VALUE MORPH - Datengetrieben
+ * 🔑 KEY-VALUE MORPH (Detail View)
  * 
  * Kompakte 2-Spalten Darstellung für Objekte mit wenigen Feldern
  * REIN DATENGETRIEBEN - Zeigt jedes Objekt als Key-Value Grid
@@ -13,7 +13,8 @@ import { globalStyles } from './tokens.js';
 
 export class KeyValueMorph extends LitElement {
   static properties = {
-    data: { type: Object }
+    data: { type: Object },
+    label: { type: String }
   };
 
   static styles = [
@@ -25,6 +26,22 @@ export class KeyValueMorph extends LitElement {
         width: 100%;
         max-width: 100%;
         overflow: hidden;
+      }
+
+      .kv-container {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 8px;
+        padding: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .kv-label {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.5rem;
       }
 
       .kv-grid {
@@ -59,8 +76,17 @@ export class KeyValueMorph extends LitElement {
         color: var(--color-culinary);
       }
 
+      .kv-value.boolean.false {
+        color: rgba(255, 255, 255, 0.4);
+      }
+
       .kv-value.number {
         font-variant-numeric: tabular-nums;
+        color: var(--color-biochemistry);
+      }
+
+      .kv-value.range {
+        color: var(--color-ecology);
       }
     `
   ];
@@ -68,12 +94,24 @@ export class KeyValueMorph extends LitElement {
   constructor() {
     super();
     this.data = {};
+    this.label = '';
+  }
+
+  /**
+   * Unwrap citedValue wrapper if present
+   */
+  unwrapCitedValue(value) {
+    if (value && typeof value === 'object' && 'value' in value) {
+      return value.value;
+    }
+    return value;
   }
 
   formatKey(key) {
     // camelCase → Readable Text
     return key
       .replace(/([A-Z])/g, ' $1')
+      .replace(/_/g, ' ')
       .replace(/^./, str => str.toUpperCase())
       .trim();
   }
@@ -85,26 +123,34 @@ export class KeyValueMorph extends LitElement {
   }
 
   formatValue(value) {
-    if (typeof value === 'boolean') {
-      return value ? '✓ Yes' : '✗ No';
+    const unwrapped = this.unwrapCitedValue(value);
+    
+    if (typeof unwrapped === 'boolean') {
+      return unwrapped ? '✓ Yes' : '✗ No';
     }
-    if (value === null || value === undefined) {
+    if (unwrapped === null || unwrapped === undefined) {
       return '—';
     }
     // Range-Objekte: Zeige als "min–max unit"
-    if (this.isRangeObject(value)) {
-      const { min, max, optimal, unit } = value;
+    if (this.isRangeObject(unwrapped)) {
+      const { min, max, optimal, unit } = unwrapped;
       let text = `${min}–${max}`;
       if (optimal !== undefined) text += ` (⊙${optimal})`;
       if (unit) text += ` ${unit}`;
       return text;
     }
-    return String(value);
+    // Arrays
+    if (Array.isArray(unwrapped)) {
+      return unwrapped.join(', ');
+    }
+    return String(unwrapped);
   }
 
   getValueClass(value) {
-    const type = typeof value;
-    if (this.isRangeObject(value)) return 'kv-value range';
+    const unwrapped = this.unwrapCitedValue(value);
+    const type = typeof unwrapped;
+    if (this.isRangeObject(unwrapped)) return 'kv-value range';
+    if (type === 'boolean') return `kv-value boolean ${unwrapped ? '' : 'false'}`;
     return `kv-value ${type}`;
   }
 
@@ -113,9 +159,19 @@ export class KeyValueMorph extends LitElement {
       return html``;
     }
 
-    const entries = Object.entries(this.data).filter(([_, value]) => {
-      // Primitive Werte ODER Range-Objekte
-      return typeof value !== 'object' || value === null || this.isRangeObject(value);
+    // Unwrap the data if it's a citedValue
+    const data = this.unwrapCitedValue(this.data);
+    if (!data || typeof data !== 'object') {
+      return html``;
+    }
+
+    const entries = Object.entries(data).filter(([_, value]) => {
+      const unwrapped = this.unwrapCitedValue(value);
+      // Primitive Werte, Arrays ODER Range-Objekte
+      return typeof unwrapped !== 'object' || 
+             unwrapped === null || 
+             Array.isArray(unwrapped) ||
+             this.isRangeObject(unwrapped);
     });
 
     if (entries.length === 0) {
@@ -123,19 +179,22 @@ export class KeyValueMorph extends LitElement {
     }
 
     return html`
-      <div class="kv-grid">
-        ${entries.map(([key, value]) => html`
-          <div class="kv-key">${this.formatKey(key)}</div>
-          <div class="${this.getValueClass(value)}">
-            ${this.formatValue(value)}
-          </div>
-        `)}
+      <div class="kv-container">
+        ${this.label ? html`<div class="kv-label">${this.label}</div>` : ''}
+        <div class="kv-grid">
+          ${entries.map(([key, value]) => html`
+            <div class="kv-key">${this.formatKey(key)}</div>
+            <div class="${this.getValueClass(value)}">
+              ${this.formatValue(value)}
+            </div>
+          `)}
+        </div>
       </div>
     `;
   }
 }
 
-// Safe registration - skip if already defined by detail-view
+// Register with standard name - detail-view owns these morphs
 if (!customElements.get('key-value-morph')) {
   customElements.define('key-value-morph', KeyValueMorph);
 }

@@ -89,11 +89,24 @@ import '../features/grid-view/morphs/PieChartMorph.js';
 import '../features/grid-view/morphs/SparklineMorph.js';
 import '../features/grid-view/morphs/RadarChartMorph.js';
 
-// Detail Page Morphs (2025-11-27) - from detail-view feature
+// ============================================================================
+// DETAIL PAGE MORPHS (2025-11-27) - IMPORTED FIRST to own element names
+// ============================================================================
+// Specialized morphs unique to detail pages
 import '../features/detail-view/morphs/View360Morph.js';
 import '../features/detail-view/morphs/SafetyMorph.js';
 import '../features/detail-view/morphs/QuickFactsMorph.js';
 import '../features/detail-view/morphs/MiniBubbleView.js';
+
+// Detail-view data morphs - these register with standard names
+// Grid-view morphs will skip registration if already defined
+import '../features/detail-view/morphs/DataMorph.js';
+import '../features/detail-view/morphs/TagMorph.js';
+import '../features/detail-view/morphs/TextMorph.js';
+import '../features/detail-view/morphs/RangeMorph.js';
+import '../features/detail-view/morphs/KeyValueMorph.js';
+import '../features/detail-view/morphs/RadarChartMorph.js';
+import '../features/detail-view/morphs/TimelineMorph.js';
 
 // Import MorphHeader Feature
 import '../features/morph-header/MorphHeader.js';
