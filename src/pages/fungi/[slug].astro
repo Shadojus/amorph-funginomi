@@ -331,7 +331,7 @@ const defaultPerspectives = perspectives.slice(0, 4).map(p => p.id);
   title={`${entityName} - Funginomi`} 
   description={description} 
   enableGlow={true} 
-  enableSearch={false} 
+  enableSearch={true} 
   enableAnimation={true} 
   showPerspectives={true}
 >
@@ -796,6 +796,10 @@ const defaultPerspectives = perspectives.slice(0, 4).map(p => p.id);
     // Get all perspective sections
     const sections = document.querySelectorAll('.perspective-section');
     
+    // ========================================================================
+    // PERSPECTIVE SYSTEM
+    // ========================================================================
+    
     /**
      * Normalize perspective to ID string
      * MorphHeader sends objects with .name property, not .id
@@ -803,19 +807,15 @@ const defaultPerspectives = perspectives.slice(0, 4).map(p => p.id);
     function normalizePerspectiveId(perspective) {
       if (!perspective) return null;
       if (typeof perspective === 'string') return perspective;
-      // MorphHeader perspective objects have .name property
       if (typeof perspective === 'object' && perspective.name) return perspective.name;
-      // Fallback for other object formats
       if (typeof perspective === 'object' && perspective.id) return perspective.id;
       return null;
     }
     
     /**
      * Update visible perspectives based on MorphHeader selection
-     * @param {(string|object)[]} activePerspectives - Array of active perspective IDs or objects
      */
     function updateVisiblePerspectives(activePerspectives) {
-      // Normalize perspectives to string IDs
       const perspectiveIds = (activePerspectives || [])
         .map(normalizePerspectiveId)
         .filter(Boolean);
@@ -823,7 +823,6 @@ const defaultPerspectives = perspectives.slice(0, 4).map(p => p.id);
       console.log('[Detail Page] Updating perspectives:', perspectiveIds);
       
       if (perspectiveIds.length === 0) {
-        // No perspectives selected = show all
         sections.forEach(section => {
           section.style.display = 'block';
           section.style.opacity = '1';
@@ -831,7 +830,6 @@ const defaultPerspectives = perspectives.slice(0, 4).map(p => p.id);
         return;
       }
       
-      // Show only matching perspectives
       sections.forEach(section => {
         const sectionPerspective = section.getAttribute('data-perspective');
         const isActive = perspectiveIds.includes(sectionPerspective);
@@ -844,6 +842,11 @@ const defaultPerspectives = perspectives.slice(0, 4).map(p => p.id);
           section.style.opacity = '0';
         }
       });
+      
+      // Re-highlight if search is active
+      if (currentSearchQuery) {
+        setTimeout(() => highlightMatches(currentSearchQuery), 100);
+      }
     }
     
     // Listen to MorphHeader perspective changes
@@ -866,7 +869,214 @@ const defaultPerspectives = perspectives.slice(0, 4).map(p => p.id);
       }
     }, 100);
     
-    // Check SessionStateManager for visit info
+    // ========================================================================
+    // SEARCH & HIGHLIGHTING SYSTEM
+    // ========================================================================
+    
+    let currentSearchQuery = '';
+    let highlightStyleElement = null;
+    
+    /**
+     * Inject highlight styles
+     */
+    function injectHighlightStyles() {
+      if (highlightStyleElement) return;
+      
+      highlightStyleElement = document.createElement('style');
+      highlightStyleElement.textContent = `
+        .search-highlight {
+          background: linear-gradient(135deg, rgba(255, 215, 0, 0.6), rgba(255, 165, 0, 0.5));
+          color: #1a1a2e !important;
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-weight: 600;
+          box-shadow: 0 0 8px rgba(255, 215, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.2);
+          animation: highlightPulse 2s ease-in-out infinite;
+          text-shadow: none;
+        }
+        
+        @keyframes highlightPulse {
+          0%, 100% { box-shadow: 0 0 8px rgba(255, 215, 0, 0.5); }
+          50% { box-shadow: 0 0 16px rgba(255, 215, 0, 0.8); }
+        }
+        
+        .perspective-section.has-match {
+          border-left: 4px solid gold !important;
+          box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+        
+        .morph-card.has-match {
+          border: 2px solid rgba(255, 215, 0, 0.5) !important;
+          background: rgba(255, 215, 0, 0.05) !important;
+        }
+      `;
+      document.head.appendChild(highlightStyleElement);
+    }
+    
+    /**
+     * Clear all highlights
+     */
+    function clearHighlights() {
+      // Remove highlight spans
+      document.querySelectorAll('.search-highlight').forEach(span => {
+        const parent = span.parentNode;
+        if (parent) {
+          parent.replaceChild(document.createTextNode(span.textContent), span);
+          parent.normalize();
+        }
+      });
+      
+      // Remove match classes
+      document.querySelectorAll('.has-match').forEach(el => {
+        el.classList.remove('has-match');
+      });
+    }
+    
+    /**
+     * Highlight text in an element
+     */
+    function highlightTextInElement(element, searchTerm) {
+      if (!element || !searchTerm) return false;
+      
+      let hasMatch = false;
+      const walker = document.createTreeWalker(
+        element,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+      );
+      
+      const nodesToProcess = [];
+      while (walker.nextNode()) {
+        if (walker.currentNode.textContent.toLowerCase().includes(searchTerm)) {
+          nodesToProcess.push(walker.currentNode);
+        }
+      }
+      
+      nodesToProcess.forEach(textNode => {
+        const text = textNode.textContent;
+        const lowerText = text.toLowerCase();
+        const index = lowerText.indexOf(searchTerm);
+        
+        if (index >= 0) {
+          hasMatch = true;
+          
+          const before = text.substring(0, index);
+          const match = text.substring(index, index + searchTerm.length);
+          const after = text.substring(index + searchTerm.length);
+          
+          const fragment = document.createDocumentFragment();
+          if (before) fragment.appendChild(document.createTextNode(before));
+          
+          const highlightSpan = document.createElement('span');
+          highlightSpan.className = 'search-highlight';
+          highlightSpan.textContent = match;
+          fragment.appendChild(highlightSpan);
+          
+          if (after) fragment.appendChild(document.createTextNode(after));
+          
+          textNode.parentNode.replaceChild(fragment, textNode);
+        }
+      });
+      
+      return hasMatch;
+    }
+    
+    /**
+     * Highlight matches in the detail page
+     */
+    function highlightMatches(query) {
+      if (!query || query.length < 2) {
+        clearHighlights();
+        return;
+      }
+      
+      injectHighlightStyles();
+      clearHighlights();
+      
+      const searchTerm = query.toLowerCase().trim();
+      let totalMatches = 0;
+      let firstMatch = null;
+      
+      // Search in all visible perspective sections
+      sections.forEach(section => {
+        if (section.style.display === 'none') return;
+        
+        const morphCards = section.querySelectorAll('.morph-card');
+        let sectionHasMatch = false;
+        
+        morphCards.forEach(card => {
+          const hasMatch = highlightTextInElement(card, searchTerm);
+          if (hasMatch) {
+            card.classList.add('has-match');
+            sectionHasMatch = true;
+            totalMatches++;
+            
+            if (!firstMatch) {
+              firstMatch = card;
+            }
+          }
+        });
+        
+        // Also search in section headers
+        const header = section.querySelector('.perspective-header, .perspective-title');
+        if (header && highlightTextInElement(header, searchTerm)) {
+          sectionHasMatch = true;
+        }
+        
+        if (sectionHasMatch) {
+          section.classList.add('has-match');
+        }
+      });
+      
+      // Also search in hero section
+      const heroSection = document.querySelector('.hero-section');
+      if (heroSection) {
+        highlightTextInElement(heroSection, searchTerm);
+      }
+      
+      // Scroll to first match
+      if (firstMatch) {
+        setTimeout(() => {
+          firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 200);
+      }
+      
+      console.log(`[Detail Page] Highlighted ${totalMatches} matches for "${query}"`);
+    }
+    
+    // Listen for search events from MorphHeader/ConvexSearchReactor
+    window.addEventListener('amorph:search:input', (event) => {
+      const query = event.detail?.query || '';
+      currentSearchQuery = query;
+      
+      if (query.length >= 2) {
+        highlightMatches(query);
+      } else {
+        clearHighlights();
+      }
+    });
+    
+    // Listen for Convex search completion
+    window.addEventListener('convex-search:completed', (event) => {
+      const { query } = event.detail || {};
+      currentSearchQuery = query || '';
+      
+      if (query && query.length >= 2) {
+        // Debounce highlighting to prevent UI freeze
+        setTimeout(() => highlightMatches(query), 150);
+      }
+    });
+    
+    // Listen for search reset
+    window.addEventListener('convex-search:reset', () => {
+      currentSearchQuery = '';
+      clearHighlights();
+    });
+    
+    // ========================================================================
+    // SESSION STATE
+    // ========================================================================
     if (typeof window !== 'undefined' && window.sessionStorage) {
       try {
         const sessionData = JSON.parse(sessionStorage.getItem('funginomi-session') || '{}');
