@@ -1,6 +1,6 @@
 # Bubble View - Morphs (Framework Component)
 
-**Last Updated:** 26. November 2025
+**Last Updated:** 27. November 2025
 
 ## Overview
 
@@ -42,15 +42,17 @@
 - `bidirectional` - Whether connection is mutual
 
 ### UserNode.js
-**User's position in the canvas**
-- Fixed at canvas center (width/2, height/2)
-- Represents user's current interests
-- Connections to relevant bubbles
-- Interaction tracking (clicks, hovers)
+**User's position in the canvas - RESPONSIVE (v2.2.1)**
+- **Dynamically positioned** at viewport center via `updateUserNodePosition()`
+- Updates on window resize via `setupResize()` observer
+- Represents user's current interests (session memory)
+- Connections to relevant bubbles based on SessionStateManager
 - NOT affected by physics simulation
+- **Size: 40px** (reduced from 60px for cleaner UI)
 
 **Properties:**
-- `x, y` - Always canvas center
+- `x, y` - Dynamically calculated: `offsetWidth/2`, `offsetHeight/2`
+- `size` - 40 (configurable in constructor)
 - `connections` - Map of slug → weight
 - `interactionHistory` - Array of user interactions
 - `isDragging` - Always false (user node is fixed)

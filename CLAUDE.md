@@ -1,6 +1,6 @@
 # 📝 AMORPH Framework - Generic Data Visualization System
 
-**Last Updated:** 26. November 2025
+**Last Updated:** 27. November 2025
 
 ## 🎯 Vision
 
@@ -27,10 +27,12 @@ Die wirkliche Innovation ist **"beliebige strukturierte Daten automatisch sinnvo
   - Wählt passende Visualisierung basierend auf Datenstruktur
   - **Domain-agnostisch** - funktioniert für beliebige strukturierte Daten
 
-- ✅ **BubbleView** - Generic similarity visualization (Native Canvas 2D)
-  - Hilbert-Space similarity calculations
-  - Physics-based layout
-  - UserNode connections für personalisierte Beziehungen
+- ✅ **BubbleView v2.2** - Generic similarity visualization (Pixi.js GPU-accelerated)
+  - Hilbert-Space similarity calculations via SessionStateManager
+  - Session-based entity recommendations
+  - **Responsive UserNode** - dynamisch positioniert im Viewport-Center
+  - **Pixi.js v8 Container-based masking** für Entity-Bilder
+  - Entity caching via BubbleHost → BubbleView flow
   - **Keine domain-spezifische Logik** - arbeitet mit beliebigen Entitäten
 
 - ✅ **GridView** - Responsive card layout

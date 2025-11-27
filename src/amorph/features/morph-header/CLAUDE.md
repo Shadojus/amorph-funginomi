@@ -1,6 +1,6 @@
 # 🌍 AMORPH Global Components - MorphHeader
 
-**Last Updated:** 26. November 2025
+**Last Updated:** 27. November 2025
 
 **Framework Note:** MorphHeader ist **konfigurierbar** für verschiedene Instanzen. Die Perspektiven-Buttons, Branding, und Search-Integration sind über Props/Config anpassbar. Jede Instance definiert ihre eigenen Perspektiven basierend auf ihrer Domäne.
 

@@ -173,11 +173,11 @@ export class BubbleView extends LitElement {
     // Mode: 'search' = show search results, 'session' = show session-based recommendations
     this.displayMode = 'session';
     
-    // User Node
+    // User Node - initial position will be set dynamically in connectedCallback
     this.userNodeData = {
-      x: 400,
-      y: 300,
-      size: 60,
+      x: 0, // Will be set to center in updateUserNodePosition()
+      y: 0, // Will be set to center in updateUserNodePosition()
+      size: 40,
       connections: new Map() // slug -> weight
     };
     
@@ -239,6 +239,10 @@ export class BubbleView extends LitElement {
     
     if (success) {
       console.log('[BubbleView] ✅ Pixi.js initialized');
+      
+      // Set initial UserNode position BEFORE rendering
+      this.updateUserNodePosition();
+      
       this.setupResize();
       this.startRenderLoop();
       
@@ -256,13 +260,21 @@ export class BubbleView extends LitElement {
     }
   }
 
+  // Update UserNode position to viewport center
+  updateUserNodePosition() {
+    const width = this.offsetWidth || 800;
+    const height = this.offsetHeight || 600;
+    this.userNodeData.x = width / 2;
+    this.userNodeData.y = height / 2;
+  }
+
   setupResize() {
-    // Update UserNode position on resize
-    const updateUserNode = () => {
+    // Update UserNode AND all bubbles on resize
+    const updateLayout = () => {
+      // Update position using shared method
+      this.updateUserNodePosition();
       const width = this.offsetWidth || 800;
       const height = this.offsetHeight || 600;
-      this.userNodeData.x = width / 2;
-      this.userNodeData.y = height / 2;
       
       if (this.bubbles.has('user-node')) {
         this.pixieRenderer.updateNode('user-node', {
@@ -270,10 +282,56 @@ export class BubbleView extends LitElement {
           y: this.userNodeData.y
         });
       }
+      
+      // Recalculate all bubble positions for new viewport
+      if (this.displayMode === 'session' && this.bubbles.size > 1) {
+        this.repositionBubblesForViewport();
+      }
     };
     
-    window.addEventListener('resize', updateUserNode);
-    updateUserNode();
+    window.addEventListener('resize', updateLayout);
+    updateLayout();
+  }
+  
+  /**
+   * Reposition all bubbles to fit within current viewport
+   */
+  repositionBubblesForViewport() {
+    const viewportWidth = this.offsetWidth || 400;
+    const viewportHeight = this.offsetHeight || 400;
+    const responsiveRadius = Math.min(viewportWidth, viewportHeight) * 0.35;
+    const padding = 60;
+    const centerX = viewportWidth / 2;
+    const centerY = viewportHeight / 2;
+    
+    // Get non-usernode bubbles
+    const bubbleEntries = Array.from(this.bubbles.entries())
+      .filter(([id]) => id !== 'user-node');
+    
+    const count = bubbleEntries.length;
+    
+    bubbleEntries.forEach(([id, bubble], i) => {
+      const relevanceScore = bubble.relevanceScore || 0.3;
+      const angle = (i / count) * Math.PI * 2;
+      const distance = responsiveRadius * (1.2 - relevanceScore);
+      
+      let x = centerX + Math.cos(angle) * distance;
+      let y = centerY + Math.sin(angle) * distance;
+      
+      // Clamp to viewport
+      x = Math.max(padding, Math.min(viewportWidth - padding, x));
+      y = Math.max(padding, Math.min(viewportHeight - padding, y));
+      
+      // Update stored position
+      bubble.x = x;
+      bubble.y = y;
+      
+      // Update rendered position
+      this.pixieRenderer.updateNode?.(id, { x, y });
+    });
+    
+    // Re-render connections
+    this.renderRelevanceConnections();
   }
 
   /**
@@ -416,10 +474,6 @@ export class BubbleView extends LitElement {
     
     // Render UserNode first
     await this.renderUserNode();
-    
-    const width = this.offsetWidth || 800;
-    const height = this.offsetHeight || 600;
-    const radius = Math.min(width, height) * 0.35;
     
     const slugField = window.amorph?.domainConfig?.dataSource?.slugField || 'seoName';
     const nameField = window.amorph?.domainConfig?.dataSource?.nameField || 'commonName';

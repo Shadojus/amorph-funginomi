@@ -1,7 +1,18 @@
 # 🫧 BUBBLE VIEW FEATURE v2.2 - SESSION-BASED RECOMMENDATIONS
 
-**Last Updated:** 26. November 2025  
-**Status:** ✅ PRODUCTION READY - Session Memory System
+**Last Updated:** 27. November 2025  
+**Status:** ✅ PRODUCTION READY - Session Memory System + Responsive Design
+
+## 🚀 v2.2.1 Hotfixes (27.11.2025)
+
+**Critical Fixes:**
+- **Responsive UserNode** - Position dynamisch berechnet (nicht mehr hardcoded 400,300)
+- **updateUserNodePosition()** - Neue Methode für responsive Zentrierung
+- **Smaller UserNode** - Größe von 60 auf 40 reduziert
+- **Pixi.js v8 Container-Masking** - Bilder werden korrekt maskiert (Container statt Sprite)
+- **Entity Caching** - `cacheEntities()` Methode für BubbleHost → BubbleView Flow
+- **Connection Lines Fixed** - Korrekte `from/to` Koordinaten statt falscher Signaturen
+- **Timing Fix** - `pixieRenderer.app` Check vor Rendering
 
 ## 🚀 v2.2 Highlights (26.11.2025)
 

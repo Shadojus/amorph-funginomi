@@ -1,6 +1,6 @@
 # 🔮 AMORPH System - Generic Data Visualization Framework
 
-**Last Updated:** 26. November 2025
+**Last Updated:** 27. November 2025
 
 ## Übersicht
 
@@ -16,14 +16,17 @@ Dies ist das Root-Verzeichnis des AMORPH Systems - ein domain-agnostisches morph
 
 **Tech Stack:** Astro + Lit + Vanilla JS Reactors + Convex + Canvas 2D + Redis Streams
 
-**Latest (2025-11-26):** 
-- **Multicolor Gradient Design** for MorphHeader (Logo, Search Bar, Search Section)
-- 18 Perspectives with harmonious color groups (centralized in convex/perspectiveFieldMappings.ts)
+**Latest (2025-11-27):** 
+- **BubbleView v2.2** - Responsive UserNode, Pixi.js v8 fixes, Entity caching
+- **Responsive Design** - UserNode position dynamisch basierend auf Viewport-Größe
+- **Pixi.js v8 Container-Masking** - Korrekte Bild-Maskierung in Bubbles
+- **Entity Caching** - BubbleHost cached Entities für BubbleView
+
+**Previous (2025-11-26):** 
+- Multicolor Gradient Design for MorphHeader
+- 18 Perspectives with harmonious color groups
 - MorphHeader scroll-compact mode with hysteresis
-- Active perspective buttons rendered first
-- New activations go to position 0 (FIFO)
-- Font size hierarchy (active > inactive)
-- Search result counter removed
+- Active perspective buttons rendered first (FIFO)
 
 ## 🔗 Quick Navigation
 

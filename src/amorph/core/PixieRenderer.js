@@ -152,10 +152,10 @@ export class PixieRenderer {
     // 3. Image (wenn vorhanden)
     if (image) {
       try {
-        const sprite = await this.loadImageSprite(image, radius * 2);
-        if (sprite) {
-          sprite.anchor.set(0.5);
-          nodeContainer.addChild(sprite);
+        const imageContainer = await this.loadImageSprite(image, radius * 2);
+        if (imageContainer) {
+          // imageContainer is already positioned at (0,0) from loadImageSprite
+          nodeContainer.addChild(imageContainer);
         }
       } catch (err) {
         this.error('Failed to load image:', image, err);
@@ -236,52 +236,62 @@ export class PixieRenderer {
    * Load image as Pixi Sprite with caching
    */
   async loadImageSprite(url, size) {
+    this.log('🖼️ Loading image:', url, 'size:', size);
+    
+    // Create container to hold sprite + mask
+    const imageContainer = new Container();
+    
     // Check cache
     if (this.imageCache.has(url)) {
       const texture = this.imageCache.get(url);
       const sprite = new Sprite(texture);
       
-      // Center the sprite
+      // Center and scale sprite
       sprite.anchor.set(0.5);
-      
-      // Scale to fit
       const scale = size / Math.max(texture.width, texture.height);
       sprite.scale.set(scale);
       
-      // Circular mask
+      // Create circular mask (must be added to container, not sprite)
       const mask = new Graphics();
       mask.circle(0, 0, size / 2);
       mask.fill({ color: 0xffffff });
-      sprite.mask = mask;
-      sprite.addChild(mask);
       
-      return sprite;
+      // Add mask to container first, then set it as mask
+      imageContainer.addChild(mask);
+      imageContainer.addChild(sprite);
+      sprite.mask = mask;
+      
+      this.log('🖼️ ✅ Image loaded from cache:', url);
+      return imageContainer;
     }
     
     // Load new texture
     try {
+      this.log('🖼️ Loading new texture:', url);
       const texture = await Assets.load(url);
       this.imageCache.set(url, texture);
       
       const sprite = new Sprite(texture);
       
-      // Center the sprite
+      // Center and scale sprite
       sprite.anchor.set(0.5);
-      
-      // Scale to fit
       const scale = size / Math.max(texture.width, texture.height);
       sprite.scale.set(scale);
       
-      // Circular mask
+      // Create circular mask
       const mask = new Graphics();
       mask.circle(0, 0, size / 2);
       mask.fill({ color: 0xffffff });
-      sprite.mask = mask;
-      sprite.addChild(mask);
       
-      return sprite;
+      // Add mask to container first, then set it as mask
+      imageContainer.addChild(mask);
+      imageContainer.addChild(sprite);
+      sprite.mask = mask;
+      
+      this.log('🖼️ ✅ Image loaded:', url, 'texture size:', texture.width, 'x', texture.height);
+      return imageContainer;
     } catch (err) {
-      this.error('Failed to load texture:', url, err);
+      this.error('🖼️ ❌ Failed to load texture:', url, err);
       return null;
     }
   }
