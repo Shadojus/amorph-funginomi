@@ -89,6 +89,12 @@ import '../features/grid-view/morphs/PieChartMorph.js';
 import '../features/grid-view/morphs/SparklineMorph.js';
 import '../features/grid-view/morphs/RadarChartMorph.js';
 
+// Detail Page Morphs (2025-11-27) - from detail-view feature
+import '../features/detail-view/morphs/View360Morph.js';
+import '../features/detail-view/morphs/SafetyMorph.js';
+import '../features/detail-view/morphs/QuickFactsMorph.js';
+import '../features/detail-view/morphs/MiniBubbleView.js';
+
 // Import MorphHeader Feature
 import '../features/morph-header/MorphHeader.js';
 

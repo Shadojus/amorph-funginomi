@@ -157,30 +157,37 @@ export async function fetchEntity(slug: string) {
     
     if (!entity) return null;
     
+    // Return ALL entity data - spread everything to preserve all perspective fields
     return {
-      _id: entity._id,
-      slug: entity.seoName,
-      commonName: entity.commonName,
-      latinName: entity.latinName,
-      description: entity.description,
-      imageUrl: entity.imageUrl,
-      imageUrls: entity.imageUrls || [],
-      taxonomy: entity.taxonomy,
-      physicalCharacteristics: entity.physicalCharacteristics,
-      ecologyAndHabitat: entity.ecologyAndHabitat,
-      culinaryAndNutritional: entity.culinaryAndNutritional,
-      medicinalAndHealth: entity.medicinalAndHealth,
-      cultivationAndProcessing: entity.cultivationAndProcessing,
-      safetyAndIdentification: entity.safetyAndIdentification,
-      chemicalAndProperties: entity.chemicalAndProperties,
-      culturalAndHistorical: entity.culturalAndHistorical,
-      commercialAndMarket: entity.commercialAndMarket,
-      environmentalAndConservation: entity.environmentalAndConservation,
-      researchAndInnovation: entity.researchAndInnovation,
+      ...entity,
+      slug: entity.seoName || entity.slug,
     };
   } catch (error) {
     console.error(`Failed to fetch entity with slug "${slug}":`, error);
     return null;
+  }
+}
+
+/**
+ * Fetch ALL entities for similarity calculations
+ * Returns array of all entities with full data
+ */
+export async function fetchAllEntities() {
+  try {
+    // @ts-ignore - Dynamic import
+    const { api } = await import('../../../convex/_generated/api');
+    const entities = await fetchQuery(api.fungi.list, {});
+    
+    if (!entities) return [];
+    
+    // Return ALL entity data for each
+    return entities.map((entity: any) => ({
+      ...entity,
+      slug: entity.seoName || entity.slug,
+    }));
+  } catch (error) {
+    console.error('Failed to fetch all entities:', error);
+    return [];
   }
 }
 

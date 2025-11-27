@@ -171,7 +171,16 @@ export class PerspectiveHost extends LitElement {
   }
 
   handlePerspectiveChange(event) {
-    const activePerspectives = event.detail?.perspectives || [];
+    const rawPerspectives = event.detail?.perspectives || [];
+    
+    // Normalize: handle both string IDs and perspective objects with .name property
+    const activePerspectives = rawPerspectives.map(p => {
+      if (typeof p === 'string') return p;
+      if (typeof p === 'object' && p.name) return p.name;
+      if (typeof p === 'object' && p.id) return p.id;
+      return null;
+    }).filter(Boolean);
+    
     const wasActive = this.active;
     this.active = activePerspectives.includes(this.perspective);
     

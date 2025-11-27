@@ -1,11 +1,163 @@
 ---
 import BaseLayout from '@/amorph/core/layouts/BaseLayout.astro';
-import { fetchEntity } from '@/amorph/core/convex';
-import { perspectiveDefinitions, getPerspectiveColor } from '../../../convex/perspectiveFieldMappings';
+import { fetchEntity, fetchAllEntities } from '@/amorph/core/convex';
+import { perspectiveDefinitions, getPerspectiveColor, getFieldKeyToPerspectiveMapping } from '../../../convex/perspectiveFieldMappings';
+
+// Get the central field-to-perspective mapping
+const fieldToPerspective = getFieldKeyToPerspectiveMapping();
 
 const { slug } = Astro.params;
 const entity = await fetchEntity(slug!);
 if (!entity) return Astro.redirect('/fungi');
+
+// Fetch all entities for similarity calculation
+const allEntities = await fetchAllEntities();
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+// Extract value from citedValue format
+function extractValue(data: any): any {
+  if (!data) return null;
+  if (typeof data === 'object' && 'value' in data && 
+      ('confidence' in data || 'sources' in data)) {
+    return data.value;
+  }
+  return data;
+}
+
+// Get entity name
+function getEntityName(entity: any): string {
+  const commonName = extractValue(entity.commonName);
+  if (commonName) return String(commonName);
+  const latinName = extractValue(entity.latinName);
+  if (latinName) return String(latinName);
+  return entity.seoName || entity.slug || 'Unknown Species';
+}
+
+// Get entity latin name
+function getLatinName(entity: any): string {
+  return extractValue(entity.latinName) || '';
+}
+
+// Get entity image
+function getEntityImage(entity: any): string | null {
+  // Check visualIdentity.primaryImage
+  const visualIdentity = extractValue(entity.visualIdentity);
+  if (visualIdentity?.primaryImage) {
+    const primaryImg = extractValue(visualIdentity.primaryImage);
+    if (primaryImg) return primaryImg;
+  }
+  // Check direct imageUrl
+  if (entity.imageUrl) return entity.imageUrl;
+  // Check images array
+  if (entity.images?.[0]) {
+    return typeof entity.images[0] === 'string' ? entity.images[0] : entity.images[0]?.url;
+  }
+  // Fallback: Try to find image by slug/seoName
+  const slugName = entity.seoName || entity.slug;
+  if (slugName) {
+    return `/images/fungi/${slugName}.jpg`;
+  }
+  return null;
+}
+
+// Get 360 view data
+function get360ViewData(entity: any): any {
+  const visualIdentity = extractValue(entity.visualIdentity);
+  if (visualIdentity?.view360) {
+    return extractValue(visualIdentity.view360);
+  }
+  return null;
+}
+
+// Get gallery images
+function getGalleryImages(entity: any): string[] {
+  const visualIdentity = extractValue(entity.visualIdentity);
+  const gallery = extractValue(visualIdentity?.imageGallery);
+  if (Array.isArray(gallery)) {
+    return gallery.map((img: any) => typeof img === 'string' ? img : img?.url).filter(Boolean);
+  }
+  if (entity.images && Array.isArray(entity.images)) {
+    return entity.images.map((img: any) => typeof img === 'string' ? img : img?.url).filter(Boolean);
+  }
+  return [];
+}
+
+// Get edibility info
+function getEdibilityInfo(entity: any): { edibility: string, toxicityLevel: string, warnings: string[] } {
+  const culinary = extractValue(entity.culinaryDimensions) || extractValue(entity.culinary) || {};
+  const safety = extractValue(entity.safetyAndIdentification) || {};
+  
+  return {
+    edibility: culinary.edibility || culinary.edibilityRating || 'unknown',
+    toxicityLevel: safety.toxicityLevel || safety.toxicity || '',
+    warnings: (safety.warnings || []).map(extractValue).filter(Boolean)
+  };
+}
+
+// Get lookalike species
+function getLookalikes(entity: any): string[] {
+  const safety = extractValue(entity.safetyAndIdentification) || {};
+  const lookalikes = safety.lookalikes || safety.lookalikeSpecies || [];
+  return lookalikes.map((l: any) => extractValue(l) || l).filter(Boolean);
+}
+
+// Calculate simple similarity score between two entities
+function calculateSimilarity(entity1: any, entity2: any): number {
+  let score = 0;
+  let factors = 0;
+  
+  // Taxonomy similarity
+  const tax1 = extractValue(entity1.taxonomy) || {};
+  const tax2 = extractValue(entity2.taxonomy) || {};
+  
+  if (tax1.family && tax2.family && tax1.family === tax2.family) {
+    score += 0.3;
+    factors++;
+  }
+  if (tax1.genus && tax2.genus && tax1.genus === tax2.genus) {
+    score += 0.5;
+    factors++;
+  }
+  
+  // Habitat similarity
+  const eco1 = extractValue(entity1.ecologicalNetwork) || extractValue(entity1.ecology) || {};
+  const eco2 = extractValue(entity2.ecologicalNetwork) || extractValue(entity2.ecology) || {};
+  const habitat1 = eco1.habitat || eco1.primaryHabitat;
+  const habitat2 = eco2.habitat || eco2.primaryHabitat;
+  
+  if (habitat1 && habitat2) {
+    const h1 = Array.isArray(habitat1) ? habitat1[0] : habitat1;
+    const h2 = Array.isArray(habitat2) ? habitat2[0] : habitat2;
+    if (h1 === h2) {
+      score += 0.2;
+      factors++;
+    }
+  }
+  
+  // Normalize
+  return factors > 0 ? Math.min(score, 1) : 0.3;
+}
+
+// Get similar entities
+function getSimilarEntities(currentEntity: any, allEntities: any[], max: number = 8): any[] {
+  const currentSlug = currentEntity.seoName || currentEntity.slug;
+  
+  const similar = allEntities
+    .filter((e: any) => (e.seoName || e.slug) !== currentSlug)
+    .map((e: any) => ({
+      slug: e.seoName || e.slug,
+      name: getEntityName(e),
+      image: getEntityImage(e),
+      similarity: calculateSimilarity(currentEntity, e)
+    }))
+    .sort((a, b) => b.similarity - a.similarity)
+    .slice(0, max);
+  
+  return similar;
+}
 
 // Helper to get perspective config from central definitions
 function getPerspectiveConfig(id: string, dataField: string) {
@@ -15,7 +167,7 @@ function getPerspectiveConfig(id: string, dataField: string) {
     title: def?.label || id,
     icon: def?.icon || '📋',
     color: def?.color || '#64748b',
-    data: (entity as any)[dataField]
+    data: extractValue((entity as any)[dataField])
   };
 }
 
@@ -24,13 +176,17 @@ function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): a
   if (!obj || currentDepth >= maxDepth) return [];
   const results: any[] = [];
   
-  for (const [key, value] of Object.entries(obj)) {
+  for (const [key, rawValue] of Object.entries(obj)) {
+    const value = extractValue(rawValue);
     if (value === null || value === undefined) continue;
     
     const fullKey = prefix ? `${prefix}.${key}` : key;
     const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
     
-    // Array of strings → tags (filter empty strings!)
+    // Skip metadata fields
+    if (['sources', 'confidence', 'consensus', 'last_updated'].includes(key)) continue;
+    
+    // Array of strings → tags
     if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
       const validStrings = value.filter((s: string) => s && s.trim().length > 0);
       if (validStrings.length > 0) {
@@ -39,33 +195,33 @@ function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): a
       continue;
     }
     
-    // Array of objects - check if it's chart-ready data (BEFORE breaking it apart!)
+    // Array of objects - chart detection
     if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
-      const firstItem = value[0];
+      const firstItem = extractValue(value[0]) || value[0];
       const keys = Object.keys(firstItem);
       
-      // Radar Chart: axis + value (nutritionalProfile)
+      // Radar Chart pattern
       if ((keys.includes('axis') || keys.includes('dimension') || keys.includes('label')) &&
           (keys.includes('value') || keys.includes('score') || keys.includes('rating'))) {
         results.push({ type: 'chart', label, key: fullKey, value: value });
         continue;
       }
       
-      // Timeline: dayOffset/date + stage/label (cultivationTimeline)
+      // Timeline pattern
       if ((keys.includes('dayOffset') || keys.includes('date') || keys.includes('timestamp')) &&
           (keys.includes('stage') || keys.includes('label') || keys.includes('event'))) {
         results.push({ type: 'timeline', label, key: fullKey, value: value });
         continue;
       }
       
-      // Map: location object with coordinates (geographicDistribution)
+      // Map pattern
       if (keys.includes('location') && firstItem.location && 
           (firstItem.location.latitude !== undefined || firstItem.location.lat !== undefined)) {
         results.push({ type: 'map', label, key: fullKey, value: value });
         continue;
       }
       
-      // Otherwise, render each object individually (existing behavior)
+      // Otherwise, recurse
       value.forEach((item, idx) => {
         const subItems = flattenObject(item, `${fullKey}[${idx}]`, maxDepth, currentDepth + 1);
         results.push(...subItems);
@@ -73,21 +229,20 @@ function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): a
       continue;
     }
     
-    // Empty array → skip
     if (Array.isArray(value) && value.length === 0) continue;
     
-    // Object with min/max/unit → range
+    // Range objects
     if (typeof value === 'object' && value.min !== undefined && value.max !== undefined) {
       results.push({ 
-        type: 'text', 
+        type: 'range', 
         label, 
         key: fullKey, 
-        value: `${value.min}-${value.max} ${value.unit || ''}`.trim() 
+        value: value
       });
       continue;
     }
     
-    // Plain object → recurse into it
+    // Plain object → recurse
     if (typeof value === 'object' && !Array.isArray(value)) {
       const nested = flattenObject(value, fullKey, maxDepth, currentDepth + 1);
       if (nested.length > 0) {
@@ -96,11 +251,9 @@ function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): a
       continue;
     }
     
-    // Primitive values (skip empty strings!)
-    if (typeof value === 'string') {
-      if (value.trim().length > 0) {
-        results.push({ type: 'text', label, key: fullKey, value: value.trim() });
-      }
+    // Primitives
+    if (typeof value === 'string' && value.trim().length > 0) {
+      results.push({ type: 'text', label, key: fullKey, value: value.trim() });
     } else if (typeof value === 'number' || typeof value === 'boolean') {
       results.push({ type: 'text', label, key: fullKey, value: String(value) });
     }
@@ -109,226 +262,517 @@ function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): a
   return results;
 }
 
-// Build perspectives from central definitions (SINGLE SOURCE OF TRUTH)
-const perspectives = [
-  getPerspectiveConfig('taxonomy', 'taxonomy'),
-  getPerspectiveConfig('morphologyAndAnatomy', 'morphology'),
-  getPerspectiveConfig('ecologyAndDistribution', 'ecologicalNetwork'),
-  getPerspectiveConfig('culinaryAndNutritional', 'culinaryDimensions'),
-  getPerspectiveConfig('medicinalAndHealth', 'medicinalIntelligence'),
-  getPerspectiveConfig('cultivationAndGrowing', 'cultivationIntelligence'),
-  getPerspectiveConfig('sensoryProfile', 'sensoryProfile'),
-  getPerspectiveConfig('chemicalAndProperties', 'chemicalUniverse'),
-  getPerspectiveConfig('historicalAndCultural', 'culturalDimensions'),
-  getPerspectiveConfig('commercialAndMarket', 'economicDimensions'),
-  getPerspectiveConfig('environmentalAndConservation', 'environmentalIntelligence'),
-  getPerspectiveConfig('researchAndInnovation', 'researchAndInnovation')
-];
+// ============================================================================
+// DATA PREPARATION
+// ============================================================================
+
+const entityName = getEntityName(entity);
+const latinName = getLatinName(entity);
+const primaryImage = getEntityImage(entity);
+const view360Data = get360ViewData(entity);
+const galleryImages = getGalleryImages(entity);
+const edibilityInfo = getEdibilityInfo(entity);
+const lookalikes = getLookalikes(entity);
+const similarEntities = getSimilarEntities(entity, allEntities, 8);
+const description = extractValue((entity as any).description) || '';
+
+// Build perspectives dynamically from central mapping
+// Uses the same mapping as GridView (getFieldKeyToPerspectiveMapping)
+const perspectives: Array<{
+  id: string;
+  title: string;
+  icon: string;
+  color: string;
+  data: any;
+  dataField: string;
+}> = [];
+
+// Iterate over all entity fields and map them to perspectives
+for (const [dataField, perspectiveId] of Object.entries(fieldToPerspective)) {
+  // Skip metadata and identity fields (they're handled separately in the hero)
+  if (perspectiveId === 'metadata' || perspectiveId === 'identity' || perspectiveId === 'visualIdentity') {
+    continue;
+  }
+  
+  // Get the data from the entity
+  const rawData = (entity as any)[dataField];
+  const data = extractValue(rawData);
+  
+  // Only include if we have actual data
+  if (data && Object.keys(data).length > 0) {
+    const def = perspectiveDefinitions[perspectiveId];
+    if (def) {
+      perspectives.push({
+        id: perspectiveId,
+        title: def.label || perspectiveId,
+        icon: def.icon || '📋',
+        color: def.color || '#64748b',
+        data,
+        dataField
+      });
+    }
+  }
+}
+
+// Sort perspectives by their defined order
+perspectives.sort((a, b) => {
+  const orderA = perspectiveDefinitions[a.id]?.order || 999;
+  const orderB = perspectiveDefinitions[b.id]?.order || 999;
+  return orderA - orderB;
+});
+
+console.log(`[Detail Page] Built ${perspectives.length} perspectives from entity data:`, perspectives.map(p => p.id));
+
+// Default active perspectives
+const defaultPerspectives = perspectives.slice(0, 4).map(p => p.id);
 ---
 
 <BaseLayout 
-  title={`${entity.commonName} - Funginomi`} 
-  description={entity.description} 
+  title={`${entityName} - Funginomi`} 
+  description={description} 
   enableGlow={true} 
   enableSearch={false} 
   enableAnimation={true} 
   showPerspectives={true}
 >
   <div class="entity-detail">
-    <section class="hero">
-      <div class="hero-image">
-        {entity.imageUrl && (
-          <image-morph 
-            src={entity.imageUrl} 
-            alt={entity.commonName} 
-            width="100%" 
-            height="400px" 
-            style="border-radius:16px"
-          ></image-morph>
-        )}
-      </div>
-      <div class="hero-content">
-        <name-morph 
-          value={entity.commonName} 
-          subtitle={entity.latinName} 
-          size="large"
-        ></name-morph>
-        {entity.description && (
-          <text-morph 
-            value={entity.description} 
-            label="Description"
-          ></text-morph>
-        )}
+    <!-- ================================================================== -->
+    <!-- HERO SECTION - New Design with 360° Viewer & Safety Badge -->
+    <!-- ================================================================== -->
+    <section class="hero-section">
+      <div class="hero-grid">
+        <!-- Left: Image/360° Viewer -->
+        <div class="hero-media">
+          {view360Data?.frames ? (
+            <view360-morph
+              frames={JSON.stringify(view360Data.frames)}
+              frame-count={view360Data.frameCount || 36}
+              rotation-axis={view360Data.rotationAxis || 'horizontal'}
+              auto-rotate
+              speed="60"
+              alt={entityName}
+            />
+          ) : galleryImages.length > 1 ? (
+            <view360-morph
+              src={primaryImage || galleryImages[0]}
+              gallery={JSON.stringify(galleryImages)}
+              alt={entityName}
+            />
+          ) : primaryImage ? (
+            <view360-morph
+              src={primaryImage}
+              alt={entityName}
+            />
+          ) : (
+            <div class="image-placeholder">
+              <span class="placeholder-icon">🍄</span>
+              <span class="placeholder-text">No image available</span>
+            </div>
+          )}
+        </div>
+        
+        <!-- Right: Entity Info -->
+        <div class="hero-info">
+          <div class="hero-header">
+            <h1 class="entity-name">{entityName}</h1>
+            <p class="latin-name">{latinName}</p>
+          </div>
+          
+          <!-- Safety Badge -->
+          <safety-morph
+            edibility={edibilityInfo.edibility}
+            toxicity-level={edibilityInfo.toxicityLevel}
+            warnings={JSON.stringify(edibilityInfo.warnings)}
+            lookalikes={JSON.stringify(lookalikes)}
+          />
+          
+          <!-- Description -->
+          {description && (
+            <div class="entity-description">
+              <text-morph value={description} />
+            </div>
+          )}
+          
+          <!-- Session Similarity -->
+          <div class="session-hint" id="session-similarity">
+            <!-- Will be populated by JS -->
+          </div>
+        </div>
       </div>
     </section>
-
-    {perspectives.map(p => {
-      if (!p.data) return null;
-      const fields = flattenObject(p.data);
-      if (fields.length === 0) return null;
-      
-      return (
-        <perspective-host 
-          perspective={p.id} 
-          title={p.title} 
-          icon={p.icon} 
-          color={p.color}
-        >
-          {fields.map(field => {
-            const renderField = (f: any, depth = 0) => {
-              const marginStyle = `margin-left: ${depth * 1}rem`;
-              
-              if (f.type === 'tags') {
-                return (
-                  <div class="morph-wrapper" style={marginStyle}>
-                    <label class="morph-label">{f.label}</label>
-                    <div class="tags-container">
-                      {f.values.map((tag: string) => <tag-morph value={tag}></tag-morph>)}
-                    </div>
-                  </div>
-                );
-              }
-              
-              if (f.type === 'text') {
-                return (
-                  <div class="morph-wrapper" style={marginStyle}>
-                    <label class="morph-label">{f.label}</label>
-                    <text-morph value={f.value}></text-morph>
-                  </div>
-                );
-              }
-              
-              if (f.type === 'chart') {
-                return (
-                  <div class="morph-wrapper chart-wrapper" style={marginStyle}>
-                    <label class="morph-label">{f.label}</label>
-                    <radar-chart-morph data={JSON.stringify(f.value)}></radar-chart-morph>
-                  </div>
-                );
-              }
-              
-              if (f.type === 'timeline') {
-                return (
-                  <div class="morph-wrapper timeline-wrapper" style={marginStyle}>
-                    <label class="morph-label">{f.label}</label>
-                    <timeline-morph data={JSON.stringify(f.value)}></timeline-morph>
-                  </div>
-                );
-              }
-              
-              if (f.type === 'map') {
-                return (
-                  <div class="morph-wrapper map-wrapper" style={marginStyle}>
-                    <label class="morph-label">{f.label}</label>
-                    <map-morph data={JSON.stringify(f.value)}></map-morph>
-                  </div>
-                );
-              }
-              
-              if (f.type === 'section') {
-                return (
-                  <div class="nested-section" style={marginStyle}>
-                    <h4 class="nested-title">{f.label}</h4>
-                    {f.children.map((child: any) => renderField(child, depth + 1))}
-                  </div>
-                );
-              }
-              
-              return null;
-            };
-            
-            return renderField(field, 0);
-          })}
-        </perspective-host>
-      );
-    })}
+    
+    <!-- ================================================================== -->
+    <!-- QUICK FACTS BAR -->
+    <!-- ================================================================== -->
+    <section class="quick-facts-section">
+      <quick-facts-morph entity={JSON.stringify(entity)} max-facts="6" />
+    </section>
+    
+    <!-- ================================================================== -->
+    <!-- PERSPECTIVE CONTENT (controlled by MorphHeader) -->
+    <!-- ================================================================== -->
+    <div class="perspectives-content" id="perspectives-content">
+      {perspectives.map(p => {
+        if (!p.data) return null;
+        const fields = flattenObject(p.data);
+        if (fields.length === 0) return null;
+        
+        return (
+          <perspective-host 
+            perspective={p.id} 
+            title={p.title} 
+            icon={p.icon} 
+            color={p.color}
+            class="perspective-section"
+            data-perspective={p.id}
+          >
+            <div class="morph-grid">
+              {fields.map(field => {
+                const renderField = (f: any, depth = 0) => {
+                  const depthClass = depth > 0 ? 'nested' : '';
+                  
+                  if (f.type === 'tags') {
+                    return (
+                      <div class={`morph-card ${depthClass}`}>
+                        <label class="morph-label">{f.label}</label>
+                        <div class="tags-container">
+                          {f.values.map((tag: string) => <tag-morph value={tag} />)}
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  if (f.type === 'text') {
+                    return (
+                      <div class={`morph-card ${depthClass}`}>
+                        <label class="morph-label">{f.label}</label>
+                        <text-morph value={f.value} />
+                      </div>
+                    );
+                  }
+                  
+                  if (f.type === 'range') {
+                    return (
+                      <div class={`morph-card ${depthClass}`}>
+                        <label class="morph-label">{f.label}</label>
+                        <range-morph 
+                          min={f.value.min} 
+                          max={f.value.max} 
+                          optimal={f.value.optimal}
+                          unit={f.value.unit || ''}
+                        />
+                      </div>
+                    );
+                  }
+                  
+                  if (f.type === 'chart') {
+                    return (
+                      <div class={`morph-card wide ${depthClass}`}>
+                        <label class="morph-label">{f.label}</label>
+                        <radar-chart-morph data={JSON.stringify(f.value)} />
+                      </div>
+                    );
+                  }
+                  
+                  if (f.type === 'timeline') {
+                    return (
+                      <div class={`morph-card wide ${depthClass}`}>
+                        <label class="morph-label">{f.label}</label>
+                        <timeline-morph data={JSON.stringify(f.value)} />
+                      </div>
+                    );
+                  }
+                  
+                  if (f.type === 'map') {
+                    return (
+                      <div class={`morph-card wide ${depthClass}`}>
+                        <label class="morph-label">{f.label}</label>
+                        <map-morph data={JSON.stringify(f.value)} />
+                      </div>
+                    );
+                  }
+                  
+                  if (f.type === 'section') {
+                    return (
+                      <div class="morph-section">
+                        <h4 class="section-title">{f.label}</h4>
+                        <div class="morph-grid nested">
+                          {f.children.map((child: any) => renderField(child, depth + 1))}
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  return null;
+                };
+                
+                return renderField(field, 0);
+              })}
+            </div>
+          </perspective-host>
+        );
+      })}
+    </div>
+    
+    <!-- ================================================================== -->
+    <!-- SIMILAR SPECIES -->
+    <!-- ================================================================== -->
+    <section class="similar-species-section">
+      <h2 class="section-heading">
+        <span class="heading-icon">🫧</span>
+        Similar Species
+      </h2>
+      <mini-bubble-view
+        center-entity={JSON.stringify({
+          slug: entity.seoName || entity.slug,
+          name: entityName,
+          image: primaryImage
+        })}
+        similar-entities={JSON.stringify(similarEntities)}
+        max-bubbles="8"
+      />
+    </section>
   </div>
 </BaseLayout>
 
 <style>
+  /* ========================================
+     LAYOUT
+     ======================================== */
   .entity-detail {
     max-width: 1400px;
     margin: 0 auto;
     padding: 2rem;
-  }
-
-  .hero {
-    margin-bottom: 3rem;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 2rem;
   }
 
-  .hero-image {
+  /* ========================================
+     HERO SECTION
+     ======================================== */
+  .hero-section {
+    margin-bottom: 1rem;
+  }
+  
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+  
+  .hero-media {
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   }
-
-  .hero-content {
+  
+  .hero-info {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
   }
-
-  .morph-wrapper {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 1.5rem;
+  
+  .hero-header {
+    margin-bottom: 0.5rem;
+  }
+  
+  .entity-name {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+  }
+  
+  .latin-name {
+    font-size: 1.25rem;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+  }
+  
+  .entity-description {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+  }
+  
+  .session-hint {
+    padding: 12px 16px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 1rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.875rem;
+    display: none; /* Hidden until populated by JS */
+  }
+  
+  .session-hint.visible {
+    display: block;
+  }
+  
+  .image-placeholder {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8));
+    border-radius: 16px;
+  }
+  
+  .placeholder-icon {
+    font-size: 64px;
+    opacity: 0.5;
+  }
+  
+  .placeholder-text {
+    color: rgba(255, 255, 255, 0.4);
   }
 
-  .chart-wrapper,
-  .timeline-wrapper,
-  .map-wrapper {
-    min-height: 300px;
-    padding: 2rem;
+  /* ========================================
+     QUICK FACTS
+     ======================================== */
+  .quick-facts-section {
+    margin-bottom: 0.5rem;
   }
 
+  /* ========================================
+     PERSPECTIVES CONTENT
+     ======================================== */
+  .perspectives-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .perspective-section {
+    scroll-margin-top: 100px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  
+  /* Animation for showing/hiding perspectives */
+  .perspective-section[style*="display: none"] {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  
+  .perspective-section[style*="display: block"] {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .morph-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  
+  .morph-grid.nested {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  .morph-card {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .morph-card.wide {
+    grid-column: span 2;
+  }
+  
+  .morph-card.nested {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 0.75rem;
+  }
+  
   .morph-label {
     display: block;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.5);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
   }
-
+  
   .tags-container {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-
-  .nested-section {
-    margin-bottom: 1.5rem;
+  
+  .morph-section {
+    grid-column: 1 / -1;
+    margin-top: 1rem;
     padding: 1rem;
-    border-left: 3px solid rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border-left: 3px solid var(--perspective-color, rgba(255, 255, 255, 0.2));
   }
-
-  .nested-title {
+  
+  .section-title {
     font-size: 1rem;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.9);
-    margin-bottom: 1rem;
-    text-transform: capitalize;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 0 0 1rem 0;
     padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  text-morph {
-    display: block;
-    margin-bottom: 0.75rem;
+  /* ========================================
+     SIMILAR SPECIES
+     ======================================== */
+  .similar-species-section {
+    margin-top: 1rem;
+  }
+  
+  .section-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 1rem 0;
+  }
+  
+  .heading-icon {
+    font-size: 1.25rem;
   }
 
+  /* ========================================
+     RESPONSIVE
+     ======================================== */
+  @media (max-width: 1024px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .morph-card.wide {
+      grid-column: span 1;
+    }
+  }
+  
   @media (max-width: 768px) {
     .entity-detail {
       padding: 1rem;
     }
-    .hero {
+    
+    .entity-name {
+      font-size: 1.75rem;
+    }
+    
+    .latin-name {
+      font-size: 1rem;
+    }
+    
+    .morph-grid {
       grid-template-columns: 1fr;
     }
   }
@@ -336,13 +780,111 @@ const perspectives = [
 
 <script>
   import '@/amorph/features/perspective-system/PerspectiveHost.js';
-
-  const defaultPerspectives = ['taxonomy', 'ecologicalNetwork', 'culinaryDimensions', 'sensoryProfile'];
   
-  window.addEventListener('DOMContentLoaded', () => {
-    window.dispatchEvent(new CustomEvent('perspective-changed', {
-      detail: { perspectives: defaultPerspectives }
+  // Track page visit for SessionStateManager
+  const currentSlug = window.location.pathname.split('/').pop();
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    // Dispatch page view event
+    window.dispatchEvent(new CustomEvent('session:page-view', {
+      detail: { 
+        slug: currentSlug,
+        timestamp: Date.now()
+      }
     }));
-    console.log('[Detail Page] Initialized with deep recursion. Default perspectives:', defaultPerspectives);
+    
+    // Get all perspective sections
+    const sections = document.querySelectorAll('.perspective-section');
+    
+    /**
+     * Normalize perspective to ID string
+     * MorphHeader sends objects with .name property, not .id
+     */
+    function normalizePerspectiveId(perspective) {
+      if (!perspective) return null;
+      if (typeof perspective === 'string') return perspective;
+      // MorphHeader perspective objects have .name property
+      if (typeof perspective === 'object' && perspective.name) return perspective.name;
+      // Fallback for other object formats
+      if (typeof perspective === 'object' && perspective.id) return perspective.id;
+      return null;
+    }
+    
+    /**
+     * Update visible perspectives based on MorphHeader selection
+     * @param {(string|object)[]} activePerspectives - Array of active perspective IDs or objects
+     */
+    function updateVisiblePerspectives(activePerspectives) {
+      // Normalize perspectives to string IDs
+      const perspectiveIds = (activePerspectives || [])
+        .map(normalizePerspectiveId)
+        .filter(Boolean);
+      
+      console.log('[Detail Page] Updating perspectives:', perspectiveIds);
+      
+      if (perspectiveIds.length === 0) {
+        // No perspectives selected = show all
+        sections.forEach(section => {
+          section.style.display = 'block';
+          section.style.opacity = '1';
+        });
+        return;
+      }
+      
+      // Show only matching perspectives
+      sections.forEach(section => {
+        const sectionPerspective = section.getAttribute('data-perspective');
+        const isActive = perspectiveIds.includes(sectionPerspective);
+        
+        if (isActive) {
+          section.style.display = 'block';
+          section.style.opacity = '1';
+        } else {
+          section.style.display = 'none';
+          section.style.opacity = '0';
+        }
+      });
+    }
+    
+    // Listen to MorphHeader perspective changes
+    window.addEventListener('perspective-changed', (event) => {
+      const { perspectives } = event.detail || {};
+      updateVisiblePerspectives(perspectives || []);
+    });
+    
+    // Also listen to the global amorph perspective state
+    window.addEventListener('amorph:perspective-update', (event) => {
+      const { activePerspectives } = event.detail || {};
+      updateVisiblePerspectives(activePerspectives || []);
+    });
+    
+    // Initialize: Get current active perspectives from MorphHeader
+    setTimeout(() => {
+      const morphHeader = document.querySelector('morph-header');
+      if (morphHeader && morphHeader.activePerspectives) {
+        updateVisiblePerspectives(morphHeader.activePerspectives);
+      }
+    }, 100);
+    
+    // Check SessionStateManager for visit info
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        const sessionData = JSON.parse(sessionStorage.getItem('funginomi-session') || '{}');
+        const entityInteractions = sessionData.entityInteractions || {};
+        
+        if (entityInteractions[currentSlug]) {
+          const hint = document.getElementById('session-similarity');
+          if (hint) {
+            const visits = entityInteractions[currentSlug].visits || 0;
+            hint.innerHTML = `📊 You've visited this species ${visits} time${visits > 1 ? 's' : ''} this session`;
+            hint.classList.add('visible');
+          }
+        }
+      } catch (e) {
+        console.warn('[Detail Page] Session data error:', e);
+      }
+    }
+    
+    console.log('[Detail Page] Initialized - controlled by MorphHeader');
   });
 </script>

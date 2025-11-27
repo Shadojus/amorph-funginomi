@@ -1,0 +1,348 @@
+---
+import BaseLayout from '@/amorph/core/layouts/BaseLayout.astro';
+import { fetchEntity } from '@/amorph/core/convex';
+import { perspectiveDefinitions, getPerspectiveColor } from '../../../convex/perspectiveFieldMappings';
+
+const { slug } = Astro.params;
+const entity = await fetchEntity(slug!);
+if (!entity) return Astro.redirect('/fungi');
+
+// Helper to get perspective config from central definitions
+function getPerspectiveConfig(id: string, dataField: string) {
+  const def = perspectiveDefinitions[id];
+  return {
+    id,
+    title: def?.label || id,
+    icon: def?.icon || '📋',
+    color: def?.color || '#64748b',
+    data: (entity as any)[dataField]
+  };
+}
+
+// Deep recursive renderer - renders ALL nested data
+function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): any[] {
+  if (!obj || currentDepth >= maxDepth) return [];
+  const results: any[] = [];
+  
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === null || value === undefined) continue;
+    
+    const fullKey = prefix ? `${prefix}.${key}` : key;
+    const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    
+    // Array of strings → tags (filter empty strings!)
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'string') {
+      const validStrings = value.filter((s: string) => s && s.trim().length > 0);
+      if (validStrings.length > 0) {
+        results.push({ type: 'tags', label, key: fullKey, values: validStrings });
+      }
+      continue;
+    }
+    
+    // Array of objects - check if it's chart-ready data (BEFORE breaking it apart!)
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+      const firstItem = value[0];
+      const keys = Object.keys(firstItem);
+      
+      // Radar Chart: axis + value (nutritionalProfile)
+      if ((keys.includes('axis') || keys.includes('dimension') || keys.includes('label')) &&
+          (keys.includes('value') || keys.includes('score') || keys.includes('rating'))) {
+        results.push({ type: 'chart', label, key: fullKey, value: value });
+        continue;
+      }
+      
+      // Timeline: dayOffset/date + stage/label (cultivationTimeline)
+      if ((keys.includes('dayOffset') || keys.includes('date') || keys.includes('timestamp')) &&
+          (keys.includes('stage') || keys.includes('label') || keys.includes('event'))) {
+        results.push({ type: 'timeline', label, key: fullKey, value: value });
+        continue;
+      }
+      
+      // Map: location object with coordinates (geographicDistribution)
+      if (keys.includes('location') && firstItem.location && 
+          (firstItem.location.latitude !== undefined || firstItem.location.lat !== undefined)) {
+        results.push({ type: 'map', label, key: fullKey, value: value });
+        continue;
+      }
+      
+      // Otherwise, render each object individually (existing behavior)
+      value.forEach((item, idx) => {
+        const subItems = flattenObject(item, `${fullKey}[${idx}]`, maxDepth, currentDepth + 1);
+        results.push(...subItems);
+      });
+      continue;
+    }
+    
+    // Empty array → skip
+    if (Array.isArray(value) && value.length === 0) continue;
+    
+    // Object with min/max/unit → range
+    if (typeof value === 'object' && value.min !== undefined && value.max !== undefined) {
+      results.push({ 
+        type: 'text', 
+        label, 
+        key: fullKey, 
+        value: `${value.min}-${value.max} ${value.unit || ''}`.trim() 
+      });
+      continue;
+    }
+    
+    // Plain object → recurse into it
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      const nested = flattenObject(value, fullKey, maxDepth, currentDepth + 1);
+      if (nested.length > 0) {
+        results.push({ type: 'section', label, key: fullKey, children: nested });
+      }
+      continue;
+    }
+    
+    // Primitive values (skip empty strings!)
+    if (typeof value === 'string') {
+      if (value.trim().length > 0) {
+        results.push({ type: 'text', label, key: fullKey, value: value.trim() });
+      }
+    } else if (typeof value === 'number' || typeof value === 'boolean') {
+      results.push({ type: 'text', label, key: fullKey, value: String(value) });
+    }
+  }
+  
+  return results;
+}
+
+// Build perspectives from central definitions (SINGLE SOURCE OF TRUTH)
+const perspectives = [
+  getPerspectiveConfig('taxonomy', 'taxonomy'),
+  getPerspectiveConfig('morphologyAndAnatomy', 'morphology'),
+  getPerspectiveConfig('ecologyAndDistribution', 'ecologicalNetwork'),
+  getPerspectiveConfig('culinaryAndNutritional', 'culinaryDimensions'),
+  getPerspectiveConfig('medicinalAndHealth', 'medicinalIntelligence'),
+  getPerspectiveConfig('cultivationAndGrowing', 'cultivationIntelligence'),
+  getPerspectiveConfig('sensoryProfile', 'sensoryProfile'),
+  getPerspectiveConfig('chemicalAndProperties', 'chemicalUniverse'),
+  getPerspectiveConfig('historicalAndCultural', 'culturalDimensions'),
+  getPerspectiveConfig('commercialAndMarket', 'economicDimensions'),
+  getPerspectiveConfig('environmentalAndConservation', 'environmentalIntelligence'),
+  getPerspectiveConfig('researchAndInnovation', 'researchAndInnovation')
+];
+---
+
+<BaseLayout 
+  title={`${entity.commonName} - Funginomi`} 
+  description={entity.description} 
+  enableGlow={true} 
+  enableSearch={false} 
+  enableAnimation={true} 
+  showPerspectives={true}
+>
+  <div class="entity-detail">
+    <section class="hero">
+      <div class="hero-image">
+        {entity.imageUrl && (
+          <image-morph 
+            src={entity.imageUrl} 
+            alt={entity.commonName} 
+            width="100%" 
+            height="400px" 
+            style="border-radius:16px"
+          ></image-morph>
+        )}
+      </div>
+      <div class="hero-content">
+        <name-morph 
+          value={entity.commonName} 
+          subtitle={entity.latinName} 
+          size="large"
+        ></name-morph>
+        {entity.description && (
+          <text-morph 
+            value={entity.description} 
+            label="Description"
+          ></text-morph>
+        )}
+      </div>
+    </section>
+
+    {perspectives.map(p => {
+      if (!p.data) return null;
+      const fields = flattenObject(p.data);
+      if (fields.length === 0) return null;
+      
+      return (
+        <perspective-host 
+          perspective={p.id} 
+          title={p.title} 
+          icon={p.icon} 
+          color={p.color}
+        >
+          {fields.map(field => {
+            const renderField = (f: any, depth = 0) => {
+              const marginStyle = `margin-left: ${depth * 1}rem`;
+              
+              if (f.type === 'tags') {
+                return (
+                  <div class="morph-wrapper" style={marginStyle}>
+                    <label class="morph-label">{f.label}</label>
+                    <div class="tags-container">
+                      {f.values.map((tag: string) => <tag-morph value={tag}></tag-morph>)}
+                    </div>
+                  </div>
+                );
+              }
+              
+              if (f.type === 'text') {
+                return (
+                  <div class="morph-wrapper" style={marginStyle}>
+                    <label class="morph-label">{f.label}</label>
+                    <text-morph value={f.value}></text-morph>
+                  </div>
+                );
+              }
+              
+              if (f.type === 'chart') {
+                return (
+                  <div class="morph-wrapper chart-wrapper" style={marginStyle}>
+                    <label class="morph-label">{f.label}</label>
+                    <radar-chart-morph data={JSON.stringify(f.value)}></radar-chart-morph>
+                  </div>
+                );
+              }
+              
+              if (f.type === 'timeline') {
+                return (
+                  <div class="morph-wrapper timeline-wrapper" style={marginStyle}>
+                    <label class="morph-label">{f.label}</label>
+                    <timeline-morph data={JSON.stringify(f.value)}></timeline-morph>
+                  </div>
+                );
+              }
+              
+              if (f.type === 'map') {
+                return (
+                  <div class="morph-wrapper map-wrapper" style={marginStyle}>
+                    <label class="morph-label">{f.label}</label>
+                    <map-morph data={JSON.stringify(f.value)}></map-morph>
+                  </div>
+                );
+              }
+              
+              if (f.type === 'section') {
+                return (
+                  <div class="nested-section" style={marginStyle}>
+                    <h4 class="nested-title">{f.label}</h4>
+                    {f.children.map((child: any) => renderField(child, depth + 1))}
+                  </div>
+                );
+              }
+              
+              return null;
+            };
+            
+            return renderField(field, 0);
+          })}
+        </perspective-host>
+      );
+    })}
+  </div>
+</BaseLayout>
+
+<style>
+  .entity-detail {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .hero {
+    margin-bottom: 3rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  .hero-image {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .morph-wrapper {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1rem;
+  }
+
+  .chart-wrapper,
+  .timeline-wrapper,
+  .map-wrapper {
+    min-height: 300px;
+    padding: 2rem;
+  }
+
+  .morph-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+  }
+
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .nested-section {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-left: 3px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .nested-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 1rem;
+    text-transform: capitalize;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.5rem;
+  }
+
+  text-morph {
+    display: block;
+    margin-bottom: 0.75rem;
+  }
+
+  @media (max-width: 768px) {
+    .entity-detail {
+      padding: 1rem;
+    }
+    .hero {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  import '@/amorph/features/perspective-system/PerspectiveHost.js';
+
+  const defaultPerspectives = ['taxonomy', 'ecologicalNetwork', 'culinaryDimensions', 'sensoryProfile'];
+  
+  window.addEventListener('DOMContentLoaded', () => {
+    window.dispatchEvent(new CustomEvent('perspective-changed', {
+      detail: { perspectives: defaultPerspectives }
+    }));
+    console.log('[Detail Page] Initialized with deep recursion. Default perspectives:', defaultPerspectives);
+  });
+</script>
