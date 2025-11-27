@@ -424,14 +424,16 @@ export class MorphHeader extends LitElement {
       border: 2px solid transparent;
       border-radius: 10px;
       font-size: 0.8125rem;
-      /* Farbiger Gradient-Hintergrund mit dunklem Overlay */
-      background: linear-gradient(135deg, 
-        rgba(5, 150, 105, 0.15),    /* Emerald */
-        rgba(8, 145, 178, 0.15),    /* Cyan */
-        rgba(79, 70, 229, 0.18),    /* Indigo */
-        rgba(147, 51, 234, 0.18),   /* Purple */
-        rgba(236, 72, 153, 0.15)    /* Pink */
-      );
+      /* Dunkler Hintergrund mit Multicolor Border */
+      background: 
+        linear-gradient(#0a0a0f, #0a0a0f) padding-box,
+        linear-gradient(135deg, 
+          rgba(5, 150, 105, 0.6),    /* Emerald */
+          rgba(8, 145, 178, 0.6),    /* Cyan */
+          rgba(79, 70, 229, 0.6),    /* Indigo */
+          rgba(147, 51, 234, 0.6),   /* Purple */
+          rgba(236, 72, 153, 0.6)    /* Pink */
+        ) border-box;
       color: rgba(255, 255, 255, 0.95);
       transition: all 0.3s ease;
       outline: none;
@@ -440,24 +442,23 @@ export class MorphHeader extends LitElement {
       margin: 4px 0 4px 4px;
       box-shadow: 
         0 0 12px rgba(79, 70, 229, 0.15),
-        inset 0 0 30px rgba(0, 0, 0, 0.5);
+        inset 0 0 20px rgba(0, 0, 0, 0.3);
     }
     
     .search-input:focus {
+      /* Farbiger Gradient-Hintergrund bei Focus */
+      background: linear-gradient(135deg, 
+        rgba(5, 150, 105, 0.18),    /* Emerald */
+        rgba(8, 145, 178, 0.18),    /* Cyan */
+        rgba(79, 70, 229, 0.22),    /* Indigo */
+        rgba(147, 51, 234, 0.22),   /* Purple */
+        rgba(236, 72, 153, 0.18)    /* Pink */
+      );
       border: 2px solid transparent;
-      background: 
-        linear-gradient(#0a0a0f, #0a0a0f) padding-box,
-        linear-gradient(135deg, 
-          rgba(5, 150, 105, 0.8),    /* Emerald */
-          rgba(8, 145, 178, 0.8),    /* Cyan */
-          rgba(79, 70, 229, 0.8),    /* Indigo */
-          rgba(147, 51, 234, 0.8),   /* Purple */
-          rgba(236, 72, 153, 0.8)    /* Pink */
-        ) border-box;
       box-shadow: 
         0 0 20px rgba(79, 70, 229, 0.25),
         0 0 35px rgba(147, 51, 234, 0.15),
-        inset 0 0 25px rgba(0, 0, 0, 0.4);
+        inset 0 0 30px rgba(0, 0, 0, 0.4);
     }
     
     @keyframes search-bar-pulse {

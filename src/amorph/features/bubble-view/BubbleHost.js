@@ -106,8 +106,12 @@ class BubbleHost extends LitElement {
     // Get bubble-view element
     this.bubbleView = this.shadowRoot.querySelector('bubble-view');
     
-    // If we already have data, create morphs
+    // If we already have data, pass to BubbleView and create morphs
     if (this.data.length > 0) {
+      if (this.bubbleView && typeof this.bubbleView.cacheEntities === 'function') {
+        this.bubbleView.cacheEntities(this.data);
+        console.log('[BubbleHost] ✅ Passed cached data to BubbleView in firstUpdated');
+      }
       this.createMorphsFromData();
     }
   }
@@ -135,16 +139,12 @@ class BubbleHost extends LitElement {
       this.bubbleView = this.shadowRoot?.querySelector('bubble-view');
       
       if (this.bubbleView) {
-        // BubbleView v2.0 uses setEntitiesData() or cacheEntities()
+        // BubbleView v2.0 uses cacheEntities() to store data for session recommendations
         if (typeof this.bubbleView.cacheEntities === 'function') {
           this.bubbleView.cacheEntities(this.data);
           console.log('[BubbleHost] ✅ Data passed to BubbleView via cacheEntities()');
-        } else if (typeof this.bubbleView.setEntitiesData === 'function') {
-          // Don't call setEntitiesData here - it renders bubbles immediately
-          // We only want to cache for later use by search/perspective events
-          console.log('[BubbleHost] ✅ BubbleView ready (data will be passed via search events)');
         } else {
-          console.warn('[BubbleHost] ⚠️ BubbleView has no cacheEntities or setEntitiesData method');
+          console.warn('[BubbleHost] ⚠️ BubbleView has no cacheEntities method');
           console.log('[BubbleHost] Available methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(this.bubbleView)));
         }
       } else {

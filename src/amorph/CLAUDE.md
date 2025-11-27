@@ -17,10 +17,13 @@ Dies ist das Root-Verzeichnis des AMORPH Systems - ein domain-agnostisches morph
 **Tech Stack:** Astro + Lit + Vanilla JS Reactors + Convex + Canvas 2D + Redis Streams
 
 **Latest (2025-11-26):** 
+- **Multicolor Gradient Design** for MorphHeader (Logo, Search Bar, Search Section)
+- 18 Perspectives with harmonious color groups (centralized in convex/perspectiveFieldMappings.ts)
 - MorphHeader scroll-compact mode with hysteresis
 - Active perspective buttons rendered first
 - New activations go to position 0 (FIFO)
 - Font size hierarchy (active > inactive)
+- Search result counter removed
 
 ## 🔗 Quick Navigation
 
@@ -32,7 +35,7 @@ Dies ist das Root-Verzeichnis des AMORPH Systems - ein domain-agnostisches morph
 **Features (Each has own morphs & reactors):**
 - [`features/bubble-view/CLAUDE.md`](./features/bubble-view/CLAUDE.md) - Canvas Visualization
 - [`features/grid-view/CLAUDE.md`](./features/grid-view/CLAUDE.md) - Grid Layout
-- [`features/perspective-system/CLAUDE.md`](./features/perspective-system/CLAUDE.md) - 12 Perspektiven + FIFO
+- [`features/perspective-system/CLAUDE.md`](./features/perspective-system/CLAUDE.md) - 18 Perspektiven + FIFO + Centralized Colors
 - [`features/search-system/CLAUDE.md`](./features/search-system/CLAUDE.md) - Dual Search (Morph + Data)
 - [`features/morph-header/CLAUDE.md`](./features/morph-header/CLAUDE.md) - Global Header Component
 
@@ -51,6 +54,7 @@ src/amorph/
 │   ├── RedisEventBus.js        # Legacy Event Bus
 │   ├── PixieRenderer.js        # Canvas Renderer
 │   ├── convex.ts               # Convex Client
+│   ├── perspectiveFieldMappings.ts  # RE-EXPORT from convex/ (Single Source of Truth)
 │   ├── init.js                 # System Initialization
 │   ├── amorph.config.js        # System Config
 │   ├── reactors.config.js      # Reactor Config

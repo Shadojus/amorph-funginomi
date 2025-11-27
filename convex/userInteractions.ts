@@ -22,6 +22,7 @@ export const create = mutation({
     entitySlug: v.optional(v.string()),
     query: v.optional(v.string()),
     perspectiveId: v.optional(v.string()),
+    perspectives: v.optional(v.array(v.string())), // Active perspectives array
     timestamp: v.number(),
     sessionId: v.optional(v.string()),
     metadata: v.optional(v.any())
@@ -32,6 +33,7 @@ export const create = mutation({
       entitySlug: args.entitySlug,
       query: args.query,
       perspectiveId: args.perspectiveId,
+      perspectives: args.perspectives,
       timestamp: args.timestamp,
       sessionId: args.sessionId,
       metadata: args.metadata

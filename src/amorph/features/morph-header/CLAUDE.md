@@ -8,7 +8,7 @@
 
 ```
 features/morph-header/
-├── MorphHeader.js       # Main header with search & perspective controls (~1336 lines)
+├── MorphHeader.js       # Main header with search & perspective controls (~1540 lines)
 ├── tokens.js            # Local design tokens
 └── CLAUDE.md            # This file
 ```
@@ -16,15 +16,14 @@ features/morph-header/
 ## Übersicht
 
 Globale Components für die gesamte App:
-- ✅ **MorphHeader.js**: Globaler Header mit Branding, Suche & 12+ Perspektiven-Buttons (schema-driven)
+- ✅ **MorphHeader.js**: Globaler Header mit Branding, Suche & 18 Perspektiven-Buttons (schema-driven, Multicolor Design)
 
 ## 🔗 Related Components
 
 **Uses:**
 - `./tokens.js` - Local design tokens
 - `../../core/AmorphSystem.js` - Event publishing & perspective state
-- `../../core/perspectiveFieldMappings.ts` - Schema-driven perspectives (perspectiveDefinitions)
-- `../search-system/reactors/` - Listens to search:completed events
+- `../../../convex/perspectiveFieldMappings.ts` - **SINGLE SOURCE OF TRUTH** for all perspective colors/definitions
 
 **Used by:**
 - `../../core/layouts/BaseLayout.astro` - Included in all pages
@@ -48,9 +47,10 @@ Globale Components für die gesamte App:
 ### Funktion
 
 **Globaler Header für das gesamte System** - **Kernfunktionen:**
-- ✅ **Branding** (zentriert über Suche, responsive)
-- ✅ **Search Bar** (zentriert, glassmorphism, pulsating glow)
-- ✅ **12+ Perspektiven-Buttons** (schema-driven, FIFO max 4)
+- ✅ **Branding** (Multicolor Gradient Text mit Glow-Effekt)
+- ✅ **Search Bar** (Multicolor Gradient Background & Border)
+- ✅ **Search Section** (Multicolor Gradient Border & Pulsating Glow)
+- ✅ **18 Perspektiven-Buttons** (schema-driven, harmonische Farbgruppen, FIFO max 4)
 - ✅ **Active Buttons First** (aktive Perspektiven immer zuerst in der Reihe)
 - ✅ **New Activation → Front** (neu aktivierte Buttons gehen an Position 0)
 - ✅ **Scroll-Compact Mode** (Header schrumpft beim Scrollen)

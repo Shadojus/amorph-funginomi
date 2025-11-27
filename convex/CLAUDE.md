@@ -14,6 +14,7 @@
 ```
 convex/
 ├── [domain].ts                   # Domain queries & mutations
+├── perspectiveFieldMappings.ts   # ⭐ SINGLE SOURCE OF TRUTH for all perspective colors!
 ├── schema.ts                     # Database schema definition
 ├── seed.ts                       # Main seed orchestrator
 ├── seed_entity_*.ts              # Entity seed data files
@@ -30,6 +31,24 @@ convex/
 │   └── server.js
 └── CLAUDE.md                     # This file
 ```
+
+## ⚠️ CRITICAL: perspectiveFieldMappings.ts
+
+**This file is the SINGLE SOURCE OF TRUTH for all perspective definitions!**
+
+Contains:
+- `fieldToPerspectiveIndex` - Maps fields to perspective IDs
+- `perspectiveDefinitions` - Colors, labels, icons, categories (18 perspectives)
+- `perspectiveSchemaFields` - Groups fields by perspective
+- Helper functions: `getPerspectiveColor()`, `getFieldsForPerspective()`, etc.
+
+**Color Groups (Harmonisches Farbspektrum):**
+- 🌿 **NATUR (Grün)**: Conservation, Habitat, Seasons, Location, Growing, Cooking
+- 🔵 **IDENTITÄT (Cyan-Blau)**: Name, Family Tree, Evolution, Science
+- 💜 **STRUKTUR (Violett)**: Appearance, Micro, Chemistry, Senses, Visual
+- 🔥 **PRAKTISCH (Warm)**: Health, Safety, Market, Culture
+
+**All frontend components import from `src/amorph/core/perspectiveFieldMappings.ts` which re-exports from here.**
 
 ## Übersicht
 

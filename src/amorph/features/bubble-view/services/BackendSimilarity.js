@@ -6,29 +6,50 @@
  * Handles all communication with userInteractions & calculateSimilarity
  * 
  * Created: 23. November 2025
+ * Updated: 26. November 2025 - Direct Convex initialization
  */
+
+import { ConvexHttpClient } from 'convex/browser';
 
 export class BackendSimilarity {
   constructor() {
     this.convex = null;
     this.api = null;
     this.sessionId = this.generateSessionId();
+    this.isInitialized = false;
     console.log('[BackendSimilarity] Initialized with session:', this.sessionId);
   }
   
   /**
-   * Initialize with Convex client
+   * Initialize with Convex client (or create our own)
    */
-  async init(convexClient) {
-    this.convex = convexClient;
+  async init(convexClient = null) {
+    if (this.isInitialized) return true;
     
-    // Dynamically import API (avoids build-time issues)
     try {
+      // Use provided client or create new one
+      if (convexClient) {
+        this.convex = convexClient;
+      } else {
+        // Create our own Convex client
+        const convexUrl = import.meta.env?.PUBLIC_CONVEX_URL || 
+                         window.__CONVEX_URL__ ||
+                         'http://127.0.0.1:3210';
+        
+        this.convex = new ConvexHttpClient(convexUrl);
+        console.log('[BackendSimilarity] Created Convex client:', convexUrl);
+      }
+      
+      // Dynamically import API
       const apiModule = await import('../../../../../convex/_generated/api.js');
       this.api = apiModule.api;
+      
+      this.isInitialized = true;
       console.log('[BackendSimilarity] ✅ Convex client connected');
+      return true;
     } catch (error) {
-      console.error('[BackendSimilarity] ❌ Failed to load API:', error);
+      console.error('[BackendSimilarity] ❌ Failed to initialize:', error);
+      return false;
     }
   }
   
@@ -43,6 +64,11 @@ export class BackendSimilarity {
    * Track user interaction
    */
   async trackInteraction(type, data = {}) {
+    // Auto-initialize if needed
+    if (!this.isInitialized) {
+      await this.init();
+    }
+    
     if (!this.convex || !this.api) {
       console.warn('[BackendSimilarity] Convex not initialized');
       return null;
@@ -55,6 +81,7 @@ export class BackendSimilarity {
           type,
           entitySlug: data.entitySlug,
           query: data.query,
+          perspectiveId: data.perspectiveId,
           perspectives: data.perspectives,
           timestamp: Date.now(),
           sessionId: this.sessionId,
@@ -74,6 +101,7 @@ export class BackendSimilarity {
    * Get recent interactions
    */
   async getRecentInteractions(limit = 50) {
+    if (!this.isInitialized) await this.init();
     if (!this.convex || !this.api) return [];
     
     try {
@@ -91,6 +119,8 @@ export class BackendSimilarity {
    * Calculate similarities (main method!)
    */
   async calculateSimilarities(entitySlugs, activePerspectives, includeUserNode = true) {
+    if (!this.isInitialized) await this.init();
+    
     if (!this.convex || !this.api) {
       console.warn('[BackendSimilarity] Convex not initialized');
       return null;

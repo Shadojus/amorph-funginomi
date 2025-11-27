@@ -279,7 +279,7 @@ export const perspectiveDefinitions: Record<string, {
 }> = {
   // === NATUR-GRUPPE (Grün-Spektrum) ===
   'environmentalAndConservation': {
-    label: 'Conservation',
+    label: 'Conserve',
     description: 'Conservation status, threats, habitat requirements',
     category: 'application',
     icon: '🌿',
@@ -287,7 +287,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 1,
   },
   'ecologyAndDistribution': {
-    label: 'Habitat',
+    label: 'Ecology',
     description: 'Habitat, substrate, interactions, ecosystem services',
     category: 'primary',
     icon: '🌍',
@@ -295,7 +295,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 2,
   },
   'temporalPatterns': {
-    label: 'Seasons',
+    label: 'Cycle',
     description: 'Life cycle, phenology, circadian rhythms, history',
     category: 'primary',
     icon: '📅',
@@ -303,7 +303,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 3,
   },
   'geographyAndDistribution': {
-    label: 'Location',
+    label: 'Geo',
     description: 'Native range, climate envelope, occurrence data',
     category: 'primary',
     icon: '🗺️',
@@ -311,7 +311,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 4,
   },
   'cultivationAndGrowing': {
-    label: 'Growing',
+    label: 'Grow',
     description: 'Growing conditions, substrates, production timeline',
     category: 'primary',
     icon: '🌱',
@@ -319,7 +319,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 5,
   },
   'culinaryAndNutritional': {
-    label: 'Cooking',
+    label: 'Culinary',
     description: 'Edibility, recipes, nutrition, flavor profiles',
     category: 'application',
     icon: '🍳',
@@ -329,7 +329,7 @@ export const perspectiveDefinitions: Record<string, {
 
   // === IDENTITÄT-GRUPPE (Cyan-Blau Spektrum) ===
   'identity': {
-    label: 'Name',
+    label: 'Identity',
     description: 'Names, etymology, common names, scientific nomenclature',
     category: 'primary',
     icon: '🏷️',
@@ -337,7 +337,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 7,
   },
   'taxonomy': {
-    label: 'Family Tree',
+    label: 'Family',
     description: 'Hierarchical classification from kingdom to species',
     category: 'primary',
     icon: '🌳',
@@ -363,7 +363,7 @@ export const perspectiveDefinitions: Record<string, {
 
   // === STRUKTUR-GRUPPE (Violett-Magenta Spektrum) ===
   'morphologyAndAnatomy': {
-    label: 'Appearance',
+    label: 'Anatomy',
     description: 'Macro characteristics: cap, stem, gills, spore print',
     category: 'primary',
     icon: '👁️',
@@ -371,7 +371,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 11,
   },
   'microscopyAndCellular': {
-    label: 'Micro',
+    label: 'Cellular',
     description: 'Spores, basidia, hyphae, tissue structure',
     category: 'primary',
     icon: '🔬',
@@ -394,18 +394,18 @@ export const perspectiveDefinitions: Record<string, {
     color: '#c026d3',  // Fuchsia-600
     order: 14,
   },
-  'visualIdentity': {
-    label: 'Visual',
-    description: 'Images, colors, visual signature',
-    category: 'primary',
-    icon: '📸',
-    color: '#d946ef',  // Fuchsia-500
-    order: 15,
-  },
+  // 'visualIdentity': {
+  //   label: 'Visual',
+  //   description: 'Images, colors, visual signature',
+  //   category: 'primary',
+  //   icon: '📸',
+  //   color: '#d946ef',  // Fuchsia-500
+  //   order: 15,
+  // },
 
   // === PRAKTISCH-GRUPPE (Warm Spektrum) ===
   'medicinalAndHealth': {
-    label: 'Health',
+    label: 'Vital',
     description: 'Traditional medicine, clinical trials, safety, dosing',
     category: 'application',
     icon: '❤️',
@@ -429,7 +429,7 @@ export const perspectiveDefinitions: Record<string, {
     order: 18,
   },
   'historicalAndCultural': {
-    label: 'Culture',
+    label: 'Tradition',
     description: 'Folklore, traditions, ethnobotany, cultural significance',
     category: 'application',
     icon: '📜',
@@ -437,15 +437,15 @@ export const perspectiveDefinitions: Record<string, {
     order: 19,
   },
 
-  // === UTILITY ===
-  'metadata': {
-    label: 'Info',
-    description: 'System data, quality metrics, version control',
-    category: 'utility',
-    icon: '📋',
-    color: '#64748b',  // Slate-500
-    order: 20,
-  },
+  // // === UTILITY ===
+  // 'metadata': {
+  //   label: 'Info',
+  //   description: 'System data, quality metrics, version control',
+  //   category: 'utility',
+  //   icon: '📋',
+  //   color: '#64748b',  // Slate-500
+  //   order: 20,
+  // },
 };
 
 // ============================================================================

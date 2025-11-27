@@ -3763,7 +3763,7 @@ const researchProjects = defineTable({
  */
 const userInteractions = defineTable({
   // Interaction type
-  type: v.string(), // search, click, hover, view, filter
+  type: v.string(), // search, click, hover, view, filter, perspective_change
   
   // Entity reference
   entitySlug: v.optional(v.string()),
@@ -3773,6 +3773,9 @@ const userInteractions = defineTable({
   
   // Perspective
   perspectiveId: v.optional(v.string()),
+  
+  // Active perspectives array (for perspective_change events)
+  perspectives: v.optional(v.array(v.string())),
   
   // Timing
   timestamp: v.number(),

@@ -16,6 +16,7 @@ core/
 ├── domain.config.js         # Domain-specific configuration (Funginomi)
 ├── init.js                  # System initialization
 ├── morphs.config.js         # Morph type configurations
+├── perspectiveFieldMappings.ts  # RE-EXPORT from convex/ (Single Source of Truth)
 ├── PixieRenderer.js         # Canvas renderer
 ├── reactors.config.js       # Reactor configurations
 ├── RedisEventBridge.js      # Event bus with Redis Streams
@@ -33,6 +34,24 @@ core/
 │   └── ReactorObserver.js   # Reactor events observer
 └── CLAUDE.md                # This file
 ```
+
+## ⚠️ CRITICAL: Single Source of Truth for Perspectives
+
+**ALL perspective definitions (colors, labels, icons) are in `convex/perspectiveFieldMappings.ts`!**
+
+```
+convex/perspectiveFieldMappings.ts  ← SINGLE SOURCE OF TRUTH
+    ↓
+src/amorph/core/perspectiveFieldMappings.ts  ← RE-EXPORT only
+    ↓
+All components import from core/perspectiveFieldMappings.ts
+```
+
+**DO NOT define perspective colors anywhere else!**
+- ❌ domain.config.js - imports from central source
+- ❌ amorph.config.js - imports from central source
+- ❌ AmorphSystem.js - no local getPerspectiveColor()
+- ✅ convex/perspectiveFieldMappings.ts - THE source
 
 ## Übersicht
 

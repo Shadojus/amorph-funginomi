@@ -17,20 +17,31 @@ import { query } from "./_generated/server";
  */
 export const calculate = query({
   args: {
-    entitySlugs: v.array(v.string()), // Entities to calculate for
+    entitySlugs: v.array(v.string()), // Entities to calculate for (using seoName)
     activePerspectives: v.array(v.string()), // Current perspectives
     userInteractionIds: v.optional(v.array(v.id('userInteractions'))), // Recent interactions
     includeUserNode: v.optional(v.boolean()) // Calculate UserNode connections
   },
   handler: async (ctx, args) => {
-    // Fetch all entities
+    // Fetch all entities - try seoName first, then slug
     const entities = await Promise.all(
-      args.entitySlugs.map(slug => 
-        ctx.db
+      args.entitySlugs.map(async (slug) => {
+        // Try seoName index first
+        let entity = await ctx.db
           .query('fungi')
-          .filter(q => q.eq(q.field('slug'), slug))
-          .first()
-      )
+          .withIndex('by_seoName', q => q.eq('seoName', slug))
+          .first();
+        
+        // Fallback to slug
+        if (!entity) {
+          entity = await ctx.db
+            .query('fungi')
+            .filter(q => q.eq(q.field('slug'), slug))
+            .first();
+        }
+        
+        return entity;
+      })
     );
     
     const validEntities = entities.filter(e => e !== null);
@@ -88,10 +99,14 @@ export const calculate = query({
       validEntities.forEach(entity => {
         if (!entity) return;
         
+        // Use seoName as the key (matches frontend)
+        const entityKey = entity.seoName || entity.slug;
+        
         let weight = 0.1; // Base weight
         
-        // Interaction weight (30%)
-        const interactionCount = interactionMap.get(entity.slug) || 0;
+        // Interaction weight (30%) - check both seoName and slug
+        const interactionCount = interactionMap.get(entityKey) || 
+                                interactionMap.get(entity.slug) || 0;
         if (interactionCount > 0) {
           weight += Math.min(0.3, interactionCount * 0.1);
         }
@@ -112,7 +127,8 @@ export const calculate = query({
           weight += (perspectiveScore / perspectiveFields.length) * 0.7;
         }
         
-        userNodeConnections[entity.slug] = Math.min(1.0, weight);
+        // Use seoName as key (matches frontend)
+        userNodeConnections[entityKey] = Math.min(1.0, weight);
       });
     }
     
@@ -123,11 +139,14 @@ export const calculate = query({
       const entity1 = validEntities[i];
       if (!entity1) continue;
       
-      bubbleSimilarities[entity1.slug] = {};
+      const key1 = entity1.seoName || entity1.slug;
+      bubbleSimilarities[key1] = {};
       
       for (let j = i + 1; j < validEntities.length; j++) {
         const entity2 = validEntities[j];
         if (!entity2) continue;
+        
+        const key2 = entity2.seoName || entity2.slug;
         
         // Calculate similarity based on active perspectives
         let totalSimilarity = 0;
@@ -147,12 +166,12 @@ export const calculate = query({
         
         const score = comparedFields > 0 ? totalSimilarity / comparedFields : 0;
         
-        // Store bidirectional
-        bubbleSimilarities[entity1.slug][entity2.slug] = score;
-        if (!bubbleSimilarities[entity2.slug]) {
-          bubbleSimilarities[entity2.slug] = {};
+        // Store bidirectional using seoName keys
+        bubbleSimilarities[key1][key2] = score;
+        if (!bubbleSimilarities[key2]) {
+          bubbleSimilarities[key2] = {};
         }
-        bubbleSimilarities[entity2.slug][entity1.slug] = score;
+        bubbleSimilarities[key2][key1] = score;
       }
     }
     

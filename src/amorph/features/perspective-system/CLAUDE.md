@@ -11,6 +11,8 @@
 **Key Principle:** Perspektiven sind **dynamisch konfigurierbar** und basieren auf Property-Tags, nicht auf hardcodierten Logiken. Das System filtert/highlightet Morphs basierend auf deren Tags, unabhängig von der Domäne.
 
 **Latest (2025-11-26):**
+- ✅ **18 Perspectives** with harmonious color groups
+- ✅ Colors centralized in `convex/perspectiveFieldMappings.ts` (SINGLE SOURCE OF TRUTH)
 - ✅ Active perspectives rendered first in MorphHeader
 - ✅ New activations go to position 0 (front)
 - ✅ FIFO removes oldest from end (not front)

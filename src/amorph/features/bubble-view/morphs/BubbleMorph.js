@@ -15,7 +15,10 @@
  */
 
 import { LitElement, html, css } from 'lit';
-import { perspectiveDisplayFields } from '../../../core/perspectiveFieldMappings.ts';
+import { perspectiveSchemaFields } from '../../../core/perspectiveFieldMappings.ts';
+
+// Create perspectiveDisplayFields from perspectiveSchemaFields
+const perspectiveDisplayFields = Object.keys(perspectiveSchemaFields || {});
 
 export class BubbleMorph extends LitElement {
   static properties = {

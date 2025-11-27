@@ -49,11 +49,13 @@ Die wirkliche Innovation ist **"beliebige strukturierte Daten automatisch sinnvo
   - Observer-Pattern für Stream-based State Management
 
 - ✅ **MorphHeader** - Global header component (UPDATED 2025-11-26)
-  - Schema-driven perspectives (loaded from perspectiveFieldMappings.ts)
+  - **Multicolor Gradient Design** - Logo, Search Bar, Search Section
+  - Schema-driven perspectives from `convex/perspectiveFieldMappings.ts` (SINGLE SOURCE OF TRUTH)
+  - 18 Perspectives with harmonious color groups (Natur, Identität, Struktur, Praktisch)
   - Scroll-compact mode with hysteresis (>150px compact, <50px expand)
   - Active buttons rendered first, new activations go to position 0
   - Font size hierarchy: active 0.75rem > inactive 0.625rem
-  - requestAnimationFrame throttled scroll handler
+  - Search result counter removed for cleaner UI
 
 ## 🌐 Multi-Instance Architecture (Roadmap)
 
@@ -81,7 +83,7 @@ Die wirkliche Innovation ist **"beliebige strukturierte Daten automatisch sinnvo
 
 **Instance-Specific:**
 - `convex/schema.ts` - Domain-spezifisches Schema (je nach Domäne)
-- Perspektiven-Konfiguration - Domain-spezifisch (Anzahl und Typen variieren)
+- `convex/perspectiveFieldMappings.ts` - **SINGLE SOURCE OF TRUTH** für alle Perspektiven-Definitionen (Farben, Labels, Icons)
 - Design Tokens - Instance-spezifisches Branding
 
 **Cross-Instance Features:**

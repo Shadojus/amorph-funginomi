@@ -1,7 +1,32 @@
-# 🫧 BUBBLE VIEW FEATURE v2.0 - PIXI.JS REWRITE
+# 🫧 BUBBLE VIEW FEATURE v2.2 - SESSION-BASED RECOMMENDATIONS
 
 **Last Updated:** 26. November 2025  
-**Status:** ✅ COMPLETE REWRITE - Production Ready
+**Status:** ✅ PRODUCTION READY - Session Memory System
+
+## 🚀 v2.2 Highlights (26.11.2025)
+
+**Major Feature: UserNode as Session Memory**
+- **SessionStateManager** - Collects ALL user actions in browser storage
+- **Hilbert Space Relevance** - Calculates entity relevance from session data
+- **Session-Based Bubbles** - Shows relevant entities, not just search results
+- **Dual Mode Display** - 'session' mode (recommendations) + 'search' mode (filtered)
+- **Smart Combination** - Search results + session relevance for ranking
+
+**Session State Tracking:**
+- Searches (queries, result counts)
+- Entity clicks (bubbles, cards)
+- Entity hovers (with duration)
+- Page visits (time spent, scroll depth)
+- Perspective usage (activations, total time)
+
+## 🚀 v2.1 Highlights (26.11.2025)
+
+**Critical fixes for cited value schema support:**
+- **extractValue()** - Handles `{ value: X, confidence, sources }` format
+- **getEntityName()** - Smart extraction from nested structures
+- **getEntityImage()** - Extracts images from visualIdentity
+- **Auto-init Convex** - BackendSimilarity creates own client if needed
+- **seoName support** - Backend uses seoName instead of slug
 
 ## 🚀 v2.0 Highlights
 
@@ -19,62 +44,143 @@
 
 **Key Principle:** Das System zeigt **"WHY entities are connected"** (gemeinsame Eigenschaften, Ähnlichkeiten), nicht "comprehensive data dumps". Die Detail-Ansicht fokussiert auf Beziehungen, nicht auf alle Datenfelder.
 
-**NEW in v2.0:** Alle Ähnlichkeitsberechnungen erfolgen im Backend (Convex). User-Interaktionen werden persistiert und fließen in Similarity-Scores ein. GPU-Rendering ermöglicht 100+ Bubbles bei 60 FPS.
+**CRITICAL (v2.2):** UserNode is now a SESSION MEMORY that remembers all user interactions and recommends relevant entities based on Hilbert space calculations, not just search results!
 
-## Structure (v2.0)
+## Session State Manager (v2.2)
+
+```javascript
+// services/SessionStateManager.js - Brain of the UserNode
+
+import { getSessionStateManager } from './services/SessionStateManager.js';
+
+const sessionManager = getSessionStateManager();
+
+// Track actions (automatic via event listeners)
+sessionManager.trackSearch('amanita');
+sessionManager.trackEntityClick('amanita-muscaria');
+sessionManager.trackEntityHover('cantharellus-cibarius', 1500);
+sessionManager.trackPerspectiveChange(['taxonomy', 'ecology']);
+
+// Calculate relevance scores (Hilbert space)
+const scores = sessionManager.calculateRelevanceScores(allEntities);
+// { 'amanita-muscaria': 0.85, 'cantharellus-cibarius': 0.45, ... }
+
+// Get top relevant entities
+const topEntities = sessionManager.getTopRelevantEntities(allEntities, 12);
+// [{ slug, score, entity }, ...]
+
+// Get session stats
+const stats = sessionManager.getStats();
+// { sessionId, totalActions, entitiesInteracted, perspectivesUsed, ... }
+```
+
+**Relevance Calculation Weights:**
+```javascript
+const WEIGHTS = {
+  click: 0.25,           // Direct click is strong signal
+  hover: 0.05,           // Hover shows interest
+  view: 0.20,            // Page view is strong
+  timeSpent: 0.15,       // Time on page (normalized)
+  scrollDepth: 0.10,     // Deep scroll = engagement
+  searchMatch: 0.15,     // Matches search queries
+  perspectiveMatch: 0.10 // Matches active perspectives
+};
+```
+
+**Storage:**
+- `sessionStorage` - Current session (cleared on browser close)
+- `localStorage` - Persistent user profile (entity preferences)
+
+## Cited Value Handling (v2.1)
+
+```javascript
+// BubbleView.js includes these helpers:
+
+// Extract value from citedValue format
+function extractValue(data) {
+  if (typeof data === 'object' && 'value' in data && 
+      ('confidence' in data || 'sources' in data)) {
+    return data.value;
+  }
+  return data;
+}
+
+// Get entity display name - handles nested structures
+function getEntityName(entity, nameField = 'commonName') {
+  let name = extractValue(entity[nameField]);
+  // Fallbacks: identity.scientificName, names.common, latinName, seoName, slug
+  return String(name);
+}
+
+// Get entity slug
+function getEntitySlug(entity, slugField = 'seoName') {
+  return entity[slugField] || entity.seoName || entity.slug || entity._id;
+}
+
+// Get entity image
+function getEntityImage(entity) {
+  // Checks: visualIdentity.primaryImage, images[0], images[0].url
+  return imageUrl || null;
+}
+```
+
+## Structure (v2.2)
 
 ```
 features/bubble-view/
-├── BubbleView.js           # 🆕 Main Pixi.js component (475 lines, -50%)
-├── BubbleView.OLD.js       # Backup of Canvas 2D version (958 lines)
+├── BubbleView.js           # Main component with SessionStateManager
+├── BubbleView.OLD.js       # Backup of Canvas 2D version
 ├── BubbleHost.js           # Data host for bubbles
 ├── morphs/                 # Bubble-specific morphs
-│   ├── BubbleMorph.js      # Individual bubble component
-│   ├── UserNode.js         # Central user node
-│   ├── ConnectionMorph.js  # Connection visualization
-│   └── tokens.js           # Local design tokens
-├── reactors/               # Reactors (compatible with v2.0)
-│   ├── BubbleDetailReactor.js       # Detail dialog
-│   ├── BubbleSearchReactor.js       # Search interaction
-│   ├── CanvasConnectionReactor.js   # ⚠️ Legacy (can be removed)
-│   ├── CanvasPhysicsReactor.js      # ⚠️ Legacy (can be removed)
-│   ├── CanvasReactor.js             # ⚠️ Legacy (can be removed)
-│   ├── CanvasUserNodeReactor.js     # ⚠️ Legacy (can be removed)
-│   ├── GlowReactor.js               # ✅ Still used for effects
-│   ├── AnimationReactor.js          # ✅ Still used
-│   ├── PulseReactor.js              # ✅ Still used
-│   ├── HoverReactor.js              # ✅ Still used
-│   ├── SortReactor.js               # ✅ Still used
-│   ├── FilterReactor.js             # ✅ Still used
-│   └── index.js                     # Reactor exports
-├── services/               # 🆕 Enhanced services
-│   ├── HilbertSpaceSimilarity.js    # Client-side similarity (legacy)
-│   └── BackendSimilarity.js         # 🆕 Convex API wrapper
-└── CLAUDE.md              # This file
+│   ├── BubbleMorph.js
+│   ├── UserNode.js
+│   ├── ConnectionMorph.js
+│   └── tokens.js
+├── reactors/               # Reactors
+│   ├── BubbleDetailReactor.js
+│   ├── BubbleSearchReactor.js
+│   ├── GlowReactor.js, AnimationReactor.js, etc.
+│   └── index.js
+├── services/
+│   ├── HilbertSpaceSimilarity.js
+│   ├── BackendSimilarity.js      # Convex integration
+│   └── SessionStateManager.js    # 🆕 Browser session memory
+└── CLAUDE.md
 
 🔗 Backend (Convex):
-├── userInteractions.ts     # 🆕 User interaction API
-├── calculateSimilarity.ts  # 🆕 Backend similarity engine
-└── schema.ts               # 🆕 userInteractions table
+├── userInteractions.ts     # Supports perspectives array
+├── calculateSimilarity.ts  # Uses seoName index
+└── schema.ts               # userInteractions + perspectives field
 ```
 
 ## Components
 
-### 🆕 BubbleView.js (v2.0 - 475 lines)
-**Complete Pixi.js rewrite** with backend integration:
-- **GPU rendering** via PixieRenderer.js (Pixi.js ^8.0.0)
-- **Backend similarity** from Convex calculateSimilarity query
-- **Interaction tracking** - All user actions persisted to Convex
-- **User node system** with weighted connections (dynamic center)
-- **Event-driven** - Click, hover, drag via Pixi.js eventMode
-- **Responsive** - Auto-resize with canvas dimensions
-- **Performance** - Target 60 FPS with 100+ bubbles
-- **Search integration** via ConvexSearchReactor events
-- **Similarity matrix** calculations with HilbertSpaceSimilarity
-- **Physics simulation** via CanvasPhysicsReactor (getAllNodes method)
-- **Connection weight calculation** (Search 70%, Perspective 20%, Interaction 10%, Base 0.1)
-- **Size range** 50-100px on mobile (358px), 60-120px on desktop (800px+)
-- **Perspective-aware connections** - updates on perspective changes
+### 🆕 BubbleView.js (v2.2)
+**Session-aware Pixi.js visualization:**
+- **Dual display modes** - 'session' (recommendations) + 'search' (filtered results)
+- **SessionStateManager integration** - Uses browser-side session memory
+- **Hilbert space rendering** - Entity distance = inverse of relevance score
+- **Combined ranking** - Search results weighted by session relevance
+- **loadAllEntities()** - Fetches all entities for session recommendations
+- **showSessionRecommendations()** - Renders top relevant entities
+- **renderSessionBubbles()** - Positions by relevance (closer = more relevant)
+- **renderSearchResults()** - Combines search position + session relevance
+
+### 🆕 SessionStateManager.js (v2.2)
+**Browser-side session memory (Hilbert space calculation):**
+- **Automatic tracking** - Listens for search, perspective, click events
+- **localStorage persistence** - Remembers user preferences across sessions
+- **sessionStorage** - Current session data (cleared on close)
+- **Relevance calculation** - Weight factors: click, hover, view, time, scroll, search match, perspective match
+- **Recency decay** - Older interactions worth less (decayFactor: 0.95)
+- **Event emission** - Fires 'session:action-tracked' for real-time updates
+
+### BackendSimilarity.js (v2.1)
+**Auto-initializing Convex client:**
+- **Auto-init** - Creates own ConvexHttpClient if none provided
+- **isInitialized flag** - Prevents double-initialization
+- **Perspectives tracking** - Tracks perspective_change events
+- **Session-based** - generateSessionId() for user tracking
 
 ### BubbleHost.js
 Data provider for BubbleView. Creates morphs from Convex data and manages bubble lifecycle.

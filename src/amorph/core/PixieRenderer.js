@@ -241,16 +241,19 @@ export class PixieRenderer {
       const texture = this.imageCache.get(url);
       const sprite = new Sprite(texture);
       
+      // Center the sprite
+      sprite.anchor.set(0.5);
+      
+      // Scale to fit
+      const scale = size / Math.max(texture.width, texture.height);
+      sprite.scale.set(scale);
+      
       // Circular mask
       const mask = new Graphics();
       mask.circle(0, 0, size / 2);
       mask.fill({ color: 0xffffff });
       sprite.mask = mask;
       sprite.addChild(mask);
-      
-      // Scale to fit
-      const scale = size / Math.max(texture.width, texture.height);
-      sprite.scale.set(scale);
       
       return sprite;
     }
@@ -262,16 +265,19 @@ export class PixieRenderer {
       
       const sprite = new Sprite(texture);
       
+      // Center the sprite
+      sprite.anchor.set(0.5);
+      
+      // Scale to fit
+      const scale = size / Math.max(texture.width, texture.height);
+      sprite.scale.set(scale);
+      
       // Circular mask
       const mask = new Graphics();
       mask.circle(0, 0, size / 2);
       mask.fill({ color: 0xffffff });
       sprite.mask = mask;
       sprite.addChild(mask);
-      
-      // Scale to fit
-      const scale = size / Math.max(texture.width, texture.height);
-      sprite.scale.set(scale);
       
       return sprite;
     } catch (err) {
@@ -404,6 +410,45 @@ export class PixieRenderer {
     if (node) {
       node.position.set(x, y);
     }
+  }
+  
+  /**
+   * Update Node Properties (radius, color, glow, etc.)
+   */
+  updateNode(id, options = {}) {
+    const container = this.nodes.get(id);
+    if (!container) {
+      console.warn(`[PixieRenderer] updateNode: Node "${id}" not found`);
+      return false;
+    }
+    
+    // Update position if provided
+    if (options.x !== undefined && options.y !== undefined) {
+      container.position.set(options.x, options.y);
+    }
+    
+    // Update radius by scaling
+    if (options.radius !== undefined) {
+      const currentRadius = container._originalRadius || 40;
+      const scale = options.radius / currentRadius;
+      container.scale.set(scale, scale);
+    }
+    
+    // Update glow if we have a glow child
+    const glowChild = container.children.find(c => c._isGlow);
+    if (glowChild) {
+      if (options.glowRadius !== undefined) {
+        glowChild.visible = options.glowRadius > 0;
+        if (options.glowRadius > 0) {
+          glowChild.scale.set(options.glowRadius / 20);
+        }
+      }
+      if (options.glowAlpha !== undefined) {
+        glowChild.alpha = options.glowAlpha;
+      }
+    }
+    
+    return true;
   }
   
   /**
