@@ -321,10 +321,12 @@ const pleurotusOstreatus = {
       
       veil: {
         universal: {
-          present: false
+          present: false,
+          remnants_on_cap: "none"
         },
         partial: {
-          present: false
+          present: false,
+          type: "none"
         }
       }
     },
@@ -359,12 +361,17 @@ const pleurotusOstreatus = {
       
       cystidia: {
         pleurocystidia: {
-          present: false
+          present: false,
+          shape: "absent",
+          size_um: { length: { min: 0, max: 0 }, width: { min: 0, max: 0 } },
+          frequency: "absent",
+          origin: "hymenium"
         },
         cheilocystidia: {
           present: true,
           shape: "clavate to irregularly shaped",
-          size: { length_um: { min: 20, max: 35 }, width_um: { min: 5, max: 12 } }
+          size_um: { length: { min: 20, max: 35 }, width: { min: 5, max: 12 } },
+          wall_thickness: "thin"
         }
       },
       
@@ -569,9 +576,19 @@ const pleurotusOstreatus = {
       trophic_strategy: {
         primary: "saprotrophic",
         saprotrophic: {
-          substrate_preference: ["dead hardwood", "deciduous logs", "stumps"],
-          decomposition_rate: "fast",
-          enzyme_systems: ["lignin peroxidases", "manganese peroxidases", "laccases", "cellulases"]
+          decay_type: "white rot",
+          substrate_type: "lignocellulosic",
+          enzyme_profile: [
+            { enzyme: "lignin peroxidase", activity_level: "high" },
+            { enzyme: "manganese peroxidase", activity_level: "high" },
+            { enzyme: "laccase", activity_level: "high" },
+            { enzyme: "cellulase", activity_level: "medium" }
+          ],
+          substrates: [
+            { substrate: "dead hardwood", preference: 95, succession_stage: "secondary", decay_rate: { value: 2.5, unit: "years" } },
+            { substrate: "deciduous logs", preference: 90, succession_stage: "secondary", decay_rate: { value: 3, unit: "years" } },
+            { substrate: "stumps", preference: 85, succession_stage: "secondary", decay_rate: { value: 4, unit: "years" } }
+          ]
         }
       },
       

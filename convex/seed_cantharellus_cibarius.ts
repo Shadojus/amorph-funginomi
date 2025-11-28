@@ -329,7 +329,21 @@ const cantharellusCibarius = {
         distribution: "in hymenium"
       },
       
-      cystidia: {},
+      cystidia: {
+        pleurocystidia: {
+          present: false,
+          frequency: "absent",
+          origin: "hymenium",
+          shape: "none",
+          size_um: { length: { min: 0, max: 0 }, width: { min: 0, max: 0 } }
+        },
+        cheilocystidia: {
+          present: false,
+          shape: "absent - no true cystidia in this species",
+          size_um: { length: { min: 0, max: 0 }, width: { min: 0, max: 0 } },
+          wall_thickness: "none"
+        }
+      },
       
       hyphae: {
         system: "monomitic",

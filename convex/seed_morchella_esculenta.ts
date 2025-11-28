@@ -199,7 +199,9 @@ const morchellaEsculenta = {
       confidence: {
         level: 95,
         disputed: true,
-        alternative_classifications: ["Morchella species complex requires revision"],
+        alternative_classifications: [
+          { classification: "Morchella species complex requires revision", evidence: "molecular phylogenetic studies", supporters: ["Richard et al. 2012", "O'Donnell et al. 2011"] }
+        ],
         molecular_support: true,
         morphological_support: true
       },
@@ -287,13 +289,12 @@ const morchellaEsculenta = {
       },
       
       hymenophore: {
-        type: "pits",
-        pits: {
-          shape: "irregular polygonal",
-          size_mm: { min: 5, max: 15 },
-          depth_mm: { min: 3, max: 10 },
-          color: "tan to brown",
-          ridges: "pale cream to yellowish"
+        type: "pores",
+        pores: {
+          shape: "irregular polygonal pits",
+          color: "tan to brown with pale cream ridges",
+          depth_mm: 7,
+          size_per_mm: { min: 0.07, max: 0.2 }
         }
       },
       
@@ -316,10 +317,13 @@ const morchellaEsculenta = {
       
       veil: {
         universal: {
-          present: false
+          present: false,
+          remnants_on_cap: "none"
         },
         partial: {
-          present: false
+          present: false,
+          type: "none",
+          annulus: { position: "absent", persistence: "absent", mobility: "absent", texture: "absent" }
         }
       }
     },
@@ -341,19 +345,32 @@ const morchellaEsculenta = {
         contents: { oil_drops: true, number_of_oil_drops: 2, granular: true, homogeneous: false, guttulate: true },
         reactions: { amyloid: false, dextrinoid: false, cyanophilic: false, metachromatic: false },
         spore_print: { color: "cream to pale ochre", density: "light", pattern: "even" },
-        sporulation: { spores_per_ascus: 8, daily_production: 3000000, peak_time: "morning", triggers: ["warmth", "moisture"] }
+        sporulation: { spores_per_basidium: 8, daily_production: 3000000, peak_time: "morning", triggers: ["warmth", "moisture"] }
       },
       
-      asci: {
-        type: "operculate",
+      // Note: Morchella is an Ascomycete, but schema requires basidia field
+      basidia: {
+        type: "asci (Ascomycete)",
         shape: "cylindrical",
         size: { length_um: { min: 250, max: 350 }, width_um: { min: 15, max: 22 } },
-        spores_per_ascus: 8,
+        sterigmata: { number: 8, length_um: 0 },
         distribution: "in hymenium lining pits"
       },
       
       cystidia: {
-        // Paraphyses present instead of cystidia
+        pleurocystidia: {
+          present: false,
+          shape: "absent",
+          size_um: { length: { min: 0, max: 0 }, width: { min: 0, max: 0 } },
+          frequency: "absent",
+          origin: "hymenium"
+        },
+        cheilocystidia: {
+          present: false,
+          shape: "none - paraphyses present instead",
+          size_um: { length: { min: 0, max: 0 }, width: { min: 0, max: 0 } },
+          wall_thickness: "none"
+        }
       },
       
       hyphae: {
@@ -524,6 +541,20 @@ const morchellaEsculenta = {
       
       trophic_strategy: {
         primary: "saprotrophic",
+        saprotrophic: {
+          decay_type: "humus decomposition",
+          substrate_type: "leaf litter and organic debris",
+          enzyme_profile: [
+            { enzyme: "cellulase", activity_level: "moderate" },
+            { enzyme: "laccase", activity_level: "low" },
+            { enzyme: "peroxidase", activity_level: "low" }
+          ],
+          substrates: [
+            { substrate: "deciduous leaf litter", preference: 80, succession_stage: "early", decay_rate: { value: 0.5, unit: "kg/m²/year" } },
+            { substrate: "buried organic debris", preference: 70, succession_stage: "early to mid", decay_rate: { value: 0.4, unit: "kg/m²/year" } },
+            { substrate: "fire-affected soil", preference: 60, succession_stage: "post-fire", decay_rate: { value: 0.3, unit: "kg/m²/year" } }
+          ]
+        },
         mycorrhizal: {
           type: "possible facultative",
           host_plants: [

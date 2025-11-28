@@ -290,19 +290,11 @@ const boletusEdulis = {
       hymenophore: {
         type: "pores",
         pores: {
-          attachment: "adnate to depressed",
           shape: "circular to angular",
-          size_mm: { min: 0.5, max: 1.5 },
-          density_per_mm: 2,
-          color_young: "white",
-          color_mature: "yellow to olive-green",
-          staining: "none or slight browning"
-        },
-        tubes: {
-          length_mm: { min: 10, max: 30 },
-          attachment: "free to slightly depressed",
-          color: "white to yellow-green",
-          stuffed: false
+          color: "white when young, yellow to olive-green when mature",
+          depth_mm: 20,
+          size_per_mm: { min: 1, max: 3 },
+          bruising: "none or slight browning"
         }
       },
       
@@ -325,10 +317,13 @@ const boletusEdulis = {
       
       veil: {
         universal: {
-          present: false
+          present: false,
+          remnants_on_cap: "none"
         },
         partial: {
-          present: false
+          present: false,
+          type: "none",
+          annulus: { position: "absent", persistence: "absent", mobility: "absent", texture: "absent" }
         }
       }
     },
@@ -365,13 +360,15 @@ const boletusEdulis = {
         pleurocystidia: {
           present: true,
           shape: "fusoid-ventricose",
-          size: { length_um: { min: 35, max: 55 }, width_um: { min: 8, max: 15 } },
-          abundance: "scattered"
+          size_um: { length: { min: 35, max: 55 }, width: { min: 8, max: 15 } },
+          frequency: "scattered",
+          origin: "hymenium"
         },
         cheilocystidia: {
           present: true,
           shape: "clavate to fusoid",
-          size: { length_um: { min: 25, max: 40 }, width_um: { min: 6, max: 12 } }
+          size_um: { length: { min: 25, max: 40 }, width: { min: 6, max: 12 } },
+          wall_thickness: "thin"
         }
       },
       

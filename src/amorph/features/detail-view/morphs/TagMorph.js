@@ -1,8 +1,14 @@
 /**
- * 🏷️ TAG MORPH (Detail View)
+ * 🏷️ TAG MORPH (Detail View) v2.0
  * 
- * Pill-style tag display for arrays of strings or single values
- * Clickable tags dispatch 'tag-click' events
+ * Premium pill-style tag display with glassmorphism and animations.
+ * Clickable tags dispatch 'tag-click' events for filtering.
+ * 
+ * Features:
+ * - Glassmorphism backgrounds with subtle glow
+ * - Hover animations with lift effect
+ * - Perspective color inheritance
+ * - Multiple variants: pill, badge, chip
  * 
  * Usage:
  * <tag-morph 
@@ -33,8 +39,10 @@ export class TagMorph extends LitElement {
         width: 100%;
         max-width: 100%;
         overflow: hidden;
+        --tag-color: var(--perspective-color, rgba(139, 92, 246, 0.8));
       }
 
+      /* Minimal container - no extra box styling */
       .tag-container {
         display: flex;
         flex-direction: column;
@@ -43,10 +51,10 @@ export class TagMorph extends LitElement {
 
       .tag-label {
         font-size: 0.6875rem;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.5);
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.55);
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.08em;
       }
 
       .tags-wrapper {
@@ -56,21 +64,25 @@ export class TagMorph extends LitElement {
         max-width: 100%;
       }
       
+      /* ===== BASE TAG STYLE ===== */
       .tag {
-        padding: 0.375rem 0.75rem;
-        border-radius: var(--radius-full);
+        padding: 0.4rem 0.875rem;
+        border-radius: 9999px;
         font-size: 0.8125rem;
-        font-weight: var(--font-weight-medium);
-        transition: var(--transition-base);
-        border: 1.5px solid currentColor;
-        background: transparent;
-        color: var(--tag-color, #667eea);
-        display: inline-block;
+        font-weight: 600;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1.5px solid var(--tag-color, rgba(139, 92, 246, 0.4));
+        background: rgba(139, 92, 246, 0.12);
+        color: rgba(196, 181, 253, 0.95);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
         white-space: nowrap;
         user-select: none;
         max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
+        box-shadow: 0 0 0 rgba(139, 92, 246, 0);
       }
     
       .tag.clickable {
@@ -78,30 +90,48 @@ export class TagMorph extends LitElement {
       }
     
       .tag.clickable:hover {
-        background: rgba(102, 126, 234, 0.1);
+        background: rgba(139, 92, 246, 0.22);
+        border-color: var(--tag-color, rgba(139, 92, 246, 0.6));
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25),
+                    0 0 8px var(--tag-color, rgba(139, 92, 246, 0.2));
       }
     
       .tag.clickable:active {
         transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
       }
     
-      /* Badge Variant */
+      /* ===== BADGE VARIANT ===== */
       .tag.badge {
-        border-radius: 4px;
-        padding: 4px 10px;
-        font-size: 11px;
+        border-radius: 5px;
+        padding: 0.3rem 0.625rem;
+        font-size: 0.6875rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.06em;
+        font-weight: 700;
+        background: rgba(139, 92, 246, 0.18);
       }
     
-      /* Chip Variant */
+      /* ===== CHIP VARIANT ===== */
       .tag.chip {
-        border-radius: 24px;
-        padding: 8px 16px;
-        font-size: 14px;
+        border-radius: 9999px;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
         border-width: 2px;
+        background: rgba(139, 92, 246, 0.15);
+      }
+
+      .tag.chip:hover {
+        background: rgba(139, 92, 246, 0.25);
+      }
+
+      /* ===== EMPTY STATE ===== */
+      .empty-state {
+        color: rgba(255, 255, 255, 0.35);
+        font-style: italic;
+        font-size: 0.8125rem;
+        padding: 0.5rem;
       }
     `
   ];
@@ -162,7 +192,7 @@ export class TagMorph extends LitElement {
     const tags = this.getTags();
     
     if (tags.length === 0) {
-      return html``;
+      return html`<div class="empty-state">—</div>`;
     }
 
     const colorStyle = this.color ? `--tag-color: ${this.color}` : '';
@@ -183,7 +213,5 @@ export class TagMorph extends LitElement {
   }
 }
 
-// Register with standard name - detail-view owns these morphs
-if (!customElements.get('tag-morph')) {
-  customElements.define('tag-morph', TagMorph);
-}
+// Register with detail- prefix for detail pages
+customElements.define('detail-tag-morph', TagMorph);

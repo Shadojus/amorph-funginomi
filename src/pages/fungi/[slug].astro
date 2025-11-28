@@ -200,16 +200,24 @@ function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): a
       const firstItem = extractValue(value[0]) || value[0];
       const keys = Object.keys(firstItem);
       
-      // Radar Chart pattern
-      if ((keys.includes('axis') || keys.includes('dimension') || keys.includes('label')) &&
-          (keys.includes('value') || keys.includes('score') || keys.includes('rating'))) {
+      // Radar Chart pattern - axis/dimension/label/name with value/score/rating
+      if ((keys.includes('axis') || keys.includes('dimension') || keys.includes('label') || keys.includes('name') || keys.includes('category')) &&
+          (keys.includes('value') || keys.includes('score') || keys.includes('rating') || keys.includes('level'))) {
         results.push({ type: 'chart', label, key: fullKey, value: value });
         continue;
       }
       
-      // Timeline pattern
-      if ((keys.includes('dayOffset') || keys.includes('date') || keys.includes('timestamp')) &&
-          (keys.includes('stage') || keys.includes('label') || keys.includes('event'))) {
+      // Timeline/Lifecycle pattern - stages with duration or temporal ordering
+      if ((keys.includes('stage') || keys.includes('phase') || keys.includes('step') || keys.includes('event')) &&
+          (keys.includes('duration') || keys.includes('dayOffset') || keys.includes('date') || 
+           keys.includes('timestamp') || keys.includes('year') || keys.includes('conditions'))) {
+        results.push({ type: 'timeline', label, key: fullKey, value: value });
+        continue;
+      }
+      
+      // History/Milestones pattern
+      if ((keys.includes('year') || keys.includes('date')) &&
+          (keys.includes('event') || keys.includes('milestone') || keys.includes('description') || keys.includes('significance'))) {
         results.push({ type: 'timeline', label, key: fullKey, value: value });
         continue;
       }
@@ -218,6 +226,19 @@ function flattenObject(obj: any, prefix = '', maxDepth = 5, currentDepth = 0): a
       if (keys.includes('location') && firstItem.location && 
           (firstItem.location.latitude !== undefined || firstItem.location.lat !== undefined)) {
         results.push({ type: 'map', label, key: fullKey, value: value });
+        continue;
+      }
+      
+      // Color/Visual data pattern (for charts)
+      if ((keys.includes('hex') || keys.includes('rgb') || keys.includes('munsell')) &&
+          (keys.includes('location') || keys.includes('dominance') || keys.includes('name'))) {
+        results.push({ type: 'chart', label, key: fullKey, value: value });
+        continue;
+      }
+      
+      // Seasonality/Activity pattern (for charts)
+      if (keys.includes('month') && keys.includes('activity')) {
+        results.push({ type: 'chart', label, key: fullKey, value: value });
         continue;
       }
       
@@ -389,7 +410,7 @@ const defaultPerspectives = perspectives.slice(0, 4).map(p => p.id);
           <!-- Description -->
           {description && (
             <div class="entity-description">
-              <text-morph value={description} />
+              <detail-text-morph value={description} />
             </div>
           )}
           
@@ -414,8 +435,6 @@ const defaultPerspectives = perspectives.slice(0, 4).map(p => p.id);
     <div class="perspectives-content" id="perspectives-content">
       {perspectives.map(p => {
         if (!p.data) return null;
-        const fields = flattenObject(p.data);
-        if (fields.length === 0) return null;
         
         return (
           <perspective-host 
@@ -426,89 +445,12 @@ const defaultPerspectives = perspectives.slice(0, 4).map(p => p.id);
             class="perspective-section"
             data-perspective={p.id}
           >
-            <div class="morph-grid">
-              {fields.map(field => {
-                const renderField = (f: any, depth = 0) => {
-                  const depthClass = depth > 0 ? 'nested' : '';
-                  
-                  if (f.type === 'tags') {
-                    return (
-                      <div class={`morph-card ${depthClass}`}>
-                        <label class="morph-label">{f.label}</label>
-                        <div class="tags-container">
-                          {f.values.map((tag: string) => <tag-morph value={tag} />)}
-                        </div>
-                      </div>
-                    );
-                  }
-                  
-                  if (f.type === 'text') {
-                    return (
-                      <div class={`morph-card ${depthClass}`}>
-                        <label class="morph-label">{f.label}</label>
-                        <text-morph value={f.value} />
-                      </div>
-                    );
-                  }
-                  
-                  if (f.type === 'range') {
-                    return (
-                      <div class={`morph-card ${depthClass}`}>
-                        <label class="morph-label">{f.label}</label>
-                        <range-morph 
-                          min={f.value.min} 
-                          max={f.value.max} 
-                          optimal={f.value.optimal}
-                          unit={f.value.unit || ''}
-                        />
-                      </div>
-                    );
-                  }
-                  
-                  if (f.type === 'chart') {
-                    return (
-                      <div class={`morph-card wide ${depthClass}`}>
-                        <label class="morph-label">{f.label}</label>
-                        <radar-chart-morph data={JSON.stringify(f.value)} />
-                      </div>
-                    );
-                  }
-                  
-                  if (f.type === 'timeline') {
-                    return (
-                      <div class={`morph-card wide ${depthClass}`}>
-                        <label class="morph-label">{f.label}</label>
-                        <timeline-morph data={JSON.stringify(f.value)} />
-                      </div>
-                    );
-                  }
-                  
-                  if (f.type === 'map') {
-                    return (
-                      <div class={`morph-card wide ${depthClass}`}>
-                        <label class="morph-label">{f.label}</label>
-                        <map-morph data={JSON.stringify(f.value)} />
-                      </div>
-                    );
-                  }
-                  
-                  if (f.type === 'section') {
-                    return (
-                      <div class="morph-section">
-                        <h4 class="section-title">{f.label}</h4>
-                        <div class="morph-grid nested">
-                          {f.children.map((child: any) => renderField(child, depth + 1))}
-                        </div>
-                      </div>
-                    );
-                  }
-                  
-                  return null;
-                };
-                
-                return renderField(field, 0);
-              })}
-            </div>
+            <detail-data-morph 
+              entity-data={JSON.stringify(p.data)}
+              perspective={p.id}
+              mode="deep"
+              style={`--perspective-color: ${p.color}`}
+            />
           </perspective-host>
         );
       })}

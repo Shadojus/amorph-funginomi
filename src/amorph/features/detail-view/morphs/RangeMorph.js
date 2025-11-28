@@ -1,8 +1,15 @@
 /**
- * 📊 RANGE MORPH (Detail View)
+ * 📊 RANGE MORPH (Detail View) v2.0
  * 
- * Zeigt min/max/optimal Werte als visuellen Balken
- * REIN DATENGETRIEBEN - Erkennt automatisch Range-Objekte
+ * Premium range visualization with animated bar and markers.
+ * Shows min/max/optimal values with glowing effects.
+ * 
+ * Features:
+ * - Glassmorphism container
+ * - Animated gradient bar
+ * - Pulsing optimal marker
+ * - Smart unit display
+ * - Perspective color inheritance
  * 
  * Input: { min: 15, max: 25, optimal: 20, unit: "°C" }
  * Output: Visueller Balken mit Marker
@@ -27,8 +34,10 @@ export class RangeMorph extends LitElement {
         width: 100%;
         max-width: 100%;
         overflow: hidden;
+        --range-color: var(--perspective-color, rgba(34, 197, 94, 0.8));
       }
 
+      /* Minimal container - visual focus on the range bar */
       .range-container {
         display: flex;
         flex-direction: column;
@@ -36,102 +45,130 @@ export class RangeMorph extends LitElement {
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 8px;
-        padding: 0.75rem;
-        border: 1px solid rgba(255, 255, 255, 0.08);
       }
 
       .range-label {
         font-size: 0.6875rem;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.5);
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.55);
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.08em;
       }
 
       .range-track {
         position: relative;
         width: 100%;
-        height: 20px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        height: 24px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        overflow: hidden;
       }
 
       .range-segment {
         position: absolute;
-        top: 2px;
-        bottom: 2px;
+        top: 3px;
+        bottom: 3px;
         background: linear-gradient(90deg, 
-          var(--range-color, rgba(34, 197, 94, 0.4)), 
+          var(--range-color, rgba(34, 197, 94, 0.3)), 
           var(--range-color, rgba(34, 197, 94, 0.6)), 
-          var(--range-color, rgba(34, 197, 94, 0.4)));
-        border-radius: 8px;
-        border: 1.5px solid var(--range-color, rgba(34, 197, 94, 0.8));
-        box-shadow: 0 0 12px var(--range-color, rgba(34, 197, 94, 0.3));
+          var(--range-color, rgba(34, 197, 94, 0.3)));
+        border-radius: 10px;
+        border: 1.5px solid var(--range-color, rgba(34, 197, 94, 0.7));
+        box-shadow: 0 0 16px var(--range-color, rgba(34, 197, 94, 0.3)),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        transition: all 0.3s ease;
+      }
+
+      .range-container:hover .range-segment {
+        box-shadow: 0 0 24px var(--range-color, rgba(34, 197, 94, 0.4)),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
       }
 
       .range-optimal {
         position: absolute;
         top: 50%;
         transform: translate(-50%, -50%);
-        width: 10px;
-        height: 10px;
+        width: 12px;
+        height: 12px;
         background: var(--range-color, #22c55e);
         border-radius: 50%;
-        border: 2px solid rgba(0, 0, 0, 0.4);
-        box-shadow: 0 0 8px var(--range-color, rgba(34, 197, 94, 0.8)),
-                    0 0 3px rgba(255, 255, 255, 0.5) inset;
+        border: 2px solid rgba(0, 0, 0, 0.5);
+        box-shadow: 0 0 12px var(--range-color, rgba(34, 197, 94, 0.8)),
+                    0 0 4px rgba(255, 255, 255, 0.6) inset;
         z-index: 3;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 12px var(--range-color, rgba(34, 197, 94, 0.8)), 0 0 4px rgba(255, 255, 255, 0.6) inset; }
+        50% { box-shadow: 0 0 20px var(--range-color, rgba(34, 197, 94, 1)), 0 0 6px rgba(255, 255, 255, 0.8) inset; }
       }
 
       .range-labels {
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
         font-size: 11px;
         padding: 0 4px;
-        gap: 0.5rem;
+        gap: 0.75rem;
       }
       
       .range-label-item {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 2px;
+        gap: 3px;
+        min-width: 40px;
+      }
+      
+      .range-label-item:first-child {
+        align-items: flex-start;
+      }
+      
+      .range-label-item:last-child {
+        align-items: flex-end;
       }
       
       .range-label-text {
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 0.6875rem;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.625rem;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
-        word-break: break-word;
+        letter-spacing: 0.06em;
         line-height: 1.3;
       }
 
       .range-value {
         font-variant-numeric: tabular-nums;
-        font-weight: 600;
+        font-weight: 700;
         display: flex;
         align-items: baseline;
-        gap: 2px;
-        color: var(--range-color, rgba(16, 185, 129, 1));
+        gap: 3px;
+        color: rgba(255, 255, 255, 0.9);
         white-space: nowrap;
-        font-size: 0.8125rem;
+        font-size: 0.9rem;
       }
 
       .range-value.optimal { 
-        color: var(--range-color, rgba(16, 185, 129, 1));
-        font-weight: 700;
-        text-shadow: 0 0 6px var(--range-color, rgba(16, 185, 129, 0.5));
+        color: var(--range-color, #4ade80);
+        font-weight: 800;
+        text-shadow: 0 0 8px var(--range-color, rgba(74, 222, 128, 0.5));
+        font-size: 1rem;
       }
 
       .range-unit {
         color: inherit;
-        opacity: 0.8;
+        opacity: 0.7;
         font-size: 0.6875rem;
+        font-weight: 500;
+      }
+
+      .empty-state {
+        color: rgba(255, 255, 255, 0.35);
+        font-style: italic;
+        font-size: 0.8125rem;
+        padding: 0.5rem;
       }
     `
   ];
@@ -156,14 +193,24 @@ export class RangeMorph extends LitElement {
   render() {
     const data = this.unwrapCitedValue(this.data);
     
-    if (!data || typeof data !== 'object') return html``;
+    if (!data || typeof data !== 'object') {
+      return html`<div class="empty-state">—</div>`;
+    }
     
-    const { min, max, optimal, unit } = data;
+    const { min, max, unit } = data;
+    // Support both 'optimal' and 'typical' as the middle value
+    const optimal = data.optimal ?? data.typical ?? data.mean;
     
     // Muss min UND max haben
-    if (min === undefined || max === undefined) return html``;
-    if (typeof min !== 'number' || typeof max !== 'number') return html``;
-    if (min >= max) return html``; // Invalider Range
+    if (min === undefined || max === undefined) {
+      return html`<div class="empty-state">—</div>`;
+    }
+    if (typeof min !== 'number' || typeof max !== 'number') {
+      return html`<div class="empty-state">—</div>`;
+    }
+    if (min >= max) {
+      return html`<div class="empty-state">Invalid range</div>`;
+    }
 
     // Berechne sinnvollen Gesamtbereich (mit Padding)
     const dataRange = max - min;
@@ -234,7 +281,5 @@ export class RangeMorph extends LitElement {
   }
 }
 
-// Register with standard name - detail-view owns these morphs
-if (!customElements.get('range-morph')) {
-  customElements.define('range-morph', RangeMorph);
-}
+// Register with detail- prefix for detail pages
+customElements.define('detail-range-morph', RangeMorph);

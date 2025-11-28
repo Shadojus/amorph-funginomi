@@ -1,7 +1,7 @@
 # Detail View Feature
 
-**Last Updated**: 2025-11-27
-**Version**: 2.0.0
+**Last Updated**: 2025-01-27
+**Version**: 2.1.0 - Premium Styling Update
 **Status**: Active Development
 
 ## Purpose
@@ -10,6 +10,41 @@ The Detail View feature provides specialized morphs for rendering rich, interact
 - **MorphHeader** for perspective switching
 - **Search System** for highlighting matches
 - **Central Field Mappings** from `convex/perspectiveFieldMappings.ts`
+
+## v2.1.0 Styling Update
+
+All morphs now feature **premium glassmorphism styling** matching grid-view quality:
+
+### Design System
+- **Glassmorphism**: `rgba(0, 0, 0, 0.15)` backgrounds with `backdrop-filter: blur(8px)`
+- **Subtle Borders**: `rgba(255, 255, 255, 0.06)` with hover enhancement
+- **Container Queries**: Responsive layouts at 180px, 280px breakpoints
+- **Color-Coded Values**:
+  - Boolean TRUE: Green badge (`#4ade80`, `rgba(34, 197, 94, 0.15)` bg)
+  - Boolean FALSE: Red badge (`#f87171`, `rgba(239, 68, 68, 0.1)` bg)
+  - Numbers: Purple (`#818cf8`) with glow
+  - Tags: Perspective-colored pills with hover lift
+- **Animations**: Subtle pulse on optimal markers, hover transitions
+
+### Key CSS Patterns
+```css
+/* Glassmorphism Container */
+background: rgba(0, 0, 0, 0.15);
+border: 1px solid rgba(255, 255, 255, 0.06);
+border-radius: 10px;
+backdrop-filter: blur(8px);
+transition: all 0.25s ease;
+
+/* Boolean Badge (true) */
+background: rgba(34, 197, 94, 0.15);
+border: 1px solid rgba(34, 197, 94, 0.3);
+color: #4ade80;
+
+/* Number Value */
+color: #818cf8;
+font-weight: 700;
+text-shadow: 0 0 12px rgba(129, 140, 248, 0.3);
+```
 
 ## Key Architecture
 

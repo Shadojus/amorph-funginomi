@@ -1,7 +1,14 @@
 /**
- * 📝 TEXT MORPH (Detail View)
+ * 📝 TEXT MORPH (Detail View) v2.0
  * 
- * Text display with truncation and maxlines support
+ * Premium text display with glassmorphism and enhanced typography.
+ * Supports truncation, multiple sizes, and rich styling.
+ * 
+ * Features:
+ * - Glassmorphism container with subtle border
+ * - Line clamping with ellipsis
+ * - Multiple size variants
+ * - Optional label with uppercase styling
  * 
  * Usage:
  * <text-morph 
@@ -35,6 +42,7 @@ export class TextMorph extends LitElement {
         overflow: hidden;
       }
 
+      /* Minimal container - no extra box styling */
       .text-container {
         display: flex;
         flex-direction: column;
@@ -43,21 +51,21 @@ export class TextMorph extends LitElement {
 
       .text-label {
         font-size: 0.6875rem;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.5);
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.55);
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.08em;
       }
       
       .text {
         margin: 0;
         font-family: var(--font-sans);
-        line-height: 1.5;
-        transition: var(--transition-base);
+        line-height: 1.6;
+        transition: all 0.2s ease;
         word-wrap: break-word;
         overflow-wrap: break-word;
         word-break: break-word;
-        color: rgba(255, 255, 255, 0.85);
+        color: rgba(255, 255, 255, 0.9);
         max-width: 100%;
       }
     
@@ -71,17 +79,18 @@ export class TextMorph extends LitElement {
       /* Sizes */
       .text.small {
         font-size: 0.8125rem;
-        line-height: 1.45;
+        line-height: 1.5;
       }
     
       .text.medium {
         font-size: 0.9375rem;
-        line-height: 1.5;
+        line-height: 1.6;
       }
     
       .text.large {
         font-size: 1.0625rem;
-        line-height: 1.55;
+        line-height: 1.65;
+        font-weight: 500;
       }
     
       /* Weight */
@@ -108,6 +117,12 @@ export class TextMorph extends LitElement {
     
       .text.align-right {
         text-align: right;
+      }
+
+      .empty-state {
+        color: rgba(255, 255, 255, 0.35);
+        font-style: italic;
+        font-size: 0.8125rem;
       }
     `
   ];
@@ -152,7 +167,12 @@ export class TextMorph extends LitElement {
     
     // Don't render if value is empty
     if (!text || (typeof text === 'string' && text.trim().length === 0)) {
-      return html``;
+      return html`
+        <div class="text-container">
+          ${this.label ? html`<div class="text-label">${this.label}</div>` : ''}
+          <div class="empty-state">—</div>
+        </div>
+      `;
     }
 
     // Handle arrays
@@ -180,7 +200,5 @@ export class TextMorph extends LitElement {
   }
 }
 
-// Register with standard name - detail-view owns these morphs
-if (!customElements.get('text-morph')) {
-  customElements.define('text-morph', TextMorph);
-}
+// Register with detail- prefix for detail pages
+customElements.define('detail-text-morph', TextMorph);

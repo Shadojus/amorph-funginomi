@@ -65,7 +65,10 @@ amorph.registerReactor('canvasConnection', CanvasConnectionReactor);
 amorph.registerReactor('bubbleDetail', BubbleDetailReactor);
 amorph.registerReactor('bubbleSearch', BubbleSearchReactor);
 
-// Import Data Morphs from grid-view
+// ============================================================================
+// GRID-VIEW MORPHS - Standard element names (tag-morph, data-morph, etc.)
+// Used by GridView and BubbleView
+// ============================================================================
 import '../features/grid-view/morphs/NameMorph.js';
 import '../features/grid-view/morphs/ImageMorph.js';
 import '../features/grid-view/morphs/TagMorph.js';
@@ -77,36 +80,32 @@ import '../features/grid-view/morphs/DataMorph.js';
 import '../features/grid-view/morphs/ChartMorph.js';
 import '../features/grid-view/morphs/MapMorph.js';
 import '../features/grid-view/morphs/TimelineMorph.js';
-
-// Visual Data Morphs (datengetrieben)
 import '../features/grid-view/morphs/RangeMorph.js';
 import '../features/grid-view/morphs/ProgressMorph.js';
 import '../features/grid-view/morphs/KeyValueMorph.js';
-
-// Visual Chart Morphs (datengetrieben)
 import '../features/grid-view/morphs/BarChartMorph.js';
 import '../features/grid-view/morphs/PieChartMorph.js';
 import '../features/grid-view/morphs/SparklineMorph.js';
 import '../features/grid-view/morphs/RadarChartMorph.js';
 
 // ============================================================================
-// DETAIL PAGE MORPHS (2025-11-27) - IMPORTED FIRST to own element names
+// DETAIL-VIEW MORPHS - Prefixed element names (detail-tag-morph, etc.)
+// Premium styling for detail pages. Use <detail-*-morph> elements!
 // ============================================================================
-// Specialized morphs unique to detail pages
+import '../features/detail-view/morphs/DataMorph.js';       // <detail-data-morph>
+import '../features/detail-view/morphs/TagMorph.js';        // <detail-tag-morph>
+import '../features/detail-view/morphs/TextMorph.js';       // <detail-text-morph>
+import '../features/detail-view/morphs/RangeMorph.js';      // <detail-range-morph>
+import '../features/detail-view/morphs/KeyValueMorph.js';   // <detail-keyvalue-morph>
+import '../features/detail-view/morphs/RadarChartMorph.js'; // <detail-radar-chart-morph>
+import '../features/detail-view/morphs/TimelineMorph.js';   // <detail-timeline-morph>
+import '../features/detail-view/morphs/MapMorph.js';        // <detail-map-morph>
+
+// Specialized morphs unique to detail pages (no grid equivalent)
 import '../features/detail-view/morphs/View360Morph.js';
 import '../features/detail-view/morphs/SafetyMorph.js';
 import '../features/detail-view/morphs/QuickFactsMorph.js';
 import '../features/detail-view/morphs/MiniBubbleView.js';
-
-// Detail-view data morphs - these register with standard names
-// Grid-view morphs will skip registration if already defined
-import '../features/detail-view/morphs/DataMorph.js';
-import '../features/detail-view/morphs/TagMorph.js';
-import '../features/detail-view/morphs/TextMorph.js';
-import '../features/detail-view/morphs/RangeMorph.js';
-import '../features/detail-view/morphs/KeyValueMorph.js';
-import '../features/detail-view/morphs/RadarChartMorph.js';
-import '../features/detail-view/morphs/TimelineMorph.js';
 
 // Import MorphHeader Feature
 import '../features/morph-header/MorphHeader.js';
@@ -119,7 +118,7 @@ import '../features/perspective-system/PerspectiveHost.js';
 import '../features/perspective-system/PerspectiveCard.js';
 
 // Import MorphMapper (Intelligent Morph Type Selection)
-import { morphMapper } from '../features/grid-view/MorphMapper.js';
+import { morphMapper } from '../core/MorphMapper.js';
 
 // Export für manuelle Imports
 export { amorph, morphMapper };

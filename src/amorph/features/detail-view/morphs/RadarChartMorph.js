@@ -1,10 +1,10 @@
 /**
- * 🎯 RADAR CHART MORPH (Detail View)
+ * 🎯 RADAR CHART MORPH (Detail View) v3.0
  * 
- * Zeigt mehrdimensionale Daten als Radar/Spider-Chart
- * REIN DATENGETRIEBEN - Perfekt für Eigenschaften-Profile
+ * Based on working grid-view implementation!
+ * Uses HTML labels with absolute positioning (like grid-view)
  * 
- * Input: [{axis: "Flavor", value: 80}, {axis: "Potency", value: 60}, ...]
+ * Input: [{axis: "Flavor", value: 80}, ...]
  *   OR:  { flavor: 80, potency: 60, ... }
  * Output: Kompakter Radar-Chart mit 3-12 Achsen
  */
@@ -26,21 +26,17 @@ export class RadarChartMorph extends LitElement {
       :host {
         display: block;
         font-family: var(--font-sans);
-        background: rgba(0, 0, 0, 0.3);
-        border-radius: var(--radius-md);
-        padding: 0.75rem;
-        --local-perspective-color: var(--perspective-color, #10b981);
+        --local-perspective-color: var(--perspective-color, #8b5cf6);
         container-type: inline-size;
         container-name: radarchart;
-        border: 1px solid rgba(255, 255, 255, 0.08);
       }
 
       .chart-label {
         font-size: 0.6875rem;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.5);
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.55);
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.08em;
         margin-bottom: 0.5rem;
         text-align: center;
       }
@@ -49,50 +45,25 @@ export class RadarChartMorph extends LitElement {
         position: relative;
         width: 100%;
         aspect-ratio: 1;
-        max-width: 200px;
+        max-width: 280px;
         margin: 0 auto;
         isolation: isolate;
       }
       
-      @container radarchart (min-width: 250px) {
+      @container radarchart (min-width: 300px) {
         .radar-container {
-          max-width: 280px;
+          max-width: 320px;
         }
       }
       
+      /* HTML Labels - positioned absolutely like grid-view */
       .label-group,
       .value-group {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        text-align: center;
         pointer-events: none;
-      }
-
-      svg {
-        width: 100%;
-        height: 100%;
-        filter: drop-shadow(0 2px 6px rgba(16, 185, 129, 0.25));
-        position: relative;
-        z-index: 10;
-      }
-
-      .radar-grid {
-        fill: none;
-        stroke: var(--local-perspective-color);
-        opacity: 0.25;
-        stroke-width: 1;
-      }
-
-      .radar-axis {
-        stroke: var(--local-perspective-color);
-        stroke-opacity: 0.15;
-        stroke-width: 1;
-      }
-
-      .radar-shape {
-        fill: var(--local-perspective-color);
-        fill-opacity: 0.35;
-        stroke: var(--local-perspective-color);
-        stroke-opacity: 0.9;
-        stroke-width: 2;
-        stroke-linejoin: round;
+        z-index: 20;
       }
 
       .radar-label-html {
@@ -104,19 +75,21 @@ export class RadarChartMorph extends LitElement {
           1px -1px 0 #000,
           -1px 1px 0 #000,
           1px 1px 0 #000,
-          0 0 3px #000;
+          0 0 4px #000;
         white-space: nowrap;
         line-height: 1;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
       }
       
-      @container radarchart (min-width: 250px) {
+      @container radarchart (min-width: 280px) {
         .radar-label-html {
           font-size: 11px;
         }
       }
 
       .radar-value-html {
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 700;
         color: var(--local-perspective-color) !important;
         text-shadow: 
@@ -124,15 +97,55 @@ export class RadarChartMorph extends LitElement {
           1px -1px 0 #000,
           -1px 1px 0 #000,
           1px 1px 0 #000,
-          0 0 3px #000;
+          0 0 4px #000;
         white-space: nowrap;
         line-height: 1;
+      }
+      
+      @container radarchart (min-width: 280px) {
+        .radar-value-html {
+          font-size: 13px;
+        }
+      }
+
+      svg {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 2px 8px rgba(139, 92, 246, 0.25));
+        position: relative;
+        z-index: 10;
+      }
+
+      .radar-grid {
+        fill: none;
+        stroke: var(--local-perspective-color);
+        opacity: 0.25;
+        stroke-width: 1;
+      }
+
+      .radar-shape {
+        fill: var(--local-perspective-color);
+        fill-opacity: 0.35;
+        stroke: var(--local-perspective-color);
+        stroke-opacity: 0.9;
+        stroke-width: 2.5;
+        stroke-linejoin: round;
+        filter: drop-shadow(0 0 6px var(--local-perspective-color));
       }
 
       .radar-point {
         fill: var(--local-perspective-color);
-        stroke: rgba(255, 255, 255, 0.8);
-        stroke-width: 1.5;
+        stroke: rgba(255, 255, 255, 0.9);
+        stroke-width: 2;
+        filter: drop-shadow(0 0 4px var(--local-perspective-color));
+      }
+
+      .empty-state {
+        color: rgba(255, 255, 255, 0.35);
+        font-style: italic;
+        font-size: 0.8125rem;
+        text-align: center;
+        padding: 1rem;
       }
     `
   ];
@@ -147,7 +160,8 @@ export class RadarChartMorph extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    // Set perspective color if provided
+    console.log('[Detail-RadarChart] connectedCallback, data:', this.data);
+    
     if (this.perspective) {
       const color = getPerspectiveColor(this.perspective);
       this.style.setProperty('--local-perspective-color', color);
@@ -157,9 +171,13 @@ export class RadarChartMorph extends LitElement {
     }
   }
 
-  /**
-   * Unwrap citedValue wrapper if present
-   */
+  updated(changedProperties) {
+    super.updated(changedProperties);
+    if (changedProperties.has('data')) {
+      console.log('[Detail-RadarChart] data updated:', this.data);
+    }
+  }
+
   unwrapCitedValue(value) {
     if (value && typeof value === 'object' && 'value' in value) {
       return value.value;
@@ -170,23 +188,41 @@ export class RadarChartMorph extends LitElement {
   normalizeData() {
     const rawData = this.unwrapCitedValue(this.data);
     
+    console.log('[Detail-RadarChart] normalizeData input:', rawData, 'type:', typeof rawData, 'isArray:', Array.isArray(rawData));
+    
     // Handle object format: { key: value, ... }
     if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
-      const items = Object.entries(rawData)
-        .filter(([_, v]) => typeof v === 'number')
-        .map(([key, value]) => ({
-          label: this.formatLabel(key),
-          value: Math.max(0, Math.min(100, value)),
-          rawValue: value
-        }));
+      const entries = Object.entries(rawData)
+        .filter(([_, v]) => typeof v === 'number');
+      
+      console.log('[Detail-RadarChart] Object entries:', entries);
+      
+      if (entries.length === 0) {
+        console.log('[Detail-RadarChart] No numeric entries found in object');
+        return [];
+      }
+      
+      const maxRaw = Math.max(...entries.map(([_, v]) => v));
+      const is0to10Scale = maxRaw <= 10;
+      
+      console.log('[Detail-RadarChart] maxRaw:', maxRaw, 'is0to10Scale:', is0to10Scale);
+      
+      const items = entries.map(([key, rawValue]) => ({
+        label: this.formatLabel(key),
+        value: is0to10Scale ? rawValue * 10 : Math.max(0, Math.min(100, rawValue)),
+        rawValue: rawValue
+      }));
+      
+      console.log('[Detail-RadarChart] Normalized items from object:', items);
       return items.slice(0, 12);
     }
 
+    // Handle array format
     if (!Array.isArray(rawData) || rawData.length === 0) {
+      console.log('[Detail-RadarChart] Not an array or empty');
       return [];
     }
 
-    // Detect value range to normalize properly
     const rawValues = rawData.map(item => {
       if (typeof item === 'object') {
         return item.value || item.score || item.rating || 
@@ -196,18 +232,17 @@ export class RadarChartMorph extends LitElement {
     });
     
     const maxRaw = Math.max(...rawValues);
-    const isPercentage = maxRaw <= 10; // If max is ≤10, it's likely a 0-10 scale
+    const isPercentage = maxRaw <= 10;
+    
+    console.log('[Detail-RadarChart] Array rawValues:', rawValues, 'maxRaw:', maxRaw);
 
-    return rawData
+    const items = rawData
       .map(item => {
         if (typeof item === 'object') {
-          // Flexible value extraction
           const rawValue = item.value || item.score || item.rating || 
                           item.strength || item.intensity || item.difficulty || 0;
-          // Normalize: if 0-10 scale, multiply by 10 to get 0-100
           const value = isPercentage ? rawValue * 10 : Math.max(0, Math.min(100, rawValue));
           
-          // Flexible label extraction
           let label = item.axis || item.dimension || item.category || 
                      item.factor || item.label || item.name || 'Unknown';
           label = this.formatLabel(label);
@@ -218,6 +253,9 @@ export class RadarChartMorph extends LitElement {
       })
       .filter(Boolean)
       .slice(0, 12);
+    
+    console.log('[Detail-RadarChart] Normalized items from array:', items);
+    return items;
   }
 
   formatLabel(label) {
@@ -246,7 +284,7 @@ export class RadarChartMorph extends LitElement {
 
   calculateLabelPoint(index, total, centerX, centerY, radius) {
     const angle = (Math.PI * 2 * index) / total - Math.PI / 2;
-    const labelRadius = radius + 25;
+    const labelRadius = radius + 30;
     return {
       x: centerX + Math.cos(angle) * labelRadius,
       y: centerY + Math.sin(angle) * labelRadius
@@ -279,17 +317,6 @@ export class RadarChartMorph extends LitElement {
     return path;
   }
 
-  generateAxisPaths(centerX, centerY, radius, points) {
-    const paths = [];
-    for (let i = 0; i < points; i++) {
-      const angle = (Math.PI * 2 * i) / points - Math.PI / 2;
-      const x = centerX + Math.cos(angle) * radius;
-      const y = centerY + Math.sin(angle) * radius;
-      paths.push(`M ${centerX} ${centerY} L ${x} ${y}`);
-    }
-    return paths;
-  }
-
   generateDataPath(items, centerX, centerY, radius) {
     if (items.length === 0) return '';
     
@@ -309,74 +336,86 @@ export class RadarChartMorph extends LitElement {
   render() {
     const items = this.normalizeData();
     
+    console.log('[Detail-RadarChart] render() items:', items.length, items);
+    
     if (items.length < 3) {
-      return html``;
+      console.log('[Detail-RadarChart] Less than 3 items, showing empty state');
+      return html`<div class="empty-state">Need at least 3 data points (got ${items.length})</div>`;
     }
 
-    const viewBox = 200;
-    const centerX = viewBox / 2;
-    const centerY = viewBox / 2;
-    const radius = 60;
+    // Same size as grid-view
+    const size = 280;
+    const centerX = size / 2;
+    const centerY = size / 2;
+    const radius = size / 2 - 55;
 
     const gridPath = this.generateGridPath(centerX, centerY, radius, items.length);
-    const axisPaths = this.generateAxisPaths(centerX, centerY, radius, items.length);
     const dataPath = this.generateDataPath(items, centerX, centerY, radius);
 
-    const dataPoints = items.map((item, i) => 
-      this.calculatePoint(i, items.length, item.value, centerX, centerY, radius)
-    );
-
-    const labelPositions = items.map((item, i) => 
-      this.calculateLabelPoint(i, items.length, centerX, centerY, radius)
-    );
+    console.log('[Detail-RadarChart] Rendering chart with', items.length, 'axes');
 
     return html`
       ${this.label ? html`<div class="chart-label">${this.label}</div>` : ''}
       <div class="radar-container">
-        <svg viewBox="0 0 ${viewBox} ${viewBox}">
+        <svg viewBox="0 0 ${size} ${size}">
           <!-- Grid -->
-          <path class="radar-grid" d="${gridPath}"></path>
+          <path class="radar-grid" d="${gridPath}" />
           
           <!-- Axes -->
-          ${axisPaths.map(path => html`
-            <path class="radar-axis" d="${path}"></path>
-          `)}
+          ${items.map((_, i) => {
+            const end = this.calculatePoint(i, items.length, 100, centerX, centerY, radius);
+            return html`
+              <line
+                class="radar-grid"
+                x1="${centerX}" y1="${centerY}"
+                x2="${end.x}" y2="${end.y}"
+              />
+            `;
+          })}
           
-          <!-- Data shape -->
-          <path class="radar-shape" d="${dataPath}"></path>
+          <!-- Data Shape -->
+          <path class="radar-shape" d="${dataPath}" />
           
-          <!-- Data points -->
-          ${dataPoints.map(point => html`
-            <circle 
-              class="radar-point" 
-              cx="${point.x}" 
-              cy="${point.y}" 
-              r="4"
-            ></circle>
-          `)}
-          
-          <!-- Labels -->
-          ${labelPositions.map((pos, i) => html`
-            <foreignObject 
-              x="${pos.x - 30}" 
-              y="${pos.y - 8}" 
-              width="60" 
-              height="16"
-            >
-              <div 
-                xmlns="http://www.w3.org/1999/xhtml" 
-                class="radar-label-html"
-                style="text-align: center"
-              >${items[i].label}</div>
-            </foreignObject>
-          `)}
+          <!-- Data Points -->
+          ${items.map((item, i) => {
+            const pt = this.calculatePoint(i, items.length, item.value, centerX, centerY, radius);
+            return html`
+              <circle class="radar-point" cx="${pt.x}" cy="${pt.y}" r="4" />
+            `;
+          })}
         </svg>
+        
+        <!-- HTML Labels positioned absolutely (like grid-view!) -->
+        ${items.map((item, i) => {
+          const pos = this.calculateLabelPoint(i, items.length, centerX, centerY, radius);
+          const svgRect = size;
+          const labelX = (pos.x / svgRect) * 100;
+          const labelY = ((pos.y - 8) / svgRect) * 100;
+          const valueY = ((pos.y + 8) / svgRect) * 100;
+          
+          console.log('[Detail-RadarChart] Label', i, item.label, 'at', labelX.toFixed(1) + '%', labelY.toFixed(1) + '%');
+          
+          return html`
+            <div class="label-group" style="
+              left: ${labelX}%;
+              top: ${labelY}%;
+            ">
+              <div class="radar-label-html">${item.label}</div>
+            </div>
+            <div class="value-group" style="
+              left: ${labelX}%;
+              top: ${valueY}%;
+            ">
+              <div class="radar-value-html">
+                ${typeof item.rawValue === 'number' ? item.rawValue.toFixed(1) : item.rawValue}
+              </div>
+            </div>
+          `;
+        })}
       </div>
     `;
   }
 }
 
-// Register with standard name - detail-view owns these morphs
-if (!customElements.get('radar-chart-morph')) {
-  customElements.define('radar-chart-morph', RadarChartMorph);
-}
+// Register with detail- prefix for detail pages
+customElements.define('detail-radar-chart-morph', RadarChartMorph);

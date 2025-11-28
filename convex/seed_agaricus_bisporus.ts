@@ -333,7 +333,8 @@ const agaricusBisporus = {
       
       veil: {
         universal: {
-          present: false
+          present: false,
+          remnants_on_cap: "none"
         },
         partial: {
           present: true,
@@ -375,7 +376,8 @@ const agaricusBisporus = {
         cheilocystidia: {
           present: true,
           shape: "clavate to pyriform",
-          size: { length_um: { min: 15, max: 25 }, width_um: { min: 8, max: 15 } }
+          size_um: { length: { min: 15, max: 25 }, width: { min: 8, max: 15 } },
+          wall_thickness: "thin"
         }
       },
       
@@ -557,9 +559,18 @@ const agaricusBisporus = {
       trophic_strategy: {
         primary: "saprotrophic",
         saprotrophic: {
-          substrate_preference: ["composted manure", "straw", "organic matter"],
-          decomposition_rate: "fast",
-          enzyme_systems: ["cellulases", "ligninases", "proteases"]
+          decay_type: "secondary decomposer",
+          substrate_type: "composted organic matter",
+          enzyme_profile: [
+            { enzyme: "cellulase", activity_level: "high" },
+            { enzyme: "ligninase", activity_level: "low" },
+            { enzyme: "protease", activity_level: "medium" }
+          ],
+          substrates: [
+            { substrate: "composted manure", preference: 95, succession_stage: "secondary", decay_rate: { value: 0.5, unit: "years" } },
+            { substrate: "straw", preference: 85, succession_stage: "secondary", decay_rate: { value: 0.8, unit: "years" } },
+            { substrate: "organic matter", preference: 80, succession_stage: "secondary", decay_rate: { value: 1, unit: "years" } }
+          ]
         }
       },
       
